@@ -1,33 +1,58 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useAdmin } from "@/lib/admin/store";
-import { Card, StatusPill } from "@/components/admin/ui";
-import { appStatusPill, initials, type AppStatus } from "@/lib/admin/data";
-import { cn } from "@/lib/utils";
+import { Card } from "@/components/admin/ui";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { RippleLoader } from "@/components/ui/Loader";
+import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { formatMoney } from "@/lib/format-money";
+import { formatDate, formatDateTime } from "@/lib/format-date";
+import {
+  useGetApplicationByIdQuery,
+  useRefundPaymentMutation,
+  useRemindApplicantMutation,
+  useUpdateApplicationStatusMutation,
+} from "@/redux/applications/applications-api";
 
-const ACTIONS: { label: string; target: AppStatus; color: string }[] = [
-  { label: "Approve", target: "Approved", color: "#2E6B3F" },
-  { label: "Waitlist", target: "Waitlist", color: "#8A5F14" },
-  { label: "Reject", target: "Rejected", color: "#A32036" },
-];
-
-const FEES = [
-  { label: "Registration & school fees", value: "GHS 2,000" },
-  { label: "Hostel (if requested)", value: "GHS 700" },
-  { label: "Uniform · 2 tees + apron", value: "GHS 250" },
+const STATUS_ACTIONS = [
+  { status: "RECRUITED", label: "Admit", variant: "primary" as const },
+  { status: "WAITLISTED", label: "Waitlist", variant: "outline" as const },
+  { status: "REJECTED", label: "Reject", variant: "danger" as const },
+  { status: "WITHDRAWN", label: "Withdraw", variant: "outline" as const },
 ];
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { getApplication, setAppStatus } = useAdmin();
-  const app = getApplication(id);
+  const { data, isLoading, isError, error, refetch } =
+    useGetApplicationByIdQuery(id);
+  const [updateStatus] = useUpdateApplicationStatusMutation();
+  const [remind, { isLoading: reminding }] = useRemindApplicantMutation();
+  const [refund] = useRefundPaymentMutation();
 
-  if (!app) {
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [pendingRefund, setPendingRefund] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+
+  const app = data?.data;
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-[50vh] place-items-center">
+        <RippleLoader />
+      </div>
+    );
+  }
+  if (isError || !app) {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
-        <p className="text-[15px] text-ink/60">This application no longer exists.</p>
+        <ErrorState error={error} onRetry={() => void refetch()} />
         <Link href="/admin/applications" className="mt-3 inline-block font-semibold text-accent">
           ← All applications
         </Link>
@@ -35,100 +60,214 @@ export default function ApplicationDetailPage() {
     );
   }
 
+  const confirmStatus = async () => {
+    if (!pendingStatus) return;
+    try {
+      await updateStatus({ id, status: pendingStatus }).unwrap();
+      notify.success("Status updated");
+    } catch (err) {
+      notify.error("Couldn't update status", { description: extractApiError(err).message });
+    } finally {
+      setPendingStatus(null);
+    }
+  };
+
+  const confirmRefund = async () => {
+    if (!pendingRefund) return;
+    try {
+      await refund({ paymentId: pendingRefund, applicationId: id }).unwrap();
+      notify.success("Payment reversed");
+    } catch (err) {
+      notify.error("Couldn't reverse", { description: extractApiError(err).message });
+    } finally {
+      setPendingRefund(null);
+    }
+  };
+
+  const sendReminder = async () => {
+    try {
+      await remind(id).unwrap();
+      notify.success("Reminder sent");
+    } catch (err) {
+      notify.error("Couldn't send reminder", { description: extractApiError(err).message });
+    }
+  };
+
+  const info: [string, string][] = [
+    ["Phone", app.phone],
+    ["Email", app.email ?? "—"],
+    ["Location", app.location ?? "—"],
+    ["Needs hostel", app.needsHostel ? "Yes" : "No"],
+    ["Applied", formatDate(app.createdAt)],
+  ];
+
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link
-        href="/admin/applications"
-        className="mb-5 inline-block text-[13.5px] font-semibold uppercase tracking-[0.08em] text-ink/65 no-underline transition-colors hover:text-accent"
-      >
+      <Link href="/admin/applications" className="mb-4 inline-block text-[13.5px] font-semibold text-accent">
         ← All applications
       </Link>
 
-      <div className="mb-[22px] flex flex-wrap items-center gap-x-5 gap-y-3.5">
-        <span className="grid h-14 w-14 place-items-center rounded-full bg-ink font-serif text-[20px] text-cream">
-          {initials(app.name)}
-        </span>
-        <div className="flex-[1_1_200px]">
-          <h2 className="font-serif text-[clamp(24px,3vw,32px)] font-normal">{app.name}</h2>
-          <div className="mt-[3px] text-[13.5px] text-ink/60">
-            Applied {app.date} · {app.location}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{app.fullName}</h1>
+          <div className="mt-1 text-[13.5px] text-ink/55">
+            {app.code}
+            {app.training ? (
+              <>
+                {" · "}
+                <Link href={`/admin/classes/${app.training.id}`} className="font-semibold text-accent">
+                  {app.training.name}
+                </Link>
+              </>
+            ) : null}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <StatusBadge status={app.status} />
+            <StatusBadge status={app.paymentStatus} />
           </div>
         </div>
-        <StatusPill pill={appStatusPill(app.status)} className="px-4 py-[7px] text-[12px]">
-          {app.status}
-        </StatusPill>
       </div>
 
-      <div className="mb-[26px] flex flex-wrap gap-2.5">
-        {ACTIONS.map((act) => {
-          const on = app.status === act.target;
-          return (
-            <button
-              key={act.label}
-              type="button"
-              onClick={() => setAppStatus(app.id, act.target)}
-              className="min-h-11 cursor-pointer whitespace-nowrap rounded-full border-[1.5px] px-[22px] py-[11px] font-sans text-[13.5px] font-semibold transition-colors"
-              style={
-                on
-                  ? { borderColor: act.color, background: act.color, color: "#FDFAF3" }
-                  : { borderColor: "rgba(36,26,18,0.22)", background: "transparent", color: "#241A12" }
-              }
-            >
-              {act.label}
-            </button>
-          );
-        })}
+      {/* Status actions */}
+      <div className="mb-6 flex flex-wrap gap-2.5">
+        {STATUS_ACTIONS.filter((a) => a.status !== app.status).map((a) => (
+          <Button key={a.status} variant={a.variant} onClick={() => setPendingStatus(a.status)}>
+            {a.label}
+          </Button>
+        ))}
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-            Contact &amp; details
-          </h3>
-          <div className="grid gap-3.5 text-[14.5px]">
-            {[
-              ["Phone / WhatsApp", app.phone],
-              ["Email", app.email],
-              ["Location", app.location],
-              ["Hostel place requested", app.hostel ? "Yes - needs a place" : "No"],
-              ["Programme", "Bake School · 2-month intake"],
-            ].map(([label, value], i, arr) => (
-              <div
-                key={label}
-                className={cn(
-                  "flex justify-between gap-3.5",
-                  i < arr.length - 1 && "border-b border-ink/[0.08] pb-3",
-                )}
-              >
+          <h2 className="mb-4 font-serif text-[19px]">Applicant</h2>
+          <div className="grid gap-2.5">
+            {info.map(([label, value]) => (
+              <div key={label} className="flex justify-between gap-4 text-[14px]">
                 <span className="text-ink/55">{label}</span>
-                <span className="text-right font-semibold [overflow-wrap:anywhere]">{value}</span>
+                <span className="font-medium text-ink">{value}</span>
               </div>
             ))}
           </div>
+          {app.message ? (
+            <p className="mt-4 border-t border-ink/10 pt-4 text-[14px] leading-[1.6] text-ink/70">
+              “{app.message}”
+            </p>
+          ) : null}
+          {app.student ? (
+            <Link
+              href={`/admin/students/${app.student.id}`}
+              className="mt-4 inline-block text-[14px] font-semibold text-accent"
+            >
+              View student record ({app.student.code}) →
+            </Link>
+          ) : null}
         </Card>
 
-        <div className="grid content-start gap-[18px]">
-          <Card className="p-[clamp(20px,3vw,28px)]">
-            <h3 className="mb-3.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-              Applicant&rsquo;s message
-            </h3>
-            <p className="text-[15px] leading-[1.7] text-ink/[0.78]">{app.message}</p>
-          </Card>
-          <div className="rounded-[18px] border border-ink/10 bg-oat p-[clamp(18px,2.5vw,24px)]">
-            <h3 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-ink/55">
-              Fees checklist
-            </h3>
-            <div className="grid gap-[9px] text-[14px]">
-              {FEES.map((f) => (
-                <div key={f.label} className="flex justify-between gap-3">
-                  <span>{f.label}</span>
-                  <span className="font-semibold">{f.value}</span>
-                </div>
-              ))}
-            </div>
+        {/* Bill */}
+        <Card className="p-[clamp(20px,3vw,28px)]">
+          <h2 className="mb-4 font-serif text-[19px]">Bill</h2>
+          <div className="grid gap-2">
+            {(app.feeLines ?? []).map((f) => (
+              <div key={f.id} className="flex justify-between gap-4 text-[14px]">
+                <span className="text-ink/70">{f.name}</span>
+                <span className="font-medium">{formatMoney(f.amount, app.currency)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 grid gap-1.5 border-t border-ink/10 pt-3 text-[14px]">
+            <Row label="Total due" value={formatMoney(app.amountDue, app.currency)} />
+            <Row label="Paid" value={formatMoney(app.amountPaid, app.currency)} />
+            <Row label="Balance" value={formatMoney(app.balance, app.currency)} strong />
+          </div>
+        </Card>
+      </div>
+
+      {/* Payments */}
+      <Card className="mt-[18px] p-[clamp(20px,3vw,28px)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-serif text-[19px]">Payments</h2>
+          <div className="flex gap-2.5">
+            {app.balance > 0 ? (
+              <Button variant="outline" size="sm" isLoading={reminding} onClick={sendReminder}>
+                Send reminder
+              </Button>
+            ) : null}
+            <Button size="sm" onClick={() => setRecording(true)}>
+              Record payment
+            </Button>
           </div>
         </div>
-      </div>
+        {app.payments && app.payments.length > 0 ? (
+          <div className="grid gap-2">
+            {app.payments.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-ink/10 px-4 py-3 text-[14px]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold">{formatMoney(p.amount, p.currency)}</span>
+                  <span className="text-ink/55">{p.method.replace("_", " ")}</span>
+                  <StatusBadge status={p.status} />
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-[13px] text-ink/50">
+                    {formatDateTime(p.paidAt ?? null)}
+                  </span>
+                  {p.status === "SUCCESS" ? (
+                    <button
+                      type="button"
+                      onClick={() => setPendingRefund(p.id)}
+                      className="text-[13px] font-semibold text-danger"
+                    >
+                      Reverse
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[14px] text-ink/50">No payments recorded yet.</p>
+        )}
+      </Card>
+
+      <RecordPaymentModal
+        applicationId={id}
+        open={recording}
+        onClose={() => setRecording(false)}
+      />
+      <ConfirmationDialog
+        open={pendingStatus !== null}
+        onOpenChange={(o) => !o && setPendingStatus(null)}
+        title={`Set status to ${pendingStatus ?? ""}?`}
+        description={
+          pendingStatus === "RECRUITED"
+            ? "This admits the applicant and creates their student record."
+            : "This updates the application status."
+        }
+        confirmText="Confirm"
+        onConfirm={confirmStatus}
+      />
+      <ConfirmationDialog
+        open={pendingRefund !== null}
+        onOpenChange={(o) => !o && setPendingRefund(null)}
+        title="Reverse this payment?"
+        description="Paystack payments are refunded via Paystack; cash/MoMo are marked reversed."
+        confirmText="Reverse payment"
+        isDestructive
+        onConfirm={confirmRefund}
+      />
+    </div>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span className="text-ink/55">{label}</span>
+      <span className={strong ? "font-semibold text-ink" : "font-medium text-ink"}>
+        {value}
+      </span>
     </div>
   );
 }
