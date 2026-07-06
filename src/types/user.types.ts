@@ -30,3 +30,31 @@ export interface IUserResponse {
   message: string;
   data: { user: IUser };
 }
+
+/** A console account as the admin/users endpoints return it (backend
+ * `toPublicUser`) — the signed-in shape plus account-management fields. */
+export interface ITeamUser extends IUser {
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Admin user endpoints return the user directly in `data` (no wrapper). */
+export interface ITeamUserResponse {
+  message: string;
+  data: ITeamUser;
+}
+
+export interface ITeamUserListResponse {
+  message: string;
+  data: ITeamUser[];
+  meta: import("./training.types").IPaginationMeta;
+}
+
+export interface ITeamUserListQuery {
+  page?: number;
+  limit?: number;
+  role?: string;
+  isActive?: boolean;
+  search?: string;
+}
