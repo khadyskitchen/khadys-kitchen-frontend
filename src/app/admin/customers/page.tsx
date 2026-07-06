@@ -1,62 +1,118 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Card, Pager, StatusPill } from "@/components/admin/ui";
-import { customers, fmt } from "@/lib/admin/data";
-import { getStatusColor } from "@/lib/status-colors";
+import { useRouter } from "next/navigation";
+import { Card, Pager } from "@/components/admin/ui";
+import { FilterBar } from "@/components/admin/filter-bar";
+import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/format-money";
+import { formatDate } from "@/lib/format-date";
+import { useTableQuery } from "@/hooks/use-table-query";
+import { useGetCustomersQuery } from "@/redux/customers/customers-api";
 
-const PAGE_SIZE = 6;
+const DEFAULTS = {};
+const PAGE_SIZE = 12;
 
 export default function CustomersPage() {
-  const [page, setPage] = useState(1);
-  const pageCount = Math.max(1, Math.ceil(customers.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const rows = customers.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const router = useRouter();
+  const { page, search, setSearch, setPage, queryParams } = useTableQuery({
+    defaults: DEFAULTS,
+    pageSize: PAGE_SIZE,
+  });
+
+  const { data, isLoading, isFetching, isError, error, refetch } =
+    useGetCustomersQuery({
+      page,
+      limit: PAGE_SIZE,
+      search: (queryParams.search as string | undefined) ?? undefined,
+    });
+
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <div className="mb-[18px] flex items-center justify-end">
-        <span className="text-[13px] text-ink/55">{customers.length} customers</span>
-      </div>
+      <FilterBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search name, phone, email…"
+        resultLabel={meta ? `${String(meta.total)} total` : undefined}
+      />
 
-      <Card className="overflow-hidden">
-        <div className="hidden items-center gap-4 border-b border-ink/10 px-6 py-3.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink/50 min-[1000px]:flex">
-          <span className="flex-[2_1_180px]">Customer</span>
-          <span className="flex-[1_1_130px]">Phone</span>
-          <span className="flex-none basis-[64px]">Orders</span>
-          <span className="flex-none basis-[112px]">Payments</span>
-          <span className="flex-none basis-[100px] text-right">Total spend</span>
-        </div>
-        {rows.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/admin/customers/${c.slug}`}
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-4 no-underline transition-colors hover:bg-accent/[0.05]"
+      {isError ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
+        <TableSkeletonRows />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={search.trim() ? "No matching customers" : "No customers yet"}
+          description={
+            search.trim()
+              ? "Nothing matches your search — try clearing it."
+              : "Customers appear automatically the first time they order."
+          }
+        />
+      ) : (
+        <>
+          <Card
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && "opacity-60",
+            )}
           >
-            <div className="flex min-w-[170px] flex-[2_1_180px] items-center gap-3">
-              <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full bg-ink font-serif text-[14px] text-cream">
-                {c.initials}
-              </span>
-              <span className="text-[15px] font-semibold">{c.name}</span>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">Customer</th>
+                    <th className="px-4 py-3.5 font-semibold">Phone</th>
+                    <th className="px-4 py-3.5 font-semibold">Orders</th>
+                    <th className="px-4 py-3.5 font-semibold">Total spent</th>
+                    <th className="px-4 py-3.5 font-semibold">Last order</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((c) => (
+                    <tr
+                      key={c.id}
+                      onClick={() => router.push(`/admin/customers/${c.id}`)}
+                      className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="text-[15px] font-semibold text-ink">
+                          {c.fullName}
+                        </div>
+                        <div className="mt-0.5 text-[12.5px] text-ink/55">
+                          {c.email ?? "No email"}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                        {c.phone}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                        {c.orderCount}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] font-medium">
+                        {formatMoney(c.totalSpent)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
+                        {formatDate(c.lastOrderAt)}
+                      </td>
+                      <td className="px-6 py-4 text-right text-ink/40">→</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <span className="flex-[1_1_130px] text-[13.5px] text-ink/75">{c.phone}</span>
-            <span className="flex-none basis-[64px] text-[13.5px] text-ink/75">
-              {c.orderCount}
-            </span>
-            <span className="flex-none basis-[112px]">
-              <StatusPill pill={getStatusColor(c.unpaidCount === 0 ? "Paid" : "Unpaid")}>
-                {c.unpaidCount === 0 ? "All paid" : `${c.unpaidCount} unpaid`}
-              </StatusPill>
-            </span>
-            <span className="flex-none basis-[100px] text-right font-serif text-[15px]">
-              {fmt(c.totalSpend)}
-            </span>
-          </Link>
-        ))}
-      </Card>
-
-      <Pager page={current} pageCount={pageCount} onPage={setPage} />
+          </Card>
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

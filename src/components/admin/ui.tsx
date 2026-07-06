@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { Pill } from "@/lib/admin/data";
+import type { Pill } from "@/lib/status-colors";
 
 /** Small status chip rendered with the computed pill palette. */
 export function StatusPill({

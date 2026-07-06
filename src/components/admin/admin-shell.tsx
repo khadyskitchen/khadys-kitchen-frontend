@@ -7,7 +7,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV_ITEMS, routeMeta } from "@/lib/admin/nav";
-import { AdminProvider } from "@/lib/admin/store";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import type { IUser } from "@/types/user.types";
@@ -236,8 +235,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AdminProvider>
-      <div className="flex min-h-screen bg-cream text-ink">
+    <div className="flex min-h-screen bg-cream text-ink">
         <Sidebar
           pathname={pathname}
           account={account}
@@ -284,8 +282,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <main className="mx-auto w-full max-w-[1180px] flex-1 p-[clamp(20px,3.5vw,36px)]">
             {children}
           </main>
-        </div>
       </div>
-    </AdminProvider>
+    </div>
   );
 }

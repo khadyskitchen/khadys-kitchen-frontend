@@ -1,164 +1,315 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useAdmin } from "@/lib/admin/store";
-import { Card, StatusPill } from "@/components/admin/ui";
-import { fmt, initials, orderPill, type OrderStatus } from "@/lib/admin/data";
+import { Card } from "@/components/admin/ui";
+import { OrderRecordPaymentModal } from "@/components/admin/order-record-payment-modal";
+import { useConfirm } from "@/components/admin/use-confirm";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { RippleLoader } from "@/components/ui/Loader";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { formatMoney } from "@/lib/format-money";
+import { formatDate, formatDateTime } from "@/lib/format-date";
+import {
+  useGetOrderByIdQuery,
+  useGetOrderPaymentsQuery,
+  useSetOrderStatusMutation,
+} from "@/redux/orders/orders-api";
+import { useRefundLedgerPaymentMutation } from "@/redux/payments/payments-api";
+import type { OrderStatus } from "@/types/order.types";
 
-const STATUSES: OrderStatus[] = ["Pending", "Confirmed", "Ready", "Collected"];
+/** Which lifecycle buttons each status offers (mirrors the backend's
+ * transition table — collection additionally requires a settled balance). */
+const ACTIONS: Record<
+  OrderStatus,
+  { action: "confirm" | "ready" | "collect" | "cancel"; label: string; variant: "primary" | "outline" | "danger" }[]
+> = {
+  PENDING: [
+    { action: "confirm", label: "Confirm", variant: "primary" },
+    { action: "ready", label: "Mark ready", variant: "outline" },
+    { action: "cancel", label: "Cancel order", variant: "danger" },
+  ],
+  CONFIRMED: [
+    { action: "ready", label: "Mark ready", variant: "primary" },
+    { action: "collect", label: "Mark collected", variant: "outline" },
+    { action: "cancel", label: "Cancel order", variant: "danger" },
+  ],
+  READY: [
+    { action: "collect", label: "Mark collected", variant: "primary" },
+    { action: "cancel", label: "Cancel order", variant: "danger" },
+  ],
+  COLLECTED: [],
+  CANCELLED: [],
+};
+
+const CONFIRM_COPY: Record<string, { title: string; description: string }> = {
+  confirm: {
+    title: "Confirm this order?",
+    description: "This accepts the order — baking starts on schedule.",
+  },
+  ready: {
+    title: "Mark this order ready?",
+    description: "The customer is notified their order is ready for pickup.",
+  },
+  collect: {
+    title: "Mark this order collected?",
+    description:
+      "This settles the order. Any outstanding balance must be recorded first.",
+  },
+  cancel: {
+    title: "Cancel this order?",
+    description:
+      "Reserved stock returns to the shelf and the customer is notified. Paid amounts should be refunded from the payments below.",
+  },
+};
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { getOrder, getItem, setOrderStatus } = useAdmin();
-  const order = getOrder(id);
-  const item = order ? getItem(order.itemId) : undefined;
+  const { data, isLoading, isError, error, refetch } = useGetOrderByIdQuery(id);
+  const { data: pay } = useGetOrderPaymentsQuery(id);
+  const [setStatus, { isLoading: statusBusy }] = useSetOrderStatusMutation();
+  const [refund] = useRefundLedgerPaymentMutation();
 
-  if (!order) {
+  const { confirm, dialog } = useConfirm();
+  const [recording, setRecording] = useState(false);
+
+  const order = data?.data;
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-[50vh] place-items-center">
+        <RippleLoader />
+      </div>
+    );
+  }
+  if (isError || !order) {
     return (
       <div style={{ animation: "kk-rise .5s both" }}>
-        <p className="text-[15px] text-ink/60">This order no longer exists.</p>
-        <Link href="/admin/items" className="mt-3 inline-block font-semibold text-accent">
-          ← Shop items
+        <ErrorState error={error} onRetry={() => void refetch()} />
+        <Link href="/admin/orders" className="mt-3 inline-block font-semibold text-accent">
+          ← All orders
         </Link>
       </div>
     );
   }
 
-  const itemHref = item ? `/admin/items/${item.id}` : "/admin/items";
-  const total = item ? order.qty * item.price : 0;
+  const doAction = async (action: "confirm" | "ready" | "collect" | "cancel") => {
+    try {
+      await setStatus({ id, action }).unwrap();
+      notify.success("Order updated");
+    } catch (err) {
+      notify.error("Couldn't update the order", {
+        description: extractApiError(err).message,
+      });
+    }
+  };
+
+  const doRefund = async (paymentId: string) => {
+    try {
+      await refund({ paymentId }).unwrap();
+      notify.success("Payment reversed");
+    } catch (err) {
+      notify.error("Couldn't reverse", { description: extractApiError(err).message });
+    }
+  };
+
+  const info: [string, React.ReactNode][] = [
+    ["Phone", order.phone],
+    ["Email", order.email ?? "—"],
+    ["Pickup", order.pickupDate ? formatDate(order.pickupDate) : "—"],
+    ["Placed", formatDateTime(order.createdAt)],
+    ["Source", order.source === "ADMIN" ? "Walk-in (admin)" : "Online shop"],
+  ];
+
+  const timeline: [string, string | null][] = [
+    ["Confirmed", order.confirmedAt],
+    ["Ready", order.readyAt],
+    ["Collected", order.collectedAt],
+    ["Cancelled", order.cancelledAt],
+  ];
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <Link
-        href={itemHref}
-        className="mb-5 inline-block text-[13.5px] font-semibold uppercase tracking-[0.08em] text-ink/65 no-underline transition-colors hover:text-accent"
-      >
-        ← Back to item
+      <Link href="/admin/orders" className="mb-4 inline-block text-[13.5px] font-semibold text-accent">
+        ← All orders
       </Link>
 
-      <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-3.5">
-        <div className="flex-[1_1_220px]">
-          <h2 className="font-serif text-[clamp(24px,3vw,32px)] font-normal">Order {order.id}</h2>
-          <div className="mt-[3px] text-[13.5px] text-ink/60">
-            Placed {order.placed} · needed by {order.needBy}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
+            {order.fullName}
+          </h1>
+          <div className="mt-1 text-[13.5px] text-ink/55">
+            {order.code}
+            {order.customerId ? (
+              <>
+                {" · "}
+                <Link
+                  href={`/admin/customers/${order.customerId}`}
+                  className="font-semibold text-accent"
+                >
+                  Customer history
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
-        <StatusPill pill={orderPill(order.status)} className="px-4 py-[7px] text-[12px]">
-          {order.status}
-        </StatusPill>
-      </div>
-
-      <div className="mb-[26px] flex flex-wrap items-center gap-2.5">
-        <span className="mr-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-ink/50">
-          Set status
-        </span>
-        {STATUSES.map((target) => {
-          const on = order.status === target;
-          const pill = orderPill(target);
-          return (
-            <button
-              key={target}
-              type="button"
-              onClick={() => setOrderStatus(order.id, target)}
-              className="min-h-11 cursor-pointer whitespace-nowrap rounded-full border-[1.5px] px-[22px] py-[11px] font-sans text-[13.5px] font-semibold transition-colors"
-              style={
-                on
-                  ? { borderColor: pill.color, background: pill.color, color: "#FDFAF3" }
-                  : { borderColor: "rgba(36,26,18,0.22)", background: "transparent", color: "#241A12" }
+        <div className="flex flex-wrap gap-2.5">
+          {ACTIONS[order.status].map((a) => (
+            <Button
+              key={a.action}
+              variant={a.variant}
+              isLoading={statusBusy}
+              onClick={() =>
+                confirm({
+                  title: CONFIRM_COPY[a.action].title,
+                  description: CONFIRM_COPY[a.action].description,
+                  confirmText: a.label,
+                  isDestructive: a.action === "cancel",
+                  onConfirm: () => doAction(a.action),
+                })
               }
             >
-              {target}
-            </button>
-          );
-        })}
+              {a.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-            Order summary
-          </h3>
-          <Link
-            href={itemHref}
-            className="mb-4 flex items-center gap-4 border-b border-ink/10 pb-4 no-underline text-ink transition-opacity hover:opacity-80"
-          >
-            {item ? (
-              <Image
-                src={item.img}
-                alt={item.name}
-                width={64}
-                height={64}
-                unoptimized
-                className="h-16 w-16 flex-none rounded-[14px] object-cover"
-              />
-            ) : null}
-            <div>
-              <div className="font-serif text-[19px]">{item?.name}</div>
-              <div className="mt-[3px] text-[13px] text-ink/55">
-                {item?.unit} · {item?.lead}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Order</h2>
+            <StatusBadge status={order.status} />
+          </div>
+          <div className="grid gap-2.5">
+            {info.map(([label, value]) => (
+              <div key={label as string} className="flex justify-between gap-4 text-[14px]">
+                <span className="text-ink/55">{label}</span>
+                <span className="font-medium text-ink">{value}</span>
               </div>
-            </div>
-          </Link>
-          <div className="grid gap-3 text-[14.5px]">
-            <div className="flex justify-between gap-3.5">
-              <span className="text-ink/55">Unit price</span>
-              <span className="font-semibold">{item ? fmt(item.price) : "-"}</span>
-            </div>
-            <div className="flex justify-between gap-3.5">
-              <span className="text-ink/55">Quantity</span>
-              <span className="font-semibold">×{order.qty}</span>
-            </div>
-            <div className="flex justify-between gap-3.5 border-t border-ink/10 pt-3">
-              <span className="font-semibold">Total · pay at pickup</span>
-              <span className="font-serif text-[20px]">{fmt(total)}</span>
-            </div>
+            ))}
+          </div>
+          {order.note ? (
+            <p className="mt-4 border-t border-ink/10 pt-4 text-[14px] leading-[1.6] text-ink/70">
+              “{order.note}”
+            </p>
+          ) : null}
+          <div className="mt-4 grid gap-1.5 border-t border-ink/10 pt-4 text-[13px] text-ink/55">
+            {timeline
+              .filter(([, at]) => at)
+              .map(([label, at]) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <span>{label}</span>
+                  <span>{formatDateTime(at)}</span>
+                </div>
+              ))}
           </div>
         </Card>
 
-        <div className="grid content-start gap-[18px]">
-          <Card className="p-[clamp(20px,3vw,28px)]">
-            <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-              Customer
-            </h3>
-            <div className="mb-4 flex items-center gap-3.5">
-              <span className="grid h-[46px] w-[46px] place-items-center rounded-full bg-ink font-serif text-[16px] text-cream">
-                {initials(order.customer)}
-              </span>
-              <div>
-                <div className="text-[15.5px] font-semibold">{order.customer}</div>
-                <div className="mt-0.5 text-[13px] text-ink/55">{order.phone}</div>
+        <Card className="p-[clamp(20px,3vw,28px)]">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Bill</h2>
+            <StatusBadge status={order.paymentStatus} />
+          </div>
+          <div className="grid gap-2">
+            {order.items.map((item) => (
+              <div key={item.id} className="flex justify-between gap-4 text-[14px]">
+                <span className="text-ink/70">
+                  {item.name}
+                  <span className="text-ink/45"> × {item.quantity}</span>
+                </span>
+                <span className="font-medium">
+                  {formatMoney(item.lineTotal, order.currency)}
+                </span>
               </div>
-            </div>
-            <div className="grid gap-3 text-[14.5px]">
-              {[
-                ["Email", order.email],
-                ["Needed by", order.needBy],
-                ["Wait preference", order.wait],
-                ["Placed", order.placed],
-              ].map(([label, value], i, arr) => (
-                <div
-                  key={label}
-                  className={`flex justify-between gap-3.5 ${i < arr.length - 1 ? "border-b border-ink/[0.08] pb-[11px]" : ""}`}
-                >
-                  <span className="text-ink/55">{label}</span>
-                  <span className="text-right font-semibold [overflow-wrap:anywhere]">{value}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
+            ))}
+          </div>
+          <div className="mt-3 grid gap-1.5 border-t border-ink/10 pt-3 text-[14px]">
+            <Row label="Total" value={formatMoney(order.total, order.currency)} />
+            <Row label="Paid" value={formatMoney(order.amountPaid, order.currency)} />
+            <Row
+              label="Balance"
+              value={formatMoney(order.balance, order.currency)}
+              strong
+            />
+          </div>
+        </Card>
+      </div>
 
-          {order.note ? (
-            <div className="rounded-[18px] border border-ink/10 bg-oat p-[clamp(18px,2.5vw,24px)]">
-              <h3 className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-ink/55">
-                Customer note
-              </h3>
-              <p className="text-[14.5px] leading-[1.65] text-ink/[0.78]">{order.note}</p>
-            </div>
+      <Card className="mt-[18px] p-[clamp(20px,3vw,28px)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-serif text-[19px]">Payments</h2>
+          {order.status !== "CANCELLED" && order.balance > 0 ? (
+            <Button size="sm" onClick={() => setRecording(true)}>
+              Record payment
+            </Button>
           ) : null}
         </div>
-      </div>
+        {pay && pay.data.length > 0 ? (
+          <div className="grid gap-2">
+            {pay.data.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-ink/10 px-4 py-3 text-[14px]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold">{formatMoney(p.amount, p.currency)}</span>
+                  <span className="text-ink/55">{p.method.replace("_", " ")}</span>
+                  <StatusBadge status={p.status} />
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-[13px] text-ink/50">
+                    {formatDateTime(p.paidAt ?? null)}
+                  </span>
+                  {p.status === "SUCCESS" ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        confirm({
+                          title: "Reverse this payment?",
+                          description:
+                            "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed.",
+                          confirmText: "Reverse payment",
+                          isDestructive: true,
+                          onConfirm: () => doRefund(p.id),
+                        })
+                      }
+                      className="text-[13px] font-semibold text-danger"
+                    >
+                      Reverse
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[14px] text-ink/50">No payments recorded yet.</p>
+        )}
+      </Card>
+
+      <OrderRecordPaymentModal
+        orderId={id}
+        open={recording}
+        onClose={() => setRecording(false)}
+      />
+      {dialog}
+    </div>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span className="text-ink/55">{label}</span>
+      <span className={strong ? "font-semibold text-ink" : "font-medium text-ink"}>
+        {value}
+      </span>
     </div>
   );
 }

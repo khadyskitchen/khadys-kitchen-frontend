@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { getStatusColor } from "@/lib/status-colors";
-import { appStatusPill, orderPill } from "@/lib/admin/data";
 
 describe("getStatusColor", () => {
   it("is case-insensitive", () => {
@@ -18,8 +17,8 @@ describe("getStatusColor", () => {
     expect(getStatusColor("nonsense").color).toBe("#C2185B");
   });
 
-  it("is the single source of truth for the admin pill helpers", () => {
-    expect(appStatusPill("Approved")).toEqual(getStatusColor("Approved"));
-    expect(orderPill("Confirmed")).toEqual(getStatusColor("Confirmed"));
+  it("covers the shop order lifecycle", () => {
+    expect(getStatusColor("CANCELLED").color).toBe("#A32036");
+    expect(getStatusColor("Collected").color).toBe("rgba(36,26,18,0.55)");
   });
 });

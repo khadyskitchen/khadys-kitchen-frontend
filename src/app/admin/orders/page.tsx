@@ -1,152 +1,171 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useAdmin } from "@/lib/admin/store";
-import { Card, Pager, SearchInput, StatusPill } from "@/components/admin/ui";
-import {
-  fmt,
-  isDelivered,
-  isOrderPaid,
-  orderMethod,
-  orderPill,
-  orderTotal,
-  paymentPill,
-  type OrderStatus,
-} from "@/lib/admin/data";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, Pager } from "@/components/admin/ui";
+import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/format-money";
+import { formatDate } from "@/lib/format-date";
+import { useTableQuery } from "@/hooks/use-table-query";
+import { useGetOrdersQuery } from "@/redux/orders/orders-api";
 
-type OrderFilter = "all" | OrderStatus | "Unpaid";
-
-const FILTERS: { id: OrderFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "Pending", label: "Pending" },
-  { id: "Confirmed", label: "Confirmed" },
-  { id: "Ready", label: "Ready" },
-  { id: "Collected", label: "Collected" },
-  { id: "Unpaid", label: "Unpaid" },
+const STATUS_FILTERS = [
+  "all",
+  "PENDING",
+  "CONFIRMED",
+  "READY",
+  "COLLECTED",
+  "CANCELLED",
 ];
+const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"];
+const DEFAULTS = { status: "all", payment: "all" };
+const PAGE_SIZE = 12;
 
-const PAGE_SIZE = 6;
+const titleCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 
 export default function OrdersPage() {
-  const { orders, getItem } = useAdmin();
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<OrderFilter>("all");
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const [recording, setRecording] = useState(false);
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
-  const list = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return orders.filter((o) => {
-      const item = getItem(o.itemId);
-      const matchesFilter =
-        filter === "all" ||
-        (filter === "Unpaid" ? !isOrderPaid(o.id) : o.status === filter);
-      const matchesSearch =
-        !q ||
-        `${o.id} ${o.customer} ${item?.name ?? ""}`.toLowerCase().includes(q);
-      return matchesFilter && matchesSearch;
+  const { data, isLoading, isFetching, isError, error, refetch } =
+    useGetOrdersQuery({
+      page,
+      limit: PAGE_SIZE,
+      search: (queryParams.search as string | undefined) ?? undefined,
+      status: filters.status !== "all" ? filters.status : undefined,
+      paymentStatus: filters.payment !== "all" ? filters.payment : undefined,
     });
-  }, [orders, getItem, search, filter]);
 
-  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const rows = list.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const activeCount =
+    (filters.status !== "all" ? 1 : 0) + (filters.payment !== "all" ? 1 : 0);
+  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <div className="mb-[18px] flex flex-wrap items-center gap-3">
-        <SearchInput
-          value={search}
-          onChange={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
-          placeholder="Search orders, customers…"
+      <FilterBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search code, name, phone…"
+        activeCount={activeCount}
+        resultLabel={meta ? `${String(meta.total)} total` : undefined}
+        action={<Button onClick={() => setRecording(true)}>+ Walk-in order</Button>}
+      >
+        <LabeledSelect
+          label="Status"
+          value={filters.status}
+          active={filters.status !== "all"}
+          onChange={(v) => setFilter("status", v)}
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : titleCase(f)}
+            </option>
+          ))}
+        </LabeledSelect>
+        <LabeledSelect
+          label="Payment"
+          value={filters.payment}
+          active={filters.payment !== "all"}
+          onChange={(v) => setFilter("payment", v)}
+        >
+          {PAYMENT_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : titleCase(f)}
+            </option>
+          ))}
+        </LabeledSelect>
+      </FilterBar>
+
+      {isError ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
+        <TableSkeletonRows />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={hasActiveFilters ? "No matching orders" : "No orders yet"}
+          description={
+            hasActiveFilters
+              ? "Nothing matches your current search or filters — try clearing them."
+              : "Shop orders land here the moment a customer checks out."
+          }
         />
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => {
-            const on = filter === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => {
-                  setFilter(f.id);
-                  setPage(1);
-                }}
-                className={cn(
-                  "cursor-pointer whitespace-nowrap rounded-full border-[1.5px] px-4 py-[9px] font-sans text-[13px] font-semibold transition-colors",
-                  on
-                    ? "border-accent bg-accent text-[#FDFAF3]"
-                    : "border-ink/20 bg-transparent text-ink hover:border-ink/40",
-                )}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
-        <span className="ml-auto whitespace-nowrap text-[13px] text-ink/55">
-          {list.length} of {orders.length}
-        </span>
-      </div>
+      ) : (
+        <>
+          <Card
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && "opacity-60",
+            )}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">Order</th>
+                    <th className="px-4 py-3.5 font-semibold">Items</th>
+                    <th className="px-4 py-3.5 font-semibold">Total</th>
+                    <th className="px-4 py-3.5 font-semibold">Payment</th>
+                    <th className="px-4 py-3.5 font-semibold">Status</th>
+                    <th className="px-4 py-3.5 font-semibold">Placed</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((o) => {
+                    const itemCount = o.items.reduce((n, i) => n + i.quantity, 0);
+                    return (
+                      <tr
+                        key={o.id}
+                        onClick={() => router.push(`/admin/orders/${o.id}`)}
+                        className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="text-[15px] font-semibold text-ink">
+                            {o.fullName}
+                          </div>
+                          <div className="mt-0.5 text-[12.5px] text-ink/55">{o.code}</div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                          {itemCount} item{itemCount === 1 ? "" : "s"}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[14px] font-medium">
+                          {formatMoney(o.total, o.currency)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <StatusBadge status={o.paymentStatus} />
+                        </td>
+                        <td className="px-4 py-4">
+                          <StatusBadge status={o.status} />
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
+                          {formatDate(o.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-ink/40">→</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
+        </>
+      )}
 
-      <Card className="overflow-hidden">
-        <div className="hidden items-center gap-4 border-b border-ink/10 px-6 py-3.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink/50 min-[1000px]:flex">
-          <span className="flex-[1.4_1_150px]">Order · Customer</span>
-          <span className="flex-[1.3_1_150px]">Item</span>
-          <span className="flex-none basis-[76px]">Need by</span>
-          <span className="flex-none basis-[128px]">Payment</span>
-          <span className="flex-none basis-24">Status</span>
-          <span className="flex-none basis-[80px] text-right">Total</span>
-        </div>
-        {rows.map((o) => {
-          const item = getItem(o.itemId);
-          const paid = isOrderPaid(o.id);
-          return (
-            <Link
-              key={o.id}
-              href={`/admin/orders/${o.id.slice(1)}`}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-[15px] no-underline transition-colors hover:bg-accent/[0.05]"
-            >
-              <div className="min-w-[150px] flex-[1.4_1_150px]">
-                <div className="text-[14.5px] font-semibold">
-                  <span className="text-accent">{o.id}</span> · {o.customer}
-                </div>
-                <div
-                  className={cn(
-                    "mt-0.5 text-[12.5px]",
-                    isDelivered(o) ? "text-[#2E6B3F]" : "text-ink/50",
-                  )}
-                >
-                  {isDelivered(o) ? "Delivered" : "In queue"}
-                </div>
-              </div>
-              <span className="flex-[1.3_1_150px] text-[13.5px] text-ink/75">
-                {item?.name} <span className="text-ink/50">×{o.qty}</span>
-              </span>
-              <span className="flex-none basis-[76px] text-[13px] text-ink/60">
-                {o.needBy}
-              </span>
-              <span className="flex-none basis-[128px]">
-                <StatusPill pill={paymentPill(paid)}>
-                  {paid ? `Paid · ${orderMethod(o.id)}` : "Unpaid"}
-                </StatusPill>
-              </span>
-              <span className="flex-none basis-24">
-                <StatusPill pill={orderPill(o.status)}>{o.status}</StatusPill>
-              </span>
-              <span className="flex-none basis-[80px] text-right font-serif text-[15px]">
-                {fmt(orderTotal(o))}
-              </span>
-            </Link>
-          );
-        })}
-      </Card>
-
-      <Pager page={current} pageCount={pageCount} onPage={setPage} />
+      <WalkInOrderModal open={recording} onClose={() => setRecording(false)} />
     </div>
   );
 }

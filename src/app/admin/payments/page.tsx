@@ -1,111 +1,235 @@
 "use client";
 
 import Link from "next/link";
-import { useAdmin } from "@/lib/admin/store";
-import { Card, StatTile } from "@/components/admin/ui";
-import { fmt, isOrderPaid, orderMethod, orderTotal, type Order } from "@/lib/admin/data";
+import { Card, Pager } from "@/components/admin/ui";
+import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { useConfirm } from "@/components/admin/use-confirm";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { formatMoney } from "@/lib/format-money";
+import { formatDateTime } from "@/lib/format-date";
+import { useTableQuery } from "@/hooks/use-table-query";
+import {
+  useGetPaymentsQuery,
+  useRefundLedgerPaymentMutation,
+} from "@/redux/payments/payments-api";
 
-const sum = (list: Order[]) => list.reduce((s, o) => s + orderTotal(o), 0);
+const OWNER_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "order", label: "Shop orders" },
+  { id: "application", label: "Bake school" },
+];
+const STATUS_FILTERS = ["all", "PENDING", "SUCCESS", "FAILED", "REVERSED"];
+const METHOD_FILTERS = ["all", "PAYSTACK", "CASH", "MOMO", "BANK_TRANSFER", "OTHER"];
+const DEFAULTS = { owner: "all", status: "all", method: "all" };
+const PAGE_SIZE = 15;
 
-/** Payment-method chip: Paystack reads as neutral/dark, MoMo as accent. */
-function MethodChip({ method }: { method: "Paystack" | "MoMo" }) {
-  const paystack = method === "Paystack";
-  return (
-    <span
-      className="inline-block whitespace-nowrap rounded-full px-3 py-[5px] text-[11.5px] font-semibold uppercase tracking-[0.06em]"
-      style={
-        paystack
-          ? { background: "rgba(36,26,18,0.08)", color: "#241A12" }
-          : { background: "rgba(194,24,91,0.1)", color: "#C2185B" }
-      }
-    >
-      {method}
-    </span>
-  );
-}
+const titleCase = (s: string) =>
+  s.charAt(0) + s.slice(1).toLowerCase().replace("_", " ");
 
 export default function PaymentsPage() {
-  const { orders, getItem } = useAdmin();
-  const received = orders.filter((o) => isOrderPaid(o.id));
-  const outstanding = orders.filter((o) => !isOrderPaid(o.id));
-  const paystack = received.filter((o) => orderMethod(o.id) === "Paystack");
-  const momo = received.filter((o) => orderMethod(o.id) === "MoMo");
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
-  const stats = [
-    { label: "Collected", value: fmt(sum(received)), note: `${received.length} payments` },
-    { label: "Via Paystack", value: fmt(sum(paystack)), note: `${paystack.length} payments · settles T+1` },
-    { label: "Via MoMo", value: fmt(sum(momo)), note: `${momo.length} payments` },
-    { label: "Outstanding", value: fmt(sum(outstanding)), note: `${outstanding.length} orders · pay at pickup` },
-  ];
+  const { data, isLoading, isFetching, isError, error, refetch } =
+    useGetPaymentsQuery({
+      page,
+      limit: PAGE_SIZE,
+      search: (queryParams.search as string | undefined) ?? undefined,
+      owner:
+        filters.owner !== "all"
+          ? (filters.owner as "application" | "order")
+          : undefined,
+      status: filters.status !== "all" ? filters.status : undefined,
+      method: filters.method !== "all" ? filters.method : undefined,
+    });
+  const [refund] = useRefundLedgerPaymentMutation();
+  const { confirm, dialog } = useConfirm();
+
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const activeCount = Object.entries(filters).filter(
+    ([, v]) => v !== "all",
+  ).length;
+  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+
+  const doRefund = async (paymentId: string) => {
+    try {
+      await refund({ paymentId }).unwrap();
+      notify.success("Payment reversed");
+    } catch (err) {
+      notify.error("Couldn't reverse", { description: extractApiError(err).message });
+    }
+  };
 
   return (
-    <div className="grid gap-5" style={{ animation: "kk-rise .5s both" }}>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3.5">
-        {stats.map((s) => (
-          <StatTile key={s.label} label={s.label} value={s.value} note={s.note} />
-        ))}
-      </div>
+    <div style={{ animation: "kk-rise .5s both" }}>
+      <FilterBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search reference or code…"
+        activeCount={activeCount}
+        resultLabel={meta ? `${String(meta.total)} total` : undefined}
+      >
+        <LabeledSelect
+          label="Source"
+          value={filters.owner}
+          active={filters.owner !== "all"}
+          onChange={(v) => setFilter("owner", v)}
+        >
+          {OWNER_FILTERS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </LabeledSelect>
+        <LabeledSelect
+          label="Status"
+          value={filters.status}
+          active={filters.status !== "all"}
+          onChange={(v) => setFilter("status", v)}
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : titleCase(f)}
+            </option>
+          ))}
+        </LabeledSelect>
+        <LabeledSelect
+          label="Method"
+          value={filters.method}
+          active={filters.method !== "all"}
+          onChange={(v) => setFilter("method", v)}
+        >
+          {METHOD_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : titleCase(f)}
+            </option>
+          ))}
+        </LabeledSelect>
+      </FilterBar>
 
-      <Card className="overflow-hidden">
-        <div className="flex items-baseline justify-between gap-3 border-b border-ink/10 px-6 py-[18px]">
-          <h3 className="font-serif text-[19px] font-normal">Payments received</h3>
-          <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-accent">
-            Paystack + MoMo
-          </span>
-        </div>
-        {received.map((o) => {
-          const item = getItem(o.itemId);
-          const method = orderMethod(o.id);
-          return (
-            <Link
-              key={o.id}
-              href={`/admin/orders/${o.id.slice(1)}`}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-[13px] no-underline transition-colors hover:bg-accent/[0.05]"
-            >
-              <span className="flex-none basis-[64px] text-[14px] font-semibold text-accent">
-                {o.id}
-              </span>
-              <span className="flex-[1.6_1_180px] text-[14px]">
-                <span className="font-semibold">{o.customer}</span>
-                <span className="text-ink/55"> · {item?.name}</span>
-              </span>
-              <span className="flex-none basis-[112px]">
-                {method ? <MethodChip method={method} /> : null}
-              </span>
-              <span className="ml-auto font-serif text-[15px]">{fmt(orderTotal(o))}</span>
-            </Link>
-          );
-        })}
-      </Card>
-
-      <Card className="overflow-hidden">
-        <div className="border-b border-ink/10 px-6 py-[18px]">
-          <h3 className="font-serif text-[19px] font-normal">
-            Outstanding - collect at pickup
-          </h3>
-        </div>
-        {outstanding.map((o) => {
-          const item = getItem(o.itemId);
-          return (
-            <Link
-              key={o.id}
-              href={`/admin/orders/${o.id.slice(1)}`}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-[13px] no-underline transition-colors hover:bg-accent/[0.05]"
-            >
-              <span className="flex-none basis-[64px] text-[14px] font-semibold text-accent">
-                {o.id}
-              </span>
-              <span className="flex-[1.6_1_180px] text-[14px]">
-                <span className="font-semibold">{o.customer}</span>
-                <span className="text-ink/55"> · {item?.name} · due {o.needBy}</span>
-              </span>
-              <span className="ml-auto font-serif text-[15px] text-[#8A5F14]">
-                {fmt(orderTotal(o))}
-              </span>
-            </Link>
-          );
-        })}
-      </Card>
+      {isError ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
+        <TableSkeletonRows />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={hasActiveFilters ? "No matching payments" : "No payments yet"}
+          description={
+            hasActiveFilters
+              ? "Nothing matches your current search or filters — try clearing them."
+              : "Every shop and bake-school payment lands in this ledger."
+          }
+        />
+      ) : (
+        <>
+          <Card
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && "opacity-60",
+            )}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">Payment</th>
+                    <th className="px-4 py-3.5 font-semibold">For</th>
+                    <th className="px-4 py-3.5 font-semibold">Amount</th>
+                    <th className="px-4 py-3.5 font-semibold">Method</th>
+                    <th className="px-4 py-3.5 font-semibold">Status</th>
+                    <th className="px-4 py-3.5 font-semibold">Paid</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="border-b border-ink/[0.08] last:border-0"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="max-w-[220px] truncate text-[13px] font-semibold text-ink">
+                          {p.reference}
+                        </div>
+                        {p.note ? (
+                          <div className="mt-0.5 max-w-[220px] truncate text-[12px] text-ink/50">
+                            {p.note}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13.5px]">
+                        {p.order ? (
+                          <Link
+                            href={`/admin/orders/${p.order.id}`}
+                            className="font-semibold text-accent"
+                          >
+                            {p.order.code}
+                          </Link>
+                        ) : p.application ? (
+                          <Link
+                            href={`/admin/applications/${p.application.id}`}
+                            className="font-semibold text-accent"
+                          >
+                            {p.application.code}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                        <div className="mt-0.5 text-[12px] text-ink/50">
+                          {p.order?.fullName ?? p.application?.fullName ?? ""}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] font-medium">
+                        {formatMoney(p.amount, p.currency)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
+                        {titleCase(p.method)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={p.status} />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13px] text-ink/60">
+                        {formatDateTime(p.paidAt ?? null)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {p.status === "SUCCESS" ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              confirm({
+                                title: "Reverse this payment?",
+                                description:
+                                  "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
+                                confirmText: "Reverse payment",
+                                isDestructive: true,
+                                onConfirm: () => doRefund(p.id),
+                              })
+                            }
+                            className="text-[13px] font-semibold text-danger"
+                          >
+                            Reverse
+                          </button>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
+        </>
+      )}
+      {dialog}
     </div>
   );
 }

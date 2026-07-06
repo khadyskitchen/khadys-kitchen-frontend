@@ -1,89 +1,235 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAdmin } from "@/lib/admin/store";
-import { Card, Pager, SearchInput, StatusPill } from "@/components/admin/ui";
-import { fmt } from "@/lib/admin/data";
+import { useRouter } from "next/navigation";
+import { Card, Pager } from "@/components/admin/ui";
+import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { useConfirm } from "@/components/admin/use-confirm";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { formatMoney } from "@/lib/format-money";
+import { useTableQuery } from "@/hooks/use-table-query";
+import {
+  useGetProductsQuery,
+  useSetProductAvailabilityMutation,
+} from "@/redux/products/products-api";
+import { PRODUCT_CATEGORIES } from "@/types/product.types";
 
-const PAGE_SIZE = 6;
+const AVAILABILITY_FILTERS = ["all", "available", "unavailable"];
+const DEFAULTS = { category: "all", availability: "all" };
+const PAGE_SIZE = 12;
 
 export default function ItemsPage() {
-  const { items, orders } = useAdmin();
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
-  const list = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return items.filter((it) => !q || `${it.name} ${it.cat}`.toLowerCase().includes(q));
-  }, [items, search]);
+  const { data, isLoading, isFetching, isError, error, refetch } =
+    useGetProductsQuery({
+      page,
+      limit: PAGE_SIZE,
+      search: (queryParams.search as string | undefined) ?? undefined,
+      category: filters.category !== "all" ? filters.category : undefined,
+      isAvailable:
+        filters.availability === "all"
+          ? undefined
+          : filters.availability === "available",
+    });
+  const [setAvailability] = useSetProductAvailabilityMutation();
+  const { confirm, dialog } = useConfirm();
 
-  const openOrders = (itemId: string) =>
-    orders.filter((o) => o.itemId === itemId && o.status !== "Collected").length;
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const activeCount =
+    (filters.category !== "all" ? 1 : 0) +
+    (filters.availability !== "all" ? 1 : 0);
+  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
 
-  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const rows = list.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const toggle = (id: string, name: string, next: boolean) =>
+    confirm({
+      title: next ? "Put this item on sale?" : "Take this item off sale?",
+      description: next
+        ? `"${name}" will show in the shop and be orderable again.`
+        : `"${name}" disappears from the shop immediately. Existing orders are unaffected.`,
+      confirmText: next ? "Make available" : "Make unavailable",
+      isDestructive: !next,
+      onConfirm: async () => {
+        try {
+          await setAvailability({ id, isAvailable: next }).unwrap();
+          notify.success(next ? "Item is on sale" : "Item taken off sale");
+        } catch (err) {
+          notify.error("Couldn't update availability", {
+            description: extractApiError(err).message,
+          });
+        }
+      },
+    });
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
-      <div className="mb-[18px] flex flex-wrap items-center gap-3">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search items…" />
-        <span className="ml-auto whitespace-nowrap text-[13px] text-ink/55">
-          {list.length} of {items.length}
-        </span>
-        <Link
-          href="/admin/items/new"
-          className="whitespace-nowrap rounded-full bg-accent px-6 py-3 text-[13.5px] font-semibold tracking-[0.04em] text-[#FDFAF3] no-underline transition-colors hover:bg-ink"
-        >
-          + Add item
-        </Link>
-      </div>
-
-      <Card className="overflow-hidden">
-        <div className="hidden items-center gap-4 border-b border-ink/10 px-6 py-3.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink/50 min-[1000px]:flex">
-          <span className="flex-[2_1_220px]">Item</span>
-          <span className="flex-none basis-[90px]">Category</span>
-          <span className="flex-none basis-[90px]">Price</span>
-          <span className="flex-[1_1_130px]">Lead time</span>
-          <span className="flex-none basis-[70px]">Orders</span>
-          <span className="flex-none basis-20">Status</span>
-          <span className="flex-none basis-4" />
-        </div>
-        {rows.map((it) => (
+      <FilterBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search items…"
+        activeCount={activeCount}
+        resultLabel={meta ? `${String(meta.total)} total` : undefined}
+        action={
           <Link
-            key={it.id}
-            href={`/admin/items/${it.id}`}
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-3.5 no-underline transition-colors hover:bg-accent/[0.05]"
+            href="/admin/items/new"
+            className="inline-block rounded-full bg-accent px-4 py-2.5 text-[13px] font-semibold text-[#FDFAF3] no-underline transition-colors hover:bg-ink lg:px-5 lg:text-[13.5px]"
           >
-            <div className="flex min-w-[170px] flex-[2_1_220px] items-center gap-3.5">
-              <Image
-                src={it.img}
-                alt={it.name}
-                width={52}
-                height={52}
-                unoptimized
-                className="h-[52px] w-[52px] flex-none rounded-[12px] object-cover"
-              />
-              <div>
-                <div className="text-[15px] font-semibold">{it.name}</div>
-                <div className="mt-0.5 text-[12.5px] text-ink/55">{it.unit}</div>
-              </div>
-            </div>
-            <span className="flex-none basis-[90px] text-[13.5px] text-ink/75">{it.cat}</span>
-            <span className="flex-none basis-[90px] text-[14px] font-semibold">{fmt(it.price)}</span>
-            <span className="flex-[1_1_130px] text-[13.5px] text-ink/75">{it.lead}</span>
-            <span className="flex-none basis-[70px] text-[14px] font-semibold">{openOrders(it.id)}</span>
-            <span className="flex-none basis-20">
-              <StatusPill pill={{ bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" }}>Active</StatusPill>
-            </span>
-            <span className="flex-none basis-4 text-ink/40">→</span>
+            + New item
           </Link>
-        ))}
-      </Card>
+        }
+      >
+        <LabeledSelect
+          label="Category"
+          value={filters.category}
+          active={filters.category !== "all"}
+          onChange={(v) => setFilter("category", v)}
+        >
+          <option value="all">All</option>
+          {PRODUCT_CATEGORIES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </LabeledSelect>
+        <LabeledSelect
+          label="Availability"
+          value={filters.availability}
+          active={filters.availability !== "all"}
+          onChange={(v) => setFilter("availability", v)}
+        >
+          {AVAILABILITY_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+            </option>
+          ))}
+        </LabeledSelect>
+      </FilterBar>
 
-      <Pager page={current} pageCount={pageCount} onPage={setPage} />
+      {isError ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
+        <TableSkeletonRows />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={hasActiveFilters ? "No matching items" : "No items yet"}
+          description={
+            hasActiveFilters
+              ? "Nothing matches your current search or filters — try clearing them."
+              : "Add your first bake to open the shop."
+          }
+          action={
+            hasActiveFilters
+              ? undefined
+              : { label: "+ New item", href: "/admin/items/new" }
+          }
+        />
+      ) : (
+        <>
+          <Card
+            className={cn(
+              "overflow-hidden transition-opacity",
+              isFetching && "opacity-60",
+            )}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">Item</th>
+                    <th className="px-4 py-3.5 font-semibold">Category</th>
+                    <th className="px-4 py-3.5 font-semibold">Price</th>
+                    <th className="px-4 py-3.5 font-semibold">Stock</th>
+                    <th className="px-4 py-3.5 font-semibold">Lead time</th>
+                    <th className="px-4 py-3.5 font-semibold">Status</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p) => (
+                    <tr
+                      key={p.id}
+                      onClick={() => router.push(`/admin/items/${p.id}/edit`)}
+                      className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                    >
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-3">
+                          {p.image ? (
+                            <Image
+                              src={p.image}
+                              alt=""
+                              width={44}
+                              height={44}
+                              className="h-11 w-11 flex-none rounded-[10px] object-cover"
+                            />
+                          ) : (
+                            <span className="grid h-11 w-11 flex-none place-items-center rounded-[10px] bg-ink/[0.06] text-[15px]">
+                              🍞
+                            </span>
+                          )}
+                          <div>
+                            <div className="text-[15px] font-semibold text-ink">
+                              {p.name}
+                            </div>
+                            <div className="mt-0.5 text-[12.5px] text-ink/55">
+                              {p.unit}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[14px] text-ink/70">
+                        {PRODUCT_CATEGORIES.find((c) => c.id === p.category)?.label ??
+                          p.category}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[14px] font-medium">
+                        {formatMoney(p.price, p.currency)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[14px] text-ink/70">
+                        {p.stock === null ? "Made to order" : p.stock}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-[14px] text-ink/70">
+                        {p.leadTimeDays === 0
+                          ? "Same day"
+                          : `${String(p.leadTimeDays)} day${p.leadTimeDays === 1 ? "" : "s"}`}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggle(p.id, p.name, !p.isAvailable);
+                          }}
+                          className="cursor-pointer"
+                          title={p.isAvailable ? "Take off sale" : "Put on sale"}
+                        >
+                          <StatusBadge
+                            status={p.isAvailable ? "PUBLISHED" : "DRAFT"}
+                            label={p.isAvailable ? "Available" : "Unavailable"}
+                          />
+                        </button>
+                      </td>
+                      <td className="px-6 py-3.5 text-right text-ink/40">→</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
+        </>
+      )}
+      {dialog}
     </div>
   );
 }

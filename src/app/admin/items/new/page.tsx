@@ -1,5 +1,5 @@
-import { ItemForm } from "@/components/admin/item-form";
+import { ProductForm } from "@/components/admin/product-form";
 
 export default function NewItemPage() {
-  return <ItemForm />;
+  return <ProductForm />;
 }
