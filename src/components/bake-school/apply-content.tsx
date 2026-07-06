@@ -19,7 +19,7 @@ export function ApplyContent() {
 
   if (isLoading) {
     return (
-      <div className="grid min-h-[50vh] place-items-center px-6">
+      <div className="grid min-h-[80vh] place-items-center px-[clamp(20px,5vw,48px)] py-[clamp(72px,12vw,160px)]">
         <RippleLoader />
       </div>
     );
