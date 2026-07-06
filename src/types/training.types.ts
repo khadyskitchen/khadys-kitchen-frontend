@@ -1,7 +1,7 @@
 /**
  * A published Bake School training (cohort), mirroring the backend
- * `toTrainingDTO`. The public class page renders entirely from this — hero copy,
- * stats, the fee table, and the items-to-bring list are all per-cohort.
+ * `toTrainingDTO`. The hero on the class page is static; this drives the class
+ * info below it — stats, the fee table, and the items-to-bring list.
  */
 export interface IFeeItem {
   id: string;
@@ -34,7 +34,6 @@ export interface ITraining {
   slug: string;
   numeral: string | null;
   description: string;
-  coverImage: string | null;
   currency: string;
   status: string;
   applicationsOpen: boolean;
@@ -43,9 +42,6 @@ export interface ITraining {
   hostelCapacity: number | null;
   startDate: string | null;
   endDate: string | null;
-  tagline: string | null;
-  heroHeading: string | null;
-  heroSubtext: string | null;
   costsIntro: string | null;
   costsNote: string | null;
   bringIntro: string | null;
@@ -98,7 +94,6 @@ export interface ITrainingInput {
   name: string;
   numeral?: string;
   description: string;
-  coverImage?: string;
   status?: string;
   applicationsOpen?: boolean;
   isPublished?: boolean;
@@ -106,9 +101,6 @@ export interface ITrainingInput {
   endDate?: string;
   capacity?: number;
   hostelCapacity?: number;
-  tagline?: string;
-  heroHeading?: string;
-  heroSubtext?: string;
   costsIntro?: string;
   costsNote?: string;
   bringIntro?: string;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Pager } from "@/components/admin/ui";
@@ -9,37 +8,32 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format-date";
+import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetTrainingsQuery } from "@/redux/trainings/trainings-api";
+import type { ITrainingListQuery } from "@/types/training.types";
 
-const STATUS_FILTERS = ["all", "DRAFT", "UPCOMING", "ONGOING", "COMPLETED"] as const;
+const STATUS_FILTERS = ["all", "DRAFT", "UPCOMING", "ONGOING", "COMPLETED"];
+const DEFAULTS = { status: "all" };
 const PAGE_SIZE = 12;
 
 export default function ClassesPage() {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>("all");
-  const [page, setPage] = useState(1);
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetTrainingsQuery({
-      page,
-      limit: PAGE_SIZE,
-      search: search.trim() || undefined,
-      status: status === "all" ? undefined : status,
-    });
+    useGetTrainingsQuery(queryParams as ITrainingListQuery);
 
   const trainings = data?.data ?? [];
   const meta = data?.meta;
+  const hasActiveFilters = Boolean(search.trim()) || filters.status !== "all";
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
       <FilterBar
         search={search}
-        onSearch={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
+        onSearch={setSearch}
         searchPlaceholder="Search trainings…"
-        activeCount={status !== "all" ? 1 : 0}
+        activeCount={filters.status !== "all" ? 1 : 0}
         action={
           <Link
             href="/admin/classes/new"
@@ -51,12 +45,9 @@ export default function ClassesPage() {
       >
         <LabeledSelect
           label="Status"
-          value={status}
-          active={status !== "all"}
-          onChange={(v) => {
-            setStatus(v as (typeof STATUS_FILTERS)[number]);
-            setPage(1);
-          }}
+          value={filters.status}
+          active={filters.status !== "all"}
+          onChange={(v) => setFilter("status", v)}
         >
           {STATUS_FILTERS.map((f) => (
             <option key={f} value={f}>
@@ -76,9 +67,17 @@ export default function ClassesPage() {
         </div>
       ) : trainings.length === 0 ? (
         <EmptyState
-          title="No trainings yet"
-          description="Create your first Bake School cohort to start taking applications."
-          action={{ label: "+ New training", href: "/admin/classes/new" }}
+          title={hasActiveFilters ? "No matching trainings" : "No trainings yet"}
+          description={
+            hasActiveFilters
+              ? "Nothing matches your current search or filter — try clearing them."
+              : "Create your first Bake School cohort to start taking applications."
+          }
+          action={
+            hasActiveFilters
+              ? undefined
+              : { label: "+ New training", href: "/admin/classes/new" }
+          }
         />
       ) : (
         <>
@@ -138,11 +137,7 @@ export default function ClassesPage() {
             ))}
           </div>
           {meta ? (
-            <Pager
-              page={meta.page}
-              pageCount={meta.totalPages}
-              onPage={setPage}
-            />
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
           ) : null}
         </>
       )}

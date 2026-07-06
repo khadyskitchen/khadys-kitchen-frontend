@@ -134,8 +134,18 @@ export function FilterBar({
             onChange={(e) => onSearch(e.target.value)}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
-            className="w-full rounded-full border-[1.5px] border-ink/20 bg-transparent py-[10px] pl-10 pr-4 font-sans text-[14.5px] text-ink outline-none transition-colors focus:border-accent"
+            className="w-full rounded-full border-[1.5px] border-ink/20 bg-transparent py-[10px] pl-10 pr-10 font-sans text-[14.5px] text-ink outline-none transition-colors focus:border-accent"
           />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => onSearch("")}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-full bg-ink/10 text-[11px] font-bold text-ink/55 transition-colors hover:bg-ink/20 hover:text-ink"
+            >
+              ✕
+            </button>
+          ) : null}
         </div>
 
         {children}

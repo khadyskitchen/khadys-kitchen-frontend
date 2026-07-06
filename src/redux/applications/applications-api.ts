@@ -65,6 +65,23 @@ export const applicationsApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { status },
       }),
+      // Optimistically reflect the new status on the detail view; roll back on error.
+      async onQueryStarted({ id, status }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          applicationsApi.util.updateQueryData(
+            "getApplicationById",
+            id,
+            (draft) => {
+              draft.data.status = status;
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: (_r, _e, { id }) => [
         { type: "Application", id },
         "Applications",
@@ -101,6 +118,15 @@ export const applicationsApi = apiSlice.injectEndpoints({
       query: (id) => ({ url: `admin/applications/${id}/remind`, method: "POST" }),
     }),
 
+    deleteApplication: builder.mutation<{ message: string }, string>({
+      query: (id) => ({ url: `admin/applications/${id}`, method: "DELETE" }),
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Application", id },
+        "Applications",
+        "Trainings",
+      ],
+    }),
+
     refundPayment: builder.mutation<
       { message: string; data: IPayment },
       { paymentId: string; applicationId: string; reason?: string }
@@ -129,4 +155,5 @@ export const {
   useRecordPaymentMutation,
   useRemindApplicantMutation,
   useRefundPaymentMutation,
+  useDeleteApplicationMutation,
 } = applicationsApi;

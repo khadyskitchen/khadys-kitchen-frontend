@@ -22,6 +22,7 @@ export const apiSliceTags = [
   "Student",
   "Students",
   "Payments",
+  "AuditLogs",
   "Product",
   "Products",
   "DashboardStats",

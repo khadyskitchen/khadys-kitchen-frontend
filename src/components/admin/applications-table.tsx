@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { TableSkeletonRows } from "@/components/admin/table-bits";
 import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
@@ -10,7 +10,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
+import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetApplicationsQuery } from "@/redux/applications/applications-api";
+import type { IApplicationListQuery } from "@/types/application.types";
 
 const STATUS_FILTERS = [
   "all",
@@ -19,73 +21,66 @@ const STATUS_FILTERS = [
   "RECRUITED",
   "REJECTED",
   "WITHDRAWN",
-] as const;
-const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"] as const;
+];
+const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"];
+const DEFAULTS = { status: "all", paymentStatus: "all" };
 const PAGE_SIZE = 10;
+const label = (f: string) =>
+  f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase();
 
-/** Applications table — standalone (all) or scoped to a training via `trainingId`. */
-export function ApplicationsTable({ trainingId }: { trainingId?: string }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>("all");
-  const [payment, setPayment] = useState<(typeof PAYMENT_FILTERS)[number]>("all");
-  const [page, setPage] = useState(1);
+/** Applications table — standalone (all) or scoped to a training via `trainingId`.
+ * URL-synced state; pass a `prefix` when two tables share a page. */
+export function ApplicationsTable({
+  trainingId,
+  prefix,
+}: {
+  trainingId?: string;
+  prefix?: string;
+}) {
+  const router = useRouter();
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({ defaults: DEFAULTS, prefix, pageSize: PAGE_SIZE });
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetApplicationsQuery({
-      page,
-      limit: PAGE_SIZE,
-      trainingId,
-      search: search.trim() || undefined,
-      status: status === "all" ? undefined : status,
-      paymentStatus: payment === "all" ? undefined : payment,
-    });
+    useGetApplicationsQuery({ trainingId, ...queryParams } as IApplicationListQuery);
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
-
-  const reset = () => setPage(1);
   const activeCount =
-    (status !== "all" ? 1 : 0) + (payment !== "all" ? 1 : 0);
+    (filters.status !== "all" ? 1 : 0) +
+    (filters.paymentStatus !== "all" ? 1 : 0);
+  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
 
   return (
     <div>
       <FilterBar
         search={search}
-        onSearch={(v) => {
-          setSearch(v);
-          reset();
-        }}
+        onSearch={setSearch}
         searchPlaceholder="Search applicants…"
         activeCount={activeCount}
         resultLabel={meta ? `${String(meta.total)} total` : undefined}
       >
         <LabeledSelect
           label="Status"
-          value={status}
-          active={status !== "all"}
-          onChange={(v) => {
-            setStatus(v as (typeof STATUS_FILTERS)[number]);
-            reset();
-          }}
+          value={filters.status}
+          active={filters.status !== "all"}
+          onChange={(v) => setFilter("status", v)}
         >
           {STATUS_FILTERS.map((f) => (
             <option key={f} value={f}>
-              {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+              {label(f)}
             </option>
           ))}
         </LabeledSelect>
         <LabeledSelect
           label="Payment"
-          value={payment}
-          active={payment !== "all"}
-          onChange={(v) => {
-            setPayment(v as (typeof PAYMENT_FILTERS)[number]);
-            reset();
-          }}
+          value={filters.paymentStatus}
+          active={filters.paymentStatus !== "all"}
+          onChange={(v) => setFilter("paymentStatus", v)}
         >
           {PAYMENT_FILTERS.map((f) => (
             <option key={f} value={f}>
-              {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+              {label(f)}
             </option>
           ))}
         </LabeledSelect>
@@ -97,11 +92,13 @@ export function ApplicationsTable({ trainingId }: { trainingId?: string }) {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title="No applications"
+          title={hasActiveFilters ? "No matching applications" : "No applications yet"}
           description={
-            trainingId
-              ? "No one has applied to this cohort yet."
-              : "Applications will appear here as people apply."
+            hasActiveFilters
+              ? "Nothing matches your current search or filters — try clearing them."
+              : trainingId
+                ? "No one has applied to this cohort yet."
+                : "Applications will appear here as people apply."
           }
         />
       ) : (
@@ -109,45 +106,62 @@ export function ApplicationsTable({ trainingId }: { trainingId?: string }) {
           <Card
             className={cn("overflow-hidden transition-opacity", isFetching && "opacity-60")}
           >
-            <div className="hidden items-center gap-4 border-b border-ink/10 px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50 min-[900px]:flex">
-              <span className="flex-[2_1_180px]">Applicant</span>
-              <span className="flex-[1_1_120px]">Phone</span>
-              <span className="flex-[1_1_110px]">Balance</span>
-              <span className="flex-none basis-24">Status</span>
-              <span className="flex-none basis-24">Payment</span>
-              <span className="flex-none basis-4" />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">Applicant</th>
+                    <th className="px-4 py-3.5 font-semibold">Phone</th>
+                    <th className="px-4 py-3.5 font-semibold">Balance</th>
+                    <th className="px-4 py-3.5 font-semibold">Status</th>
+                    <th className="px-4 py-3.5 font-semibold">Payment</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((a) => (
+                    <tr
+                      key={a.id}
+                      onClick={() => router.push(`/admin/applications/${a.id}`)}
+                      className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                    >
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/admin/applications/${a.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[15px] font-semibold text-ink no-underline"
+                        >
+                          {a.fullName}
+                        </Link>
+                        <div className="mt-0.5 text-[12.5px] text-ink/55">
+                          {a.code}
+                          {a.email ? ` · ${a.email}` : ""}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                        {a.phone}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                        {formatMoney(a.balance, a.currency)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={a.status} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={a.paymentStatus} />
+                      </td>
+                      <td className="px-6 py-4 text-right text-ink/40">→</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            {rows.map((a) => (
-              <Link
-                key={a.id}
-                href={`/admin/applications/${a.id}`}
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/[0.08] px-[clamp(14px,2.5vw,24px)] py-4 no-underline hover:bg-accent/[0.05]"
-              >
-                <div className="min-w-[150px] flex-[2_1_180px]">
-                  <div className="text-[15px] font-semibold">{a.fullName}</div>
-                  <div className="mt-0.5 text-[12.5px] text-ink/55">
-                    {a.code}
-                    {a.email ? ` · ${a.email}` : ""}
-                  </div>
-                </div>
-                <div className="flex-[1_1_120px] text-[14px] text-ink/70">{a.phone}</div>
-                <div className="flex-[1_1_110px] text-[14px] text-ink/70">
-                  {formatMoney(a.balance, a.currency)}
-                </div>
-                <span className="flex-none basis-24">
-                  <StatusBadge status={a.status} />
-                </span>
-                <span className="flex-none basis-24">
-                  <StatusBadge status={a.paymentStatus} />
-                </span>
-                <span className="flex-none basis-4 text-ink/40">→</span>
-              </Link>
-            ))}
           </Card>
-          {meta ? <Pager page={meta.page} pageCount={meta.totalPages} onPage={setPage} /> : null}
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
         </>
       )}
     </div>
   );
 }
-

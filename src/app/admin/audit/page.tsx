@@ -1,31 +1,193 @@
-import { Card } from "@/components/admin/ui";
-import { auditLog, auditNote } from "@/lib/admin/data";
+"use client";
+
+import { Card, Pager } from "@/components/admin/ui";
+import { LabeledSelect } from "@/components/admin/filter-bar";
+import { TableSkeletonRows } from "@/components/admin/table-bits";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format-date";
+import { useTableQuery } from "@/hooks/use-table-query";
+import { useGetAuditLogsQuery } from "@/redux/audit/audit-api";
+import type { IAuditListQuery } from "@/types/audit.types";
+
+const ENTITY_FILTERS = [
+  "all",
+  "Training",
+  "Application",
+  "Student",
+  "Payment",
+  "SiteSetting",
+];
+const ACTION_FILTERS = [
+  "all",
+  "training.created",
+  "training.updated",
+  "training.deleted",
+  "training.published",
+  "training.unpublished",
+  "application.status_changed",
+  "application.deleted",
+  "payment.recorded",
+  "payment.refunded",
+  "student.status_changed",
+  "student.deleted",
+  "settings.updated",
+];
+const DEFAULTS = { entity: "all", action: "all" };
+const PAGE_SIZE = 20;
+
+const humanize = (action: string) =>
+  action.replace(/\./g, " · ").replace(/_/g, " ");
 
 export default function AuditPage() {
+  const { page, filters, setFilter, setPage, queryParams } = useTableQuery({
+    defaults: DEFAULTS,
+    pageSize: PAGE_SIZE,
+  });
+
+  const { data, isLoading, isFetching, isError, error, refetch } =
+    useGetAuditLogsQuery(queryParams as IAuditListQuery);
+
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const hasActiveFilters = filters.entity !== "all" || filters.action !== "all";
+
   return (
-    <div className="mx-auto max-w-[840px]" style={{ animation: "kk-rise .5s both" }}>
-      <Card className="overflow-hidden">
-        {auditLog.map((e, i) => (
-          <div
-            key={i}
-            className="flex flex-col gap-1.5 border-b border-ink/[0.08] px-[clamp(16px,3vw,26px)] py-[15px] sm:flex-row sm:items-baseline sm:gap-5"
+    <div style={{ animation: "kk-rise .5s both" }}>
+      <div className="mb-[18px] flex flex-wrap items-end gap-2.5">
+        <LabeledSelect
+          label="Entity"
+          value={filters.entity}
+          active={filters.entity !== "all"}
+          onChange={(v) => setFilter("entity", v)}
+        >
+          {ENTITY_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : f}
+            </option>
+          ))}
+        </LabeledSelect>
+        <LabeledSelect
+          label="Action"
+          value={filters.action}
+          active={filters.action !== "all"}
+          onChange={(v) => setFilter("action", v)}
+        >
+          {ACTION_FILTERS.map((f) => (
+            <option key={f} value={f}>
+              {f === "all" ? "All" : humanize(f)}
+            </option>
+          ))}
+        </LabeledSelect>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="min-h-[42px] rounded-full border-[1.5px] border-ink/20 px-4 text-[13px] font-semibold text-ink transition-colors hover:border-accent"
+        >
+          Refresh
+        </button>
+        {meta ? (
+          <span className="ml-auto text-[13px] text-ink/50">
+            {meta.total} events
+          </span>
+        ) : null}
+      </div>
+
+      {isError ? (
+        <ErrorState error={error} onRetry={() => void refetch()} />
+      ) : isLoading ? (
+        <TableSkeletonRows />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          title={hasActiveFilters ? "No matching events" : "No activity yet"}
+          description={
+            hasActiveFilters
+              ? "Nothing matches these filters — try clearing them."
+              : "Admin actions will be recorded here as they happen."
+          }
+        />
+      ) : (
+        <>
+          <Card
+            className={cn("overflow-hidden transition-opacity", isFetching && "opacity-60")}
           >
-            <span className="flex-none text-[12.5px] font-semibold text-ink/50 sm:basis-[118px]">
-              {e.time}
-            </span>
-            <span className="flex-1 text-[14px] leading-[1.5] text-ink/[0.85]">
-              <span className="font-semibold text-ink">{e.actor}</span> - {e.action}
-            </span>
-            <span
-              className="flex-none self-start rounded-full px-3 py-[4px] text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(36,26,18,0.07)", color: "rgba(36,26,18,0.65)" }}
-            >
-              {e.tag}
-            </span>
-          </div>
-        ))}
-      </Card>
-      <p className="mt-4 text-[13px] text-ink/55">{auditNote}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+                    <th className="px-6 py-3.5 font-semibold">When</th>
+                    <th className="px-4 py-3.5 font-semibold">Actor</th>
+                    <th className="px-4 py-3.5 font-semibold">Action</th>
+                    <th className="px-4 py-3.5 font-semibold">Entity</th>
+                    <th className="px-6 py-3.5 font-semibold">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((log) => {
+                    const metaStr =
+                      log.metadata && typeof log.metadata === "object"
+                        ? JSON.stringify(log.metadata)
+                        : null;
+                    return (
+                      <tr
+                        key={log.id}
+                        className="border-b border-ink/[0.08] align-top last:border-0"
+                      >
+                        <td className="whitespace-nowrap px-6 py-3.5 text-[13px] text-ink/70">
+                          {formatDateTime(log.createdAt)}
+                        </td>
+                        <td className="px-4 py-3.5 text-[13.5px]">
+                          {log.actor ? (
+                            <>
+                              <div className="font-medium text-ink">
+                                {log.actor.name}
+                              </div>
+                              <div className="text-[12px] text-ink/50">
+                                {log.actor.email}
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-ink/50">System</span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3.5">
+                          <span className="rounded-full bg-ink/[0.06] px-2.5 py-1 text-[12.5px] font-medium text-ink/75">
+                            {humanize(log.action)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-[13px] text-ink/70">
+                          <div className="font-medium text-ink/80">{log.entity}</div>
+                          {log.entityId ? (
+                            <div className="text-[11.5px] text-ink/40">
+                              {log.entityId.slice(0, 8)}
+                            </div>
+                          ) : null}
+                        </td>
+                        <td className="max-w-[280px] px-6 py-3.5">
+                          {metaStr ? (
+                            <span
+                              title={metaStr}
+                              className="block truncate font-mono text-[12px] text-ink/50"
+                            >
+                              {metaStr}
+                            </span>
+                          ) : (
+                            <span className="text-ink/30">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {meta ? (
+            <Pager page={page} pageCount={meta.totalPages} onPage={setPage} />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

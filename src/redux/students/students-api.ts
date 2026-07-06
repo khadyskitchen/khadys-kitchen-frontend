@@ -79,6 +79,23 @@ export const studentsApi = apiSlice.injectEndpoints({
         url: `admin/students/${id}/${action}`,
         method: "POST",
       }),
+      async onQueryStarted({ id, action }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          studentsApi.util.updateQueryData("getStudentById", id, (draft) => {
+            draft.data.status =
+              action === "suspend"
+                ? "SUSPENDED"
+                : action === "graduate"
+                  ? "GRADUATED"
+                  : "ACTIVE";
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: (_r, _e, { id }) => [{ type: "Student", id }, "Students"],
     }),
 

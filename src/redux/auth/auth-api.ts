@@ -54,6 +54,35 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
 
+    /** Update the signed-in user's profile (name); refreshes the stored user. */
+    updateMe: builder.mutation<
+      IUserResponse,
+      {
+        firstName?: string;
+        lastName?: string;
+        phone?: string | null;
+        profilePicture?: string | null;
+      }
+    >({
+      query: (body) => ({ url: "auth/me", method: "PATCH", body }),
+      async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(userLoggedIn({ user: data.data.user }));
+        } catch {
+          // Surfaced to the caller via `unwrap()`.
+        }
+      },
+    }),
+
+    /** Change the signed-in user's password (requires the current one). */
+    changePassword: builder.mutation<
+      IMessageResponse,
+      { currentPassword: string; newPassword: string }
+    >({
+      query: (body) => ({ url: "auth/change-password", method: "PATCH", body }),
+    }),
+
     /** Step 2 of a 2FA login: exchanges the emailed code for a session. */
     verifyTwoFactor: builder.mutation<IUserResponse, ITwoFactorVerifyInput>({
       query: (body) => ({ url: "auth/2fa/verify", method: "POST", body }),
@@ -130,6 +159,8 @@ export const authApi = apiSlice.injectEndpoints({
 
 export const {
   useGetMeQuery,
+  useUpdateMeMutation,
+  useChangePasswordMutation,
   useLoginMutation,
   useVerifyTwoFactorMutation,
   useResendTwoFactorCodeMutation,

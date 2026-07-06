@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
@@ -73,25 +72,18 @@ export default function TrainingDetailPage() {
     }
   };
 
-  // At-a-glance strip near the header (only real fields).
   const dateRange = training.startDate
     ? `${formatDate(training.startDate)}${training.endDate ? ` – ${formatDate(training.endDate)}` : ""}`
-    : null;
-  const glance: { label: string; value: string }[] = [];
-  if (dateRange) glance.push({ label: "Runs", value: dateRange });
-  if (training.capacity != null)
-    glance.push({ label: "Places", value: `${String(training.capacity)} seats` });
-  if (training.hostelCapacity != null)
-    glance.push({ label: "Hostel", value: `${String(training.hostelCapacity)} places` });
-  glance.push({
-    label: "Applications",
-    value: training.applicationsOpen ? "Open" : "Closed",
-  });
-
-  // Remaining detail lives in the Overview card.
+    : "—";
   const facts: [string, string][] = [
-    ["Slug", training.slug],
+    ["Status", training.status],
+    ["Visibility", training.isPublished ? "Published" : "Unpublished"],
+    ["Applications", training.applicationsOpen ? "Open" : "Closed"],
+    ["Runs", dateRange],
+    ["Capacity", training.capacity != null ? `${String(training.capacity)} seats` : "—"],
+    ["Hostel", training.hostelCapacity != null ? `${String(training.hostelCapacity)} places` : "—"],
     ["Currency", training.currency],
+    ["Slug", training.slug],
   ];
 
   return (
@@ -108,21 +100,6 @@ export default function TrainingDetailPage() {
             </p>
           ) : null}
           <h1 className="font-serif text-[clamp(26px,3.4vw,38px)] font-normal">{training.name}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <StatusBadge status={training.status} />
-            <StatusBadge
-              status={training.isPublished ? "PUBLISHED" : "DRAFT"}
-              label={training.isPublished ? "Published" : "Unpublished"}
-            />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-[13.5px] text-ink/60">
-            {glance.map((f) => (
-              <span key={f.label}>
-                <span className="font-semibold text-ink/80">{f.label}</span>{" "}
-                {f.value}
-              </span>
-            ))}
-          </div>
         </div>
         <div className="flex flex-wrap gap-2.5">
           <Link
@@ -167,33 +144,46 @@ export default function TrainingDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
+      <div className="grid gap-[18px]">
         <Card className="p-[clamp(20px,3vw,28px)]">
           <h2 className="mb-4 font-serif text-[19px]">Overview</h2>
-          <div className="grid gap-2.5">
+          <p className="max-w-[75ch] text-[14.5px] leading-[1.7] text-ink/70">
+            {training.description}
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-ink/10 pt-5 sm:grid-cols-3 lg:grid-cols-4">
             {facts.map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4 text-[14px]">
-                <span className="text-ink/55">{label}</span>
-                <span className="font-medium text-ink">{value}</span>
+              <div key={label}>
+                <div className="text-[11.5px] uppercase tracking-[0.07em] text-ink/45">
+                  {label}
+                </div>
+                <div className="mt-1 text-[14.5px] font-medium text-ink">{value}</div>
               </div>
             ))}
           </div>
-          <p className="mt-4 border-t border-ink/10 pt-4 text-[14px] leading-[1.6] text-ink/70">
-            {training.description}
-          </p>
         </Card>
 
+        {/* Fees — full width, two columns */}
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h2 className="mb-4 font-serif text-[19px]">Fees</h2>
+          <h2 className="mb-1.5 font-serif text-[19px]">Fees</h2>
+          {training.costsIntro ? (
+            <p className="mb-4 text-[13.5px] leading-[1.6] text-ink/60">
+              {training.costsIntro}
+            </p>
+          ) : (
+            <div className="mb-4" />
+          )}
           {training.feeItems && training.feeItems.length > 0 ? (
-            <div className="grid gap-2">
+            <div className="grid gap-2.5 sm:grid-cols-2">
               {training.feeItems.map((f) => (
-                <div key={f.id} className="flex items-baseline justify-between gap-4 text-[14px]">
+                <div
+                  key={f.id}
+                  className="flex items-baseline justify-between gap-3 rounded-[12px] border border-ink/10 bg-oat/30 px-4 py-3 text-[14px]"
+                >
                   <span className="text-ink/70">
                     {f.name}
                     {f.required ? "" : " (optional)"}
                   </span>
-                  <span className="font-medium text-ink">
+                  <span className="whitespace-nowrap font-semibold text-ink">
                     {f.priceLabel ?? formatMoney(f.amount, training.currency)}
                     {f.suffix ? ` ${f.suffix}` : ""}
                   </span>
@@ -203,7 +193,70 @@ export default function TrainingDetailPage() {
           ) : (
             <p className="text-[14px] text-ink/50">No fees configured.</p>
           )}
+          {training.costsNote ? (
+            <p className="mt-4 border-t border-ink/10 pt-4 text-[13px] leading-[1.6] text-ink/55">
+              {training.costsNote}
+            </p>
+          ) : null}
         </Card>
+
+        {/* Items to bring + At a glance, side by side */}
+        {training.requirements.length > 0 || training.stats.length > 0 ? (
+          <div className="grid gap-[18px] lg:grid-cols-2">
+            {training.requirements.length > 0 ? (
+              <Card className="p-[clamp(20px,3vw,28px)]">
+                <h2 className="mb-1.5 font-serif text-[19px]">Items to bring</h2>
+                {training.bringIntro ? (
+                  <p className="mb-3.5 text-[13.5px] leading-[1.6] text-ink/60">
+                    {training.bringIntro}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {training.requirements.map((r) => (
+                    <div key={r.name} className="rounded-[10px] bg-oat/30 px-3 py-2 text-[13.5px]">
+                      <span className="font-medium text-ink/80">{r.name}</span>
+                      {r.note ? <span className="text-ink/50"> · {r.note}</span> : null}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
+            {training.stats.length > 0 ? (
+              <Card className="p-[clamp(20px,3vw,28px)]">
+                <h2 className="mb-4 font-serif text-[19px]">At a glance</h2>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                  {training.stats.map((st) => (
+                    <div key={st.label}>
+                      <div className="font-serif text-[26px]">{st.value}</div>
+                      <div className="mt-0.5 text-[12px] uppercase tracking-[0.06em] text-ink/55">
+                        {st.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Prospectus */}
+        {training.highlights.length > 0 ? (
+          <Card className="p-[clamp(20px,3vw,28px)]">
+            <h2 className="mb-4 font-serif text-[19px]">Prospectus</h2>
+            <div className="flex flex-wrap gap-2">
+              {training.highlights.map((h) => (
+                <span
+                  key={h}
+                  className="rounded-full border border-ink/12 bg-oat/40 px-3 py-1.5 text-[13px] text-ink/70"
+                >
+                  {h}
+                </span>
+              ))}
+            </div>
+          </Card>
+        ) : null}
       </div>
 
       {/* Applications + Students */}
@@ -224,9 +277,9 @@ export default function TrainingDetailPage() {
           ))}
         </div>
         {tab === "applications" ? (
-          <ApplicationsTable trainingId={id} />
+          <ApplicationsTable trainingId={id} prefix="apps" />
         ) : (
-          <StudentsTable trainingId={id} />
+          <StudentsTable trainingId={id} prefix="students" />
         )}
       </div>
 

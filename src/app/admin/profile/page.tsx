@@ -1,74 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { useAdmin } from "@/lib/admin/store";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card } from "@/components/admin/ui";
+import { TextField } from "@/components/ui/TextField";
+import { Button } from "@/components/ui/Button";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useUpdateMeMutation } from "@/redux/auth/auth-api";
+import { ProfileAvatar } from "@/components/admin/profile-avatar";
 
-const labelClass =
-  "grid gap-2 text-[13px] font-semibold uppercase tracking-[0.06em] text-ink/60";
-const fieldClass =
-  "w-full rounded-[12px] border border-ink/20 bg-cream px-4 py-[13px] font-sans text-[15.5px] text-ink outline-none transition-colors focus:border-accent";
+const schema = z.object({
+  firstName: z.string().trim().min(1, "Required").max(50),
+  lastName: z.string().trim().min(1, "Required").max(50),
+});
+type Values = z.infer<typeof schema>;
 
 export default function ProfilePage() {
-  const { profile, saveProfile } = useAdmin();
-  const [name, setName] = useState(profile.name);
-  const [email, setEmail] = useState(profile.email);
-  const [phone, setPhone] = useState(profile.phone);
-  const [saved, setSaved] = useState(false);
+  const user = useCurrentUser();
+  const [updateMe, { isLoading }] = useUpdateMeMutation();
 
-  const onSave = () => {
-    saveProfile({ name, email, phone });
-    setSaved(true);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
+    },
+  });
+
+  const onSubmit = async (values: Values) => {
+    try {
+      await updateMe(values).unwrap();
+      notify.success("Profile updated");
+    } catch (err) {
+      const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
+      if (hasFieldErrors && fieldErrors) {
+        for (const [field, msg] of Object.entries(fieldErrors)) {
+          setError(field as keyof Values, { message: msg });
+        }
+      }
+      notify.error("Couldn't update your profile", { description: message });
+    }
   };
 
   return (
-    <div className="max-w-[680px]" style={{ animation: "kk-rise .5s both" }}>
-      <div className="grid gap-5 rounded-[18px] border border-ink/10 bg-card p-[clamp(22px,3.5vw,32px)]">
-        <div className="flex flex-wrap items-center gap-[18px] border-b border-ink/10 pb-5">
-          <span className="grid h-[72px] w-[72px] place-items-center rounded-full bg-accent font-serif text-[26px] text-[#FDFAF3]">
-            KA
-          </span>
-          <div>
-            <div className="font-serif text-[24px]">Khady Asante</div>
-            <div className="mt-[3px] text-[13.5px] text-ink/60">
-              Owner · Head Baker · Admin since 2024
-            </div>
-          </div>
+    <div style={{ animation: "kk-rise .5s both" }} className="max-w-[640px]">
+      <Card className="p-[clamp(20px,3vw,28px)]">
+        <h2 className="mb-1 font-serif text-[20px]">Your profile</h2>
+        <p className="mb-5 text-[14px] text-ink/55">
+          Update your photo and name. Email and role are managed by the system.
+        </p>
+        <div className="mb-6 border-b border-ink/10 pb-6">
+          <ProfileAvatar user={user} />
         </div>
-
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[18px]">
-          <label className={labelClass}>
-            Full name
-            <input value={name} onChange={(e) => { setName(e.target.value); setSaved(false); }} className={fieldClass} />
-          </label>
-          <label className={labelClass}>
-            Role
-            <input
-              value="Owner · Admin"
-              readOnly
-              className="w-full rounded-[12px] border border-ink/10 bg-oat px-4 py-[13px] font-sans text-[15.5px] text-ink/60 outline-none"
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-[18px]">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]">
+            <TextField
+              label="First name"
+              error={errors.firstName?.message}
+              {...register("firstName")}
             />
-          </label>
-          <label className={labelClass}>
-            Email
-            <input value={email} onChange={(e) => { setEmail(e.target.value); setSaved(false); }} className={fieldClass} />
-          </label>
-          <label className={labelClass}>
-            Phone / WhatsApp
-            <input value={phone} onChange={(e) => { setPhone(e.target.value); setSaved(false); }} className={fieldClass} />
-          </label>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={onSave}
-            className="cursor-pointer rounded-full border-none bg-accent px-[30px] py-3.5 font-sans text-[14.5px] font-semibold text-[#FDFAF3] transition-colors hover:bg-ink"
-          >
-            Save changes
-          </button>
-          {saved ? <span className="text-[14px] font-semibold text-[#2E6B3F]">Saved ✓</span> : null}
-        </div>
-      </div>
+            <TextField
+              label="Last name"
+              error={errors.lastName?.message}
+              {...register("lastName")}
+            />
+          </div>
+          <TextField label="Email" value={user?.email ?? ""} readOnly />
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]">
+            <TextField
+              label="Role"
+              value={user?.role ?? ""}
+              readOnly
+              className="capitalize"
+            />
+            <TextField label="Phone" value={user?.phone ?? "—"} readOnly />
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" isLoading={isLoading} loadingText="Saving…">
+              Save changes
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }

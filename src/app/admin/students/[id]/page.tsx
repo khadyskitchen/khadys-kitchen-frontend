@@ -114,107 +114,107 @@ export default function StudentDetailPage() {
               </>
             ) : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <StatusBadge status={student.status} />
-            <StatusBadge
-              status={student.certificateIssued ? "ISSUED" : "NOT ISSUED"}
-              label={
-                student.certificateIssued
-                  ? `Certificate${student.certificateNumber ? ` · ${student.certificateNumber}` : ""}`
-                  : "No certificate"
-              }
-            />
-          </div>
         </div>
-        <Button
-          variant="danger"
-          onClick={() =>
-            confirm({
-              title: "Delete this student?",
-              description: "This removes the student record. This can't be undone from here.",
-              confirmText: "Delete student",
-              isDestructive: true,
-              onConfirm: onDelete,
-            })
-          }
-        >
-          Delete
-        </Button>
-      </div>
-
-      {/* Actions */}
-      <div className="mb-6 flex flex-wrap gap-2.5">
-        {student.status !== "ACTIVE" ? (
+        <div className="flex flex-wrap gap-2.5">
+          {student.status !== "ACTIVE" ? (
+            <Button
+              variant="outline"
+              isLoading={statusBusy}
+              onClick={() =>
+                confirm({
+                  title: "Reactivate this student?",
+                  description: "They will be marked active again.",
+                  confirmText: "Reactivate",
+                  onConfirm: () => changeStatus("activate"),
+                })
+              }
+            >
+              Reactivate
+            </Button>
+          ) : null}
+          {student.status === "ACTIVE" ? (
+            <Button
+              variant="outline"
+              isLoading={statusBusy}
+              onClick={() =>
+                confirm({
+                  title: "Suspend this student?",
+                  description: "They will be marked suspended.",
+                  confirmText: "Suspend",
+                  onConfirm: () => changeStatus("suspend"),
+                })
+              }
+            >
+              Suspend
+            </Button>
+          ) : null}
+          {student.status !== "GRADUATED" ? (
+            <Button
+              variant="outline"
+              isLoading={statusBusy}
+              onClick={() =>
+                confirm({
+                  title: "Graduate this student?",
+                  description: "This marks the student as graduated.",
+                  confirmText: "Graduate",
+                  onConfirm: () => changeStatus("graduate"),
+                })
+              }
+            >
+              Graduate
+            </Button>
+          ) : null}
+          {student.certificateIssued ? (
+            <Button
+              variant="outline"
+              onClick={() =>
+                confirm({
+                  title: "Revoke certificate?",
+                  description: "This removes the issued certificate from the record.",
+                  confirmText: "Revoke",
+                  isDestructive: true,
+                  onConfirm: () => run(() => revokeCert(id).unwrap(), "Certificate revoked"),
+                })
+              }
+            >
+              Revoke certificate
+            </Button>
+          ) : (
+            <Button onClick={() => setCertOpen(true)}>Issue certificate</Button>
+          )}
           <Button
-            variant="outline"
-            isLoading={statusBusy}
+            variant="danger"
             onClick={() =>
               confirm({
-                title: "Reactivate this student?",
-                description: "They will be marked active again.",
-                confirmText: "Reactivate",
-                onConfirm: () => changeStatus("activate"),
-              })
-            }
-          >
-            Reactivate
-          </Button>
-        ) : null}
-        {student.status === "ACTIVE" ? (
-          <Button
-            variant="outline"
-            isLoading={statusBusy}
-            onClick={() =>
-              confirm({
-                title: "Suspend this student?",
-                description: "They will be marked suspended.",
-                confirmText: "Suspend",
-                onConfirm: () => changeStatus("suspend"),
-              })
-            }
-          >
-            Suspend
-          </Button>
-        ) : null}
-        {student.status !== "GRADUATED" ? (
-          <Button
-            variant="outline"
-            isLoading={statusBusy}
-            onClick={() =>
-              confirm({
-                title: "Graduate this student?",
-                description: "This marks the student as graduated.",
-                confirmText: "Graduate",
-                onConfirm: () => changeStatus("graduate"),
-              })
-            }
-          >
-            Graduate
-          </Button>
-        ) : null}
-        {student.certificateIssued ? (
-          <Button
-            variant="outline"
-            onClick={() =>
-              confirm({
-                title: "Revoke certificate?",
-                description: "This removes the issued certificate from the record.",
-                confirmText: "Revoke",
+                title: "Delete this student?",
+                description: "This removes the student record. This can't be undone from here.",
+                confirmText: "Delete student",
                 isDestructive: true,
-                onConfirm: () => run(() => revokeCert(id).unwrap(), "Certificate revoked"),
+                onConfirm: onDelete,
               })
             }
           >
-            Revoke certificate
+            Delete
           </Button>
-        ) : (
-          <Button onClick={() => setCertOpen(true)}>Issue certificate</Button>
-        )}
+        </div>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h2 className="mb-4 font-serif text-[19px]">Details</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Details</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={student.status} />
+              <StatusBadge
+                status={student.certificateIssued ? "ISSUED" : "NOT ISSUED"}
+                label={
+                  student.certificateIssued
+                    ? `Certificate${student.certificateNumber ? ` · ${student.certificateNumber}` : ""}`
+                    : "No certificate"
+                }
+              />
+            </div>
+          </div>
           <div className="grid gap-2.5">
             {info.map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 text-[14px]">

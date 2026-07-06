@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +15,7 @@ import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate, formatDateTime } from "@/lib/format-date";
 import {
+  useDeleteApplicationMutation,
   useGetApplicationByIdQuery,
   useRefundPaymentMutation,
   useRemindApplicantMutation,
@@ -30,11 +31,13 @@ const STATUS_ACTIONS = [
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data, isLoading, isError, error, refetch } =
     useGetApplicationByIdQuery(id);
   const [updateStatus] = useUpdateApplicationStatusMutation();
   const [remind, { isLoading: reminding }] = useRemindApplicantMutation();
   const [refund] = useRefundPaymentMutation();
+  const [deleteApplication] = useDeleteApplicationMutation();
 
   const { confirm, dialog } = useConfirm();
   const [recording, setRecording] = useState(false);
@@ -86,6 +89,16 @@ export default function ApplicationDetailPage() {
     }
   };
 
+  const onDelete = async () => {
+    try {
+      await deleteApplication(id).unwrap();
+      notify.success("Application deleted");
+      router.push("/admin/applications");
+    } catch (err) {
+      notify.error("Couldn't delete", { description: extractApiError(err).message });
+    }
+  };
+
   const info: [string, string][] = [
     ["Phone", app.phone],
     ["Email", app.email ?? "—"],
@@ -114,40 +127,54 @@ export default function ApplicationDetailPage() {
               </>
             ) : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <StatusBadge status={app.status} />
-            <StatusBadge status={app.paymentStatus} />
-          </div>
         </div>
-      </div>
-
-      {/* Status actions */}
-      <div className="mb-6 flex flex-wrap gap-2.5">
-        {STATUS_ACTIONS.filter((a) => a.status !== app.status).map((a) => (
+        <div className="flex flex-wrap gap-2.5">
+          {STATUS_ACTIONS.filter((a) => a.status !== app.status).map((a) => (
+            <Button
+              key={a.status}
+              variant={a.variant}
+              onClick={() =>
+                confirm({
+                  title: `${a.label} this applicant?`,
+                  description:
+                    a.status === "RECRUITED"
+                      ? "This admits the applicant and creates their student record."
+                      : a.status === "REJECTED"
+                        ? "This rejects the applicant — any admission is reversed and paid fees refunded."
+                        : `This sets the application to ${a.status.toLowerCase()}.`,
+                  confirmText: a.label,
+                  isDestructive: a.variant === "danger",
+                  onConfirm: () => doStatus(a.status),
+                })
+              }
+            >
+              {a.label}
+            </Button>
+          ))}
           <Button
-            key={a.status}
-            variant={a.variant}
+            variant="danger"
             onClick={() =>
               confirm({
-                title: `${a.label} this applicant?`,
+                title: "Delete this application?",
                 description:
-                  a.status === "RECRUITED"
-                    ? "This admits the applicant and creates their student record."
-                    : `This sets the application to ${a.status.toLowerCase()}.`,
-                confirmText: a.label,
-                isDestructive: a.variant === "danger",
-                onConfirm: () => doStatus(a.status),
+                  "This removes the application. Applicants who have paid or been admitted can't be deleted.",
+                confirmText: "Delete application",
+                isDestructive: true,
+                onConfirm: onDelete,
               })
             }
           >
-            {a.label}
+            Delete
           </Button>
-        ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]">
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h2 className="mb-4 font-serif text-[19px]">Applicant</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Applicant</h2>
+            <StatusBadge status={app.status} />
+          </div>
           <div className="grid gap-2.5">
             {info.map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 text-[14px]">
@@ -173,7 +200,10 @@ export default function ApplicationDetailPage() {
 
         {/* Bill */}
         <Card className="p-[clamp(20px,3vw,28px)]">
-          <h2 className="mb-4 font-serif text-[19px]">Bill</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[19px]">Bill</h2>
+            <StatusBadge status={app.paymentStatus} />
+          </div>
           <div className="grid gap-2">
             {(app.feeLines ?? []).map((f) => (
               <div key={f.id} className="flex justify-between gap-4 text-[14px]">

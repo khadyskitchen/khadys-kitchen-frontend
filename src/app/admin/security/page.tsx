@@ -1,104 +1,261 @@
 "use client";
 
-import { useAdmin } from "@/lib/admin/store";
-import { ToggleSwitch } from "@/components/admin/ui";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card } from "@/components/admin/ui";
+import { TextField } from "@/components/ui/TextField";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  useChangePasswordMutation,
+  useConfirmTwoFactorSetupMutation,
+  useDisableTwoFactorMutation,
+  useRequestTwoFactorSetupMutation,
+} from "@/redux/auth/auth-api";
 
-const labelClass =
-  "grid gap-2 text-[13px] font-semibold uppercase tracking-[0.06em] text-ink/60";
-const fieldClass =
-  "w-full rounded-[12px] border border-ink/20 bg-cream px-4 py-[13px] font-sans text-[15.5px] text-ink outline-none transition-colors focus:border-accent";
+const pwSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Your current password is required"),
+    newPassword: z.string().min(8, "Use at least 8 characters"),
+    confirmPassword: z.string().min(1, "Confirm your new password"),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Passwords don’t match",
+    path: ["confirmPassword"],
+  });
+type PwValues = z.infer<typeof pwSchema>;
 
-const SESSIONS = [
-  { device: "MacBook · Chrome", meta: "Kumasi, Ghana · active now", current: true },
-  { device: "iPhone 14 · Safari", meta: "Kumasi, Ghana · 2 hours ago", current: false },
-  { device: "Infinix Note · Chrome", meta: "Accra, Ghana · 3 days ago", current: false },
-];
+function PasswordCard() {
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<PwValues>({ resolver: zodResolver(pwSchema) });
 
-export default function SecurityPage() {
-  const { settings, toggleSetting } = useAdmin();
+  const onSubmit = async (v: PwValues) => {
+    try {
+      await changePassword({
+        currentPassword: v.currentPassword,
+        newPassword: v.newPassword,
+      }).unwrap();
+      notify.success("Password changed");
+      reset();
+    } catch (err) {
+      const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
+      if (hasFieldErrors && fieldErrors) {
+        for (const [field, msg] of Object.entries(fieldErrors)) {
+          setError(field as keyof PwValues, { message: msg });
+        }
+      }
+      notify.error("Couldn't change your password", { description: message });
+    }
+  };
 
   return (
-    <div className="grid max-w-[680px] gap-[18px]" style={{ animation: "kk-rise .5s both" }}>
-      <div className="grid gap-[18px] rounded-[18px] border border-ink/10 bg-card p-[clamp(22px,3.5vw,32px)]">
-        <h3 className="text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-          Change password
-        </h3>
-        <label className={labelClass}>
-          Current password
-          <input type="password" placeholder="••••••••" className={`${fieldClass} max-w-[340px]`} />
-        </label>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[18px]">
-          <label className={labelClass}>
-            New password
-            <input type="password" placeholder="At least 10 characters" className={fieldClass} />
-          </label>
-          <label className={labelClass}>
-            Confirm new password
-            <input type="password" placeholder="Repeat it" className={fieldClass} />
-          </label>
-        </div>
-        <button
-          type="button"
-          className="cursor-pointer justify-self-start rounded-full border-none bg-ink px-[30px] py-3.5 font-sans text-[14.5px] font-semibold text-cream transition-colors hover:bg-accent"
-        >
-          Update password
-        </button>
-      </div>
-
-      <div className="grid gap-4 rounded-[18px] border border-ink/10 bg-card p-[clamp(22px,3.5vw,32px)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-              Two-factor authentication
-            </h3>
-            <p className="max-w-[44ch] text-[14px] leading-[1.6] text-ink/65">
-              A WhatsApp code is required when signing in from a new device.
-            </p>
-          </div>
-          <ToggleSwitch
-            on={settings.twofa}
-            onToggle={() => toggleSetting("twofa")}
-            label="Toggle two-factor authentication"
+    <Card className="p-[clamp(20px,3vw,28px)]">
+      <h2 className="font-serif text-[20px]">Change password</h2>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-4 grid gap-[18px]">
+        <TextField
+          label="Current password"
+          type="password"
+          revealable
+          autoComplete="current-password"
+          error={errors.currentPassword?.message}
+          {...register("currentPassword")}
+        />
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-[18px]">
+          <TextField
+            label="New password"
+            type="password"
+            revealable
+            autoComplete="new-password"
+            error={errors.newPassword?.message}
+            {...register("newPassword")}
+          />
+          <TextField
+            label="Confirm new password"
+            type="password"
+            revealable
+            autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword")}
           />
         </div>
-      </div>
-
-      <div className="rounded-[18px] border border-ink/10 bg-card p-[clamp(22px,3.5vw,32px)]">
-        <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
-          Active sessions
-        </h3>
-        <div className="grid">
-          {SESSIONS.map((ss) => (
-            <div
-              key={ss.device}
-              className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-b border-ink/[0.08] py-3.5"
-            >
-              <div>
-                <div className="text-[14.5px] font-semibold">{ss.device}</div>
-                <div className="mt-0.5 text-[12.5px] text-ink/55">{ss.meta}</div>
-              </div>
-              {ss.current ? (
-                <span className="rounded-full bg-[#2E6B3F]/[0.12] px-3 py-[5px] text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#2E6B3F]">
-                  This device
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="cursor-pointer rounded-full border-[1.5px] border-danger/35 bg-transparent px-[18px] py-2 text-[13px] font-semibold text-danger transition-colors hover:bg-danger/[0.08]"
-                >
-                  Sign out
-                </button>
-              )}
-            </div>
-          ))}
+        <div className="flex justify-end">
+          <Button type="submit" isLoading={isLoading} loadingText="Saving…">
+            Change password
+          </Button>
         </div>
-        <button
-          type="button"
-          className="cursor-pointer border-none bg-transparent pt-4 text-[14px] font-semibold text-danger underline"
-        >
-          Sign out of all other sessions
-        </button>
+      </form>
+    </Card>
+  );
+}
+
+function TwoFactorCard() {
+  const user = useCurrentUser();
+  const enabled = user?.twoFactorEnabled ?? false;
+  const [requestSetup, { isLoading: requesting }] =
+    useRequestTwoFactorSetupMutation();
+  const [confirmSetup, { isLoading: confirming }] =
+    useConfirmTwoFactorSetupMutation();
+  const [disable, { isLoading: disabling }] = useDisableTwoFactorMutation();
+
+  const [mode, setMode] = useState<"idle" | "enabling" | "disabling">("idle");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+
+  const startEnable = async () => {
+    try {
+      await requestSetup().unwrap();
+      notify.success("We’ve emailed you a 6-digit code");
+      setMode("enabling");
+    } catch (err) {
+      notify.error("Couldn't start setup", {
+        description: extractApiError(err).message,
+      });
+    }
+  };
+
+  const confirmEnable = async () => {
+    try {
+      await confirmSetup({ code }).unwrap();
+      notify.success("Two-factor authentication enabled");
+      setMode("idle");
+      setCode("");
+    } catch (err) {
+      notify.error("Couldn't verify the code", {
+        description: extractApiError(err).message,
+      });
+    }
+  };
+
+  const doDisable = async () => {
+    try {
+      await disable({ password }).unwrap();
+      notify.success("Two-factor disabled");
+      setMode("idle");
+      setPassword("");
+    } catch (err) {
+      notify.error("Couldn't disable", {
+        description: extractApiError(err).message,
+      });
+    }
+  };
+
+  return (
+    <Card className="p-[clamp(20px,3vw,28px)]">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="font-serif text-[20px]">Two-factor authentication</h2>
+        <StatusBadge
+          status={enabled ? "ACTIVE" : "DRAFT"}
+          label={enabled ? "On" : "Off"}
+        />
       </div>
+      <p className="text-[14px] leading-[1.6] text-ink/55">
+        Adds a 6-digit code sent to your email each time you sign in.
+      </p>
+
+      {enabled ? (
+        mode === "disabling" ? (
+          <div className="mt-4 grid max-w-[360px] gap-3">
+            <TextField
+              label="Confirm your password to disable"
+              type="password"
+              revealable
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <div className="flex gap-2.5">
+              <Button
+                variant="danger"
+                isLoading={disabling}
+                loadingText="Disabling…"
+                onClick={doDisable}
+              >
+                Disable
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMode("idle");
+                  setPassword("");
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            className="mt-4"
+            variant="outline"
+            onClick={() => setMode("disabling")}
+          >
+            Disable two-factor
+          </Button>
+        )
+      ) : mode === "enabling" ? (
+        <div className="mt-4 grid max-w-[360px] gap-3">
+          <TextField
+            label="Enter the 6-digit code from your email"
+            inputMode="numeric"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+          <div className="flex flex-wrap gap-2.5">
+            <Button
+              isLoading={confirming}
+              loadingText="Verifying…"
+              onClick={confirmEnable}
+            >
+              Confirm
+            </Button>
+            <Button variant="outline" isLoading={requesting} onClick={startEnable}>
+              Resend code
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setMode("idle");
+                setCode("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          className="mt-4"
+          isLoading={requesting}
+          loadingText="Sending…"
+          onClick={startEnable}
+        >
+          Enable two-factor
+        </Button>
+      )}
+    </Card>
+  );
+}
+
+export default function SecurityPage() {
+  return (
+    <div
+      style={{ animation: "kk-rise .5s both" }}
+      className="grid max-w-[640px] gap-[18px]"
+    >
+      <PasswordCard />
+      <TwoFactorCard />
     </div>
   );
 }

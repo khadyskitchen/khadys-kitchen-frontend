@@ -50,9 +50,6 @@ export const trainingSchema = z.object({
   name: z.string().trim().min(1, "A cohort name is required").max(150),
   numeral: z.string().trim().max(20).optional(),
   description: z.string().trim().min(1, "A description is required").max(5000),
-  coverImage: z
-    .union([z.literal(""), z.string().url("Enter a valid image URL")])
-    .optional(),
   status: z.enum(TRAINING_STATUSES),
   applicationsOpen: z.boolean(),
   isPublished: z.boolean(),
@@ -60,15 +57,12 @@ export const trainingSchema = z.object({
   endDate: z.string().optional(),
   capacity: optionalCount,
   hostelCapacity: optionalCount,
-  tagline: z.string().trim().max(200).optional(),
-  heroHeading: z.string().trim().max(200).optional(),
-  heroSubtext: z.string().trim().max(1000).optional(),
   costsIntro: z.string().trim().max(1000).optional(),
   costsNote: z.string().trim().max(1000).optional(),
   bringIntro: z.string().trim().max(1000).optional(),
   feeItems: z.array(feeItemSchema),
   requirements: z.array(requirementSchema),
-  stats: z.array(statSchema).max(4, "At most 4 hero stats"),
+  stats: z.array(statSchema).max(4, "At most 4 stats"),
   // Modeled as objects so react-hook-form's useFieldArray has stable ids.
   highlights: z.array(z.object({ value: z.string().trim().min(1).max(300) })),
 });

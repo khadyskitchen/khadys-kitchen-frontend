@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray, useWatch, type Path } from "react-hook-form";
+import { useForm, useFieldArray, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/admin/ui";
-import { CoverImageField } from "@/components/admin/cover-image-field";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -28,7 +27,6 @@ const DEFAULTS: TrainingFormValues = {
   name: "",
   numeral: "",
   description: "",
-  coverImage: "",
   status: "DRAFT",
   applicationsOpen: false,
   isPublished: false,
@@ -36,9 +34,6 @@ const DEFAULTS: TrainingFormValues = {
   endDate: "",
   capacity: "",
   hostelCapacity: "",
-  tagline: "",
-  heroHeading: "",
-  heroSubtext: "",
   costsIntro: "",
   costsNote: "",
   bringIntro: "",
@@ -55,7 +50,6 @@ function toInput(v: TrainingFormValues): ITrainingInput {
     name: v.name.trim(),
     numeral: s(v.numeral),
     description: v.description.trim(),
-    coverImage: s(v.coverImage),
     status: v.status,
     applicationsOpen: v.applicationsOpen,
     isPublished: v.isPublished,
@@ -63,9 +57,6 @@ function toInput(v: TrainingFormValues): ITrainingInput {
     endDate: s(v.endDate),
     capacity: v.capacity ? Number(v.capacity) : undefined,
     hostelCapacity: v.hostelCapacity ? Number(v.hostelCapacity) : undefined,
-    tagline: s(v.tagline),
-    heroHeading: s(v.heroHeading),
-    heroSubtext: s(v.heroSubtext),
     costsIntro: s(v.costsIntro),
     costsNote: s(v.costsNote),
     bringIntro: s(v.bringIntro),
@@ -90,7 +81,6 @@ function toForm(t: ITraining): TrainingFormValues {
     name: t.name,
     numeral: t.numeral ?? "",
     description: t.description,
-    coverImage: t.coverImage ?? "",
     status: t.status as TrainingFormValues["status"],
     applicationsOpen: t.applicationsOpen,
     isPublished: t.isPublished,
@@ -98,9 +88,6 @@ function toForm(t: ITraining): TrainingFormValues {
     endDate: t.endDate ? t.endDate.slice(0, 10) : "",
     capacity: t.capacity != null ? String(t.capacity) : "",
     hostelCapacity: t.hostelCapacity != null ? String(t.hostelCapacity) : "",
-    tagline: t.tagline ?? "",
-    heroHeading: t.heroHeading ?? "",
-    heroSubtext: t.heroSubtext ?? "",
     costsIntro: t.costsIntro ?? "",
     costsNote: t.costsNote ?? "",
     bringIntro: t.bringIntro ?? "",
@@ -125,13 +112,8 @@ function toForm(t: ITraining): TrainingFormValues {
 const STEPS: { key: string; label: string; fields: Path<TrainingFormValues>[] }[] =
   [
     {
-      key: "hero",
-      label: "Hero",
-      fields: ["coverImage", "tagline", "heroHeading", "heroSubtext", "stats"],
-    },
-    {
       key: "details",
-      label: "Pricing & details",
+      label: "Details",
       fields: [
         "name",
         "numeral",
@@ -141,10 +123,13 @@ const STEPS: { key: string; label: string; fields: Path<TrainingFormValues>[] }[
         "endDate",
         "capacity",
         "hostelCapacity",
-        "costsIntro",
-        "costsNote",
-        "feeItems",
+        "stats",
       ],
+    },
+    {
+      key: "pricing",
+      label: "Pricing",
+      fields: ["costsIntro", "costsNote", "feeItems"],
     },
     { key: "tools", label: "Tools to bring", fields: ["bringIntro", "requirements"] },
     { key: "prospectus", label: "Prospectus", fields: ["highlights"] },
@@ -188,7 +173,6 @@ export function TrainingForm({ training }: { training?: ITraining }) {
     register,
     handleSubmit,
     control,
-    setValue,
     trigger,
     formState: { errors },
   } = useForm<TrainingFormValues>({
@@ -200,7 +184,6 @@ export function TrainingForm({ training }: { training?: ITraining }) {
   const reqs = useFieldArray({ control, name: "requirements" });
   const stats = useFieldArray({ control, name: "stats" });
   const highlights = useFieldArray({ control, name: "highlights" });
-  const coverImage = useWatch({ control, name: "coverImage" }) ?? "";
 
   const isLast = step === STEPS.length - 1;
 
@@ -238,7 +221,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
           e.preventDefault();
         }
       }}
-      className="grid gap-[18px]"
+      className="grid max-w-[820px] gap-[18px]"
     >
       {/* Stepper */}
       <div className="flex flex-wrap gap-2">
@@ -259,78 +242,9 @@ export function TrainingForm({ training }: { training?: ITraining }) {
         ))}
       </div>
 
-      {/* Step 1 — Hero */}
+      {/* Step 1 — Details */}
       <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 0 && "hidden")}>
-        <h2 className="mb-4 font-serif text-[20px]">Hero</h2>
-        <div className="grid gap-[18px]">
-          <CoverImageField
-            value={coverImage}
-            onChange={(url) => setValue("coverImage", url, { shouldValidate: true })}
-          />
-          <TextField
-            label="Tagline / eyebrow"
-            placeholder="e.g. Khady’s Bake School · Kumasi"
-            {...register("tagline")}
-          />
-          <TextField
-            label="Hero heading"
-            placeholder="Leave blank to use the default animated heading"
-            {...register("heroHeading")}
-          />
-          <Field label="Hero subtext">
-            <textarea
-              rows={2}
-              className={areaCls}
-              placeholder="One or two sentences under the heading…"
-              {...register("heroSubtext")}
-            />
-          </Field>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className={labelCls}>Hero stats (max 4)</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={stats.fields.length >= 4}
-                onClick={() => stats.append({ value: "", label: "" })}
-              >
-                + Add stat
-              </Button>
-            </div>
-            <div className="grid gap-3">
-              {stats.fields.map((field, i) => (
-                <div key={field.id} className="flex flex-wrap items-end gap-3">
-                  <TextField
-                    label="Value"
-                    className="min-w-[120px]"
-                    placeholder="e.g. Weekly"
-                    {...register(`stats.${i}.value`)}
-                  />
-                  <TextField
-                    label="Label"
-                    className="min-w-[160px]"
-                    placeholder="e.g. Practicals"
-                    {...register(`stats.${i}.label`)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => stats.remove(i)}
-                    className="pb-3 text-[13px] font-semibold text-danger"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Step 2 — Pricing & details */}
-      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 1 && "hidden")}>
-        <h2 className="mb-4 font-serif text-[20px]">Pricing &amp; details</h2>
+        <h2 className="mb-4 font-serif text-[20px]">Details</h2>
         <div className="grid gap-[18px]">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-[18px]">
             <TextField
@@ -393,6 +307,54 @@ export function TrainingForm({ training }: { training?: ITraining }) {
             <Toggle label="Published (visible on the website)" {...register("isPublished")} />
           </div>
 
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className={labelCls}>At-a-glance stats (max 4)</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={stats.fields.length >= 4}
+                onClick={() => stats.append({ value: "", label: "" })}
+              >
+                + Add stat
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {stats.fields.map((field, i) => (
+                <div key={field.id} className="flex flex-wrap items-end gap-3">
+                  <div className="min-w-[120px] flex-1">
+                    <TextField
+                      label="Value"
+                      placeholder="e.g. Weekly"
+                      {...register(`stats.${i}.value`)}
+                    />
+                  </div>
+                  <div className="min-w-[160px] flex-[2]">
+                    <TextField
+                      label="Label"
+                      placeholder="e.g. Practicals"
+                      {...register(`stats.${i}.label`)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => stats.remove(i)}
+                    className="pb-3 text-[13px] font-semibold text-danger"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Step 2 — Pricing */}
+      <Card className={cn("p-[clamp(20px,3vw,28px)]", step !== 1 && "hidden")}>
+        <h2 className="mb-4 font-serif text-[20px]">Pricing</h2>
+        <div className="grid gap-[18px]">
           <Field label="Costs intro">
             <textarea
               rows={2}
@@ -432,7 +394,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
                 + Add fee
               </Button>
             </div>
-            <div className="grid gap-4">
+            <div className="grid gap-4 lg:grid-cols-2">
               {fees.fields.length === 0 ? (
                 <p className="text-[14px] text-ink/50">
                   No fees yet. Add registration, hostel, ingredients, etc.
@@ -441,15 +403,15 @@ export function TrainingForm({ training }: { training?: ITraining }) {
               {fees.fields.map((field, i) => (
                 <div
                   key={field.id}
-                  className="grid gap-3 rounded-[14px] border border-ink/10 bg-oat/40 p-4"
+                  className="grid content-start gap-3 rounded-[14px] border border-ink/10 bg-oat/40 p-4"
                 >
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
-                    <TextField
-                      label="Name"
-                      placeholder="e.g. Registration and school fees"
-                      error={errors.feeItems?.[i]?.name?.message}
-                      {...register(`feeItems.${i}.name`)}
-                    />
+                  <TextField
+                    label="Name"
+                    placeholder="e.g. Registration and school fees"
+                    error={errors.feeItems?.[i]?.name?.message}
+                    {...register(`feeItems.${i}.name`)}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
                     <TextField
                       label="Amount (GHS)"
                       type="number"
@@ -467,7 +429,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
                       </Select>
                     </Field>
                   </div>
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <TextField
                       label="Note"
                       placeholder="Optional note"
@@ -478,12 +440,12 @@ export function TrainingForm({ training }: { training?: ITraining }) {
                       placeholder="e.g. for 2 months"
                       {...register(`feeItems.${i}.suffix`)}
                     />
-                    <TextField
-                      label="Price label"
-                      placeholder="e.g. Free or —"
-                      {...register(`feeItems.${i}.priceLabel`)}
-                    />
                   </div>
+                  <TextField
+                    label="Price label"
+                    placeholder="e.g. Free or —"
+                    {...register(`feeItems.${i}.priceLabel`)}
+                  />
                   <div className="flex items-center justify-between">
                     <Toggle
                       label="Charged (part of the bill)"
@@ -525,27 +487,30 @@ export function TrainingForm({ training }: { training?: ITraining }) {
             {...register("bringIntro")}
           />
         </Field>
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {reqs.fields.map((field, i) => (
-            <div key={field.id} className="flex flex-wrap items-end gap-3">
-              <TextField
-                label="Item"
-                className="min-w-[160px]"
-                placeholder="e.g. Hand mixer"
-                {...register(`requirements.${i}.name`)}
-              />
-              <TextField
-                label="Note / price"
-                className="min-w-[160px]"
-                placeholder="e.g. ≈ GHS 250"
-                {...register(`requirements.${i}.note`)}
-              />
+            <div key={field.id} className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField
+                  label="Item"
+                  placeholder="e.g. Hand mixer"
+                  {...register(`requirements.${i}.name`)}
+                />
+              </div>
+              <div className="flex-1">
+                <TextField
+                  label="Note / price"
+                  placeholder="e.g. ≈ GHS 250"
+                  {...register(`requirements.${i}.note`)}
+                />
+              </div>
               <button
                 type="button"
+                aria-label="Remove item"
                 onClick={() => reqs.remove(i)}
-                className="pb-3 text-[13px] font-semibold text-danger"
+                className="pb-3 text-[15px] font-semibold text-danger"
               >
-                Remove
+                ✕
               </button>
             </div>
           ))}
@@ -565,15 +530,16 @@ export function TrainingForm({ training }: { training?: ITraining }) {
             + Add
           </Button>
         </div>
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {highlights.fields.map((field, i) => (
-            <div key={field.id} className="flex items-end gap-3">
-              <TextField
-                label={`Item ${String(i + 1)}`}
-                className="min-w-[220px]"
-                placeholder="e.g. CTVET certificate · GHS 300"
-                {...register(`highlights.${i}.value`)}
-              />
+            <div key={field.id} className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField
+                  label={`Item ${String(i + 1)}`}
+                  placeholder="e.g. CTVET certificate · GHS 300"
+                  {...register(`highlights.${i}.value`)}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => highlights.remove(i)}

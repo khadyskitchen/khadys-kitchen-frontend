@@ -69,6 +69,7 @@ export function LoginForm({ redirectTo, onChallenge }: LoginFormProps) {
         <TextField
           label="Password"
           type="password"
+          revealable
           autoComplete="current-password"
           placeholder="Your password"
           error={errors.password?.message}

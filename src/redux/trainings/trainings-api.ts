@@ -55,14 +55,6 @@ export const trainingsApi = apiSlice.injectEndpoints({
       invalidatesTags: ["Trainings"],
     }),
 
-    // Uploads a single image (multipart) and returns its hosted URL. The create/
-    // update endpoints stay JSON — the form uploads the cover here first.
-    uploadTrainingImage: builder.mutation<
-      { message: string; data: { url: string } },
-      FormData
-    >({
-      query: (body) => ({ url: "admin/uploads/image", method: "POST", body }),
-    }),
 
     updateTraining: builder.mutation<
       ITrainingResponse,
@@ -78,11 +70,35 @@ export const trainingsApi = apiSlice.injectEndpoints({
 
     publishTraining: builder.mutation<ITrainingResponse, string>({
       query: (id) => ({ url: `admin/trainings/${id}/publish`, method: "POST" }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          trainingsApi.util.updateQueryData("getTrainingById", id, (draft) => {
+            draft.isPublished = true;
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: (_r, _e, id) => [{ type: "Training", id }, "Trainings"],
     }),
 
     unpublishTraining: builder.mutation<ITrainingResponse, string>({
       query: (id) => ({ url: `admin/trainings/${id}/unpublish`, method: "POST" }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          trainingsApi.util.updateQueryData("getTrainingById", id, (draft) => {
+            draft.isPublished = false;
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: (_r, _e, id) => [{ type: "Training", id }, "Trainings"],
     }),
 
@@ -140,7 +156,6 @@ export const {
   useGetTrainingsQuery,
   useGetTrainingByIdQuery,
   useCreateTrainingMutation,
-  useUploadTrainingImageMutation,
   useUpdateTrainingMutation,
   usePublishTrainingMutation,
   useUnpublishTrainingMutation,
