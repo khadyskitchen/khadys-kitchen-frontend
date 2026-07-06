@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
+import { TitlePriceRow } from "@/components/ui/title-price-row";
 import { bakes } from "@/lib/bake-school-data";
 
 export function FeaturedBakes() {
@@ -35,14 +36,12 @@ export function FeaturedBakes() {
                 />
               </div>
               <div className="flex flex-col gap-2.5 px-[26px] pb-7 pt-6">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-serif text-[23px] font-normal">
-                    {bake.name}
-                  </h3>
-                  <span className="whitespace-nowrap text-[16px] font-semibold text-accent">
-                    {bake.price}
-                  </span>
-                </div>
+                <TitlePriceRow
+                  name={bake.name}
+                  price={bake.price}
+                  nameClassName="font-serif text-[23px] font-normal"
+                  priceClassName="text-[16px] font-semibold text-accent"
+                />
                 <p className="text-[15px] leading-[1.6] text-ink/70">
                   {bake.desc}
                 </p>

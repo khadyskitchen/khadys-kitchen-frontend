@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
+import { TitlePriceRow } from "@/components/ui/title-price-row";
 import { shopProduct } from "@/lib/routes";
 import { listPriceLabel, type Product } from "@/lib/shop-data";
 
@@ -24,12 +25,12 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
         <div className="flex flex-1 flex-col gap-[9px] px-6 pb-[26px] pt-[22px]">
-          <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-serif text-[22px] font-normal">{product.name}</h3>
-            <span className="whitespace-nowrap text-[15.5px] font-semibold text-accent">
-              {listPriceLabel(product)}
-            </span>
-          </div>
+          <TitlePriceRow
+            name={product.name}
+            price={listPriceLabel(product)}
+            nameClassName="font-serif text-[22px] font-normal"
+            priceClassName="text-[15.5px] font-semibold text-accent"
+          />
           <p className="flex-1 text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {product.shortDesc}
           </p>

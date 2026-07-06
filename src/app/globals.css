@@ -50,6 +50,14 @@ body {
     opacity: 1;
   }
 }
+@keyframes kk-sheetup {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 @keyframes kk-marquee {
   from {
     transform: translateX(0);
@@ -110,7 +118,7 @@ body {
   }
 }
 
-/* Scroll-reveal system — the .kk-in class is toggled by <Reveal> on intersect */
+/* Scroll-reveal system - the .kk-in class is toggled by <Reveal> on intersect */
 [data-reveal] {
   opacity: 0;
   transform: translateY(30px);

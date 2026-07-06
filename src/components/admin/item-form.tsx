@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAdmin } from "@/lib/admin/store";
+import { Select } from "@/components/ui/Select";
 import {
   ITEM_CATEGORIES,
   LEAD_TIMES,
@@ -62,15 +63,16 @@ export function ItemForm({ initial }: { initial?: AdminItem }) {
           </label>
           <label className={labelClass}>
             Category
-            <select
+            <Select
               value={cat}
               onChange={(e) => setCat(e.target.value as ItemCategory)}
-              className={`${fieldClass} cursor-pointer`}
+              wrapperClassName="w-full"
+              className="rounded-[12px] border py-[13px] pl-4 text-[15.5px]"
             >
               {ITEM_CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className={labelClass}>
             Price · GHS
@@ -94,15 +96,16 @@ export function ItemForm({ initial }: { initial?: AdminItem }) {
           </label>
           <label className={labelClass}>
             Lead time
-            <select
+            <Select
               value={lead}
               onChange={(e) => setLead(e.target.value)}
-              className={`${fieldClass} cursor-pointer`}
+              wrapperClassName="w-full"
+              className="rounded-[12px] border py-[13px] pl-4 text-[15.5px]"
             >
               {LEAD_TIMES.map((l) => (
                 <option key={l} value={l}>{l}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className={labelClass}>
             Image URL
