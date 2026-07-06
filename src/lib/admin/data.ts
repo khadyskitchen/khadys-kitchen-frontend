@@ -203,3 +203,249 @@ export const LEAD_TIMES = [
 
 export const FALLBACK_ITEM_IMG =
   "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=600&q=80&auto=format&fit=crop";
+
+// ── Payments ────────────────────────────────────────────────────
+export type PaymentMethod = "Paystack" | "MoMo";
+
+/** Paid orders and their method; anything absent collects at pickup (Unpaid). */
+export const orderPayments: Record<string, PaymentMethod> = {
+  "#1041": "Paystack",
+  "#1039": "MoMo",
+  "#1036": "MoMo",
+  "#1035": "Paystack",
+  "#1033": "MoMo",
+  "#1032": "MoMo",
+};
+
+export const isOrderPaid = (orderId: string): boolean => orderId in orderPayments;
+export const orderMethod = (orderId: string): PaymentMethod | null =>
+  orderPayments[orderId] ?? null;
+
+const priceOf = (itemId: string): number =>
+  adminItems.find((it) => it.id === itemId)?.price ?? 0;
+
+/** Order total in GHS (unit price × quantity). */
+export const orderTotal = (order: Order): number => priceOf(order.itemId) * order.qty;
+
+/** The order has been handed over (design shows "Delivered" vs "In queue"). */
+export const isDelivered = (order: Order): boolean => order.status === "Collected";
+
+export const paymentPill = (paid: boolean): Pill =>
+  getStatusColor(paid ? "Paid" : "Unpaid");
+
+// ── Customers (derived from the orders ledger) ──────────────────
+export interface Customer {
+  name: string;
+  phone: string;
+  email: string;
+  slug: string;
+  initials: string;
+  orderIds: string[];
+  orderCount: number;
+  totalSpend: number;
+  unpaidCount: number;
+}
+
+export const customerSlug = (name: string): string =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+function deriveCustomers(): Customer[] {
+  const byName = new Map<string, Customer>();
+  for (const o of orders) {
+    const total = orderTotal(o);
+    const unpaid = isOrderPaid(o.id) ? 0 : 1;
+    const existing = byName.get(o.customer);
+    if (existing) {
+      existing.orderIds.push(o.id);
+      existing.orderCount += 1;
+      existing.totalSpend += total;
+      existing.unpaidCount += unpaid;
+    } else {
+      byName.set(o.customer, {
+        name: o.customer,
+        phone: o.phone,
+        email: o.email,
+        slug: customerSlug(o.customer),
+        initials: initials(o.customer),
+        orderIds: [o.id],
+        orderCount: 1,
+        totalSpend: total,
+        unpaidCount: unpaid,
+      });
+    }
+  }
+  // Highest spenders first (stable, so ties keep ledger order).
+  return [...byName.values()].sort((a, b) => b.totalSpend - a.totalSpend);
+}
+
+export const customers: Customer[] = deriveCustomers();
+export const getCustomer = (slug: string): Customer | undefined =>
+  customers.find((c) => c.slug === slug);
+
+// ── Reports ─────────────────────────────────────────────────────
+export interface ReportRange {
+  id: "week" | "month" | "quarter";
+  label: string;
+  shopRevenue: number;
+  orderCount: number;
+  avgOrder: number;
+  schoolIncome: number;
+  byCat: { name: string; value: number }[];
+}
+
+export const reportRanges: ReportRange[] = [
+  {
+    id: "week",
+    label: "This week",
+    shopRevenue: 6560,
+    orderCount: 23,
+    avgOrder: 285,
+    schoolIncome: 4700,
+    byCat: [
+      { name: "Cakes", value: 2840 },
+      { name: "Pastries", value: 1690 },
+      { name: "Breads", value: 1180 },
+      { name: "Bofrot & fried", value: 520 },
+      { name: "Savoury", value: 330 },
+    ],
+  },
+  {
+    id: "month",
+    label: "This month",
+    shopRevenue: 27940,
+    orderCount: 96,
+    avgOrder: 291,
+    schoolIncome: 18800,
+    byCat: [
+      { name: "Cakes", value: 12400 },
+      { name: "Pastries", value: 7200 },
+      { name: "Breads", value: 5100 },
+      { name: "Bofrot & fried", value: 2040 },
+      { name: "Savoury", value: 1200 },
+    ],
+  },
+  {
+    id: "quarter",
+    label: "Quarter",
+    shopRevenue: 81300,
+    orderCount: 281,
+    avgOrder: 289,
+    schoolIncome: 56400,
+    byCat: [
+      { name: "Cakes", value: 36200 },
+      { name: "Pastries", value: 21500 },
+      { name: "Breads", value: 14300 },
+      { name: "Bofrot & fried", value: 5800 },
+      { name: "Savoury", value: 3500 },
+    ],
+  },
+];
+
+// ── Weekly schedule ─────────────────────────────────────────────
+export interface ScheduleEvent {
+  time: string;
+  label: string;
+  kind: string;
+}
+export interface ScheduleDay {
+  day: string;
+  events: ScheduleEvent[];
+}
+
+export const scheduleNote =
+  "Week of 13 - 19 July · practicals run with Cohort Three · pickup counts update as orders come in.";
+
+export const scheduleDays: ScheduleDay[] = [
+  { day: "Mon · 13 Jul", events: [
+    { time: "05:00", label: "Shop bake - croissants, sourdough starts", kind: "Shop" },
+    { time: "14:00", label: "Order pickups · 3 scheduled", kind: "Pickups" },
+  ] },
+  { day: "Tue · 14 Jul", events: [
+    { time: "09:00", label: "Cohort Three practical - sugar bread & tea bread", kind: "Practical" },
+    { time: "14:00", label: "Order pickups · 2 scheduled", kind: "Pickups" },
+  ] },
+  { day: "Wed · 15 Jul", events: [
+    { time: "05:00", label: "Shop bake - pastry boxes, bofrot", kind: "Shop" },
+    { time: "11:00", label: "Theory class - hygiene & costing", kind: "Class" },
+  ] },
+  { day: "Thu · 16 Jul", events: [
+    { time: "09:00", label: "Cohort Three practical - repeat bake, take home", kind: "Practical" },
+    { time: "14:00", label: "Order pickups · 4 scheduled", kind: "Pickups" },
+  ] },
+  { day: "Fri · 17 Jul", events: [
+    { time: "05:00", label: "Shop bake - full range", kind: "Shop" },
+    { time: "15:00", label: "Celebration cake decoration - #1041 due Sat", kind: "Orders" },
+  ] },
+  { day: "Sat · 18 Jul", events: [
+    { time: "08:00", label: "Counter open - busiest day", kind: "Shop" },
+    { time: "10:00", label: "Order pickups · 6 scheduled", kind: "Pickups" },
+  ] },
+  { day: "Sun · 19 Jul", events: [
+    { time: "08:00", label: "Counter open till 2 pm", kind: "Shop" },
+  ] },
+];
+
+// ── Certificates (graduates from the completed cohorts) ─────────
+export interface Graduate {
+  id: string;
+  name: string;
+  cohort: string;
+  initials: string;
+  issued: boolean;
+}
+export const graduates: Graduate[] = [
+  { id: "s-abena", name: "Abena Owusu", cohort: "Cohort One", initials: "AO", issued: true },
+  { id: "s-yaa", name: "Yaa Pokua", cohort: "Cohort One", initials: "YP", issued: true },
+  { id: "s-kwabena", name: "Kwabena Asare", cohort: "Cohort One", initials: "KA", issued: true },
+  { id: "s-akua", name: "Akua Boakye", cohort: "Cohort One", initials: "AB", issued: true },
+  { id: "s-esi", name: "Esi Mensima", cohort: "Cohort Two", initials: "EM", issued: false },
+  { id: "s-kofi", name: "Kofi Adjei", cohort: "Cohort Two", initials: "KA", issued: false },
+  { id: "s-afia", name: "Afia Serwah", cohort: "Cohort Two", initials: "AS", issued: false },
+];
+
+// ── Team & roles ────────────────────────────────────────────────
+export interface TeamMember {
+  name: string;
+  email: string;
+  initials: string;
+  role: string;
+}
+export const teamMembers: TeamMember[] = [
+  { name: "Khady Asante", email: "khady@khadyskitchen.com", initials: "KA", role: "Owner" },
+  { name: "Kwesi Mante", email: "kwesi@khadyskitchen.com", initials: "KM", role: "Front desk" },
+  { name: "Adwoa Safo", email: "adwoa@khadyskitchen.com", initials: "AS", role: "Instructor" },
+];
+export const inviteRoles = ["Front desk", "Instructor", "Baker"] as const;
+
+// ── Audit log ───────────────────────────────────────────────────
+export interface AuditEntry {
+  time: string;
+  actor: string;
+  action: string;
+  tag: string;
+}
+export const auditLog: AuditEntry[] = [
+  { time: "Today 09:41", actor: "Khady Asante", action: "Marked order #1038 as Ready", tag: "Orders" },
+  { time: "Today 08:15", actor: "Kwesi Mante", action: "Recorded MoMo payment - order #1036, GHS 90", tag: "Payments" },
+  { time: "Yesterday 17:02", actor: "Khady Asante", action: "Approved application - Kofi Owusu (hostel held)", tag: "Classes" },
+  { time: "Yesterday 11:30", actor: "Khady Asante", action: "Changed price - Celebration Cake GHS 320 → 350", tag: "Shop" },
+  { time: "Wed 16:44", actor: "Adwoa Safo", action: "Recorded practical results - Cohort Three, week 1", tag: "Classes" },
+  { time: "Wed 09:12", actor: "Kwesi Mante", action: "Added customer note - Gifty Appiah", tag: "Customers" },
+  { time: "Tue 15:20", actor: "Khady Asante", action: "Updated site hours - Saturday until 2 pm", tag: "Content" },
+  { time: "Tue 08:05", actor: "Khady Asante", action: "Signed in from new device (iPhone · Safari)", tag: "Security" },
+];
+export const auditNote =
+  "Every price change, payment record, application decision and sign-in is kept for 12 months.";
+
+// ── Site content defaults ───────────────────────────────────────
+export const siteContentDefaults = {
+  heroHeadline: "Baked before sunrise, gone by noon.",
+  hoursWeekday: "Wed - Fri · 7 am - sold out",
+  hoursWeekend: "Sat - Sun · 8 am - 2 pm",
+  classFee: "2000",
+  hostelFee: "700",
+  whatsapp: "+233 24 000 0000",
+};

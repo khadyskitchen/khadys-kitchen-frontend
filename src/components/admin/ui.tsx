@@ -143,6 +143,29 @@ export function Pager({
   );
 }
 
+/** KPI stat tile: uppercase label, serif value, optional accent sub-note. */
+export function StatTile({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-ink/10 bg-card px-[22px] py-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink/50">
+        {label}
+      </div>
+      <div className="mt-2 font-serif text-[clamp(24px,2.6vw,30px)]">{value}</div>
+      {note ? (
+        <div className="mt-1 text-[12.5px] font-semibold text-accent">{note}</div>
+      ) : null}
+    </div>
+  );
+}
+
 /** Standard raised admin card. */
 export function Card({
   children,

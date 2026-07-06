@@ -20,6 +20,12 @@ const STATUS_COLORS: Record<string, StatusColor> = {
   CONFIRMED: { bg: "rgba(92,107,69,0.15)", color: "#4A5838" },
   READY: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   COLLECTED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  // Payments
+  PAID: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  UNPAID: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
+  // Certificates
+  ISSUED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  "NOT ISSUED": { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
   // Items / generic
   ACTIVE: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   ADMITTED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
