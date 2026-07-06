@@ -15,6 +15,7 @@ import { TextField } from "@/components/ui/TextField";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format-date";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -424,6 +425,8 @@ export default function TeamPage() {
                     <th className="px-4 py-3.5 font-semibold">Phone</th>
                     <th className="px-4 py-3.5 font-semibold">Role</th>
                     <th className="px-4 py-3.5 font-semibold">Status</th>
+                    <th className="px-4 py-3.5 font-semibold">2FA</th>
+                    <th className="px-4 py-3.5 font-semibold">Joined</th>
                     <th className="px-6 py-3.5" />
                   </tr>
                 </thead>
@@ -455,6 +458,12 @@ export default function TeamPage() {
                           status={u.isActive ? "ACTIVE" : "SUSPENDED"}
                           label={u.isActive ? "Active" : "Deactivated"}
                         />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
+                        {u.twoFactorEnabled ? "On" : "Off"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-ink/70">
+                        {formatDate(u.createdAt)}
                       </td>
                       <td className="px-6 py-4">
                         {canManage(u) ? (

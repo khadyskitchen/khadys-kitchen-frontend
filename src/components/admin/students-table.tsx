@@ -91,6 +91,9 @@ export function StudentsTable({
                   <tr className="border-b border-ink/10 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink/50">
                     <th className="px-6 py-3.5 font-semibold">Student</th>
                     <th className="px-4 py-3.5 font-semibold">Phone</th>
+                    {!trainingId ? (
+                      <th className="px-4 py-3.5 font-semibold">Class</th>
+                    ) : null}
                     <th className="px-4 py-3.5 font-semibold">Status</th>
                     <th className="px-6 py-3.5" />
                   </tr>
@@ -115,6 +118,11 @@ export function StudentsTable({
                       <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
                         {st.phone}
                       </td>
+                      {!trainingId ? (
+                        <td className="whitespace-nowrap px-4 py-4 text-[14px] text-ink/70">
+                          {st.training?.name ?? "—"}
+                        </td>
+                      ) : null}
                       <td className="px-4 py-4">
                         <StatusBadge status={st.status} />
                       </td>

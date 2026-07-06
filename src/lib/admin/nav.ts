@@ -12,6 +12,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Dashboard", href: "/admin", isActive: (p) => p === "/admin" },
   { label: "Applications", href: "/admin/applications", isActive: (p) => p.startsWith("/admin/applications") },
   { label: "Classes", href: "/admin/classes", isActive: (p) => p.startsWith("/admin/classes") },
+  { label: "Students", href: "/admin/students", isActive: (p) => p.startsWith("/admin/students") },
   { label: "Orders", href: "/admin/orders", isActive: (p) => p.startsWith("/admin/orders") },
   { label: "Customers", href: "/admin/customers", isActive: (p) => p.startsWith("/admin/customers") },
   { label: "Shop items", href: "/admin/items", isActive: (p) => p.startsWith("/admin/items") },
@@ -37,6 +38,9 @@ export function routeMeta(pathname: string): { crumb: string; title: string } {
 
   if (pathname === "/admin/classes") return { crumb: "Bake School", title: "Classes & cohorts" };
   if (pathname.startsWith("/admin/classes/")) return { crumb: "Bake School · Classes", title: "Cohort" };
+
+  if (pathname === "/admin/students") return { crumb: "Bake School", title: "Students" };
+  if (pathname.startsWith("/admin/students/")) return { crumb: "Bake School · Students", title: "Student" };
 
   if (pathname === "/admin/items/new") return { crumb: "Shop · Items", title: "New item" };
   if (pathname.endsWith("/edit")) return { crumb: "Shop · Items", title: "Edit item" };
