@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   applicationSchema,
   type ApplicationValues,
 } from "@/validations/application-schema";
 import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { useCreateApplicationMutation } from "@/redux/applications/applications-api";
+import type { ITraining } from "@/types/training.types";
 
 const inputClass =
   "w-full rounded-[12px] border border-ink/20 bg-cream px-4 py-3.5 font-sans text-[16px] text-ink outline-none transition-colors focus:border-accent";
@@ -15,15 +19,22 @@ const inputClass =
 const labelClass =
   "grid gap-2 text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70";
 
-export function ApplicationForm() {
+/** Where the code is stashed before a Paystack redirect, read back on /apply/verify. */
+export const APPLY_CODE_KEY = "kk_apply_code";
+
+export function ApplicationForm({ training }: { training: ITraining }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicantName, setApplicantName] = useState("friend");
+  const [receiptCode, setReceiptCode] = useState("");
+  const [createApplication, { isLoading: submitting }] =
+    useCreateApplicationMutation();
 
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<ApplicationValues>({
     resolver: zodResolver(applicationSchema),
@@ -34,16 +45,57 @@ export function ApplicationForm() {
       location: "",
       hostel: null,
       message: "",
+      payNow: false,
     },
   });
 
-  const hostel = watch("hostel");
+  const hostel = useWatch({ control, name: "hostel" });
+  const payNow = useWatch({ control, name: "payNow" });
   const errorMessage =
     errors.name?.message ?? errors.phone?.message ?? errors.email?.message;
 
-  const onSubmit = (data: ApplicationValues) => {
-    setApplicantName(data.name.trim().split(" ")[0] || "friend");
-    setSubmitted(true);
+  const onSubmit = async (data: ApplicationValues) => {
+    try {
+      const res = await createApplication({
+        trainingId: training.id,
+        fullName: data.name.trim(),
+        phone: data.phone.trim(),
+        email: data.email || undefined,
+        location: data.location || undefined,
+        needsHostel: data.hostel ?? false,
+        message: data.message || undefined,
+        payNow: data.payNow,
+      }).unwrap();
+
+      // Paying now: hand off to Paystack, remembering the code for the return trip.
+      if (data.payNow && res.data.authorizationUrl) {
+        sessionStorage.setItem(APPLY_CODE_KEY, res.data.code);
+        window.location.assign(res.data.authorizationUrl);
+        return;
+      }
+
+      setReceiptCode(res.data.code);
+      setApplicantName(data.name.trim().split(" ")[0] || "friend");
+      setSubmitted(true);
+    } catch (err) {
+      const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
+      if (hasFieldErrors && fieldErrors) {
+        for (const [field, msg] of Object.entries(fieldErrors)) {
+          const target =
+            field === "fullName" ? "name" : field === "needsHostel" ? "hostel" : field;
+          if (
+            target === "name" ||
+            target === "phone" ||
+            target === "email" ||
+            target === "location" ||
+            target === "message"
+          ) {
+            setError(target, { message: msg });
+          }
+        }
+      }
+      notify.error("Couldn't submit your application", { description: message });
+    }
   };
 
   return (
@@ -70,13 +122,22 @@ export function ApplicationForm() {
           <h3 className="mb-3 font-serif text-[28px] font-normal">
             Application received
           </h3>
-          <p className="mb-2 text-[16px] leading-[1.65] text-ink/70">
-            Thank you, {applicantName}. We&rsquo;ll contact you on WhatsApp
-            within two working days.
+          <p className="mb-4 text-[16px] leading-[1.65] text-ink/70">
+            Thank you, {applicantName}. We&rsquo;ll contact you on WhatsApp within
+            two working days.
           </p>
-          <p className="text-[14.5px] text-ink/55">
-            Asked for hostel? We&rsquo;ll confirm availability first - only 12
-            places.
+          <div className="mx-auto mb-4 inline-block rounded-[12px] border border-ink/10 bg-oat px-6 py-3">
+            <div className="text-[12px] uppercase tracking-[0.12em] text-ink/50">
+              Your receipt code
+            </div>
+            <div className="font-serif text-[24px] tracking-[0.1em] text-accent">
+              {receiptCode}
+            </div>
+          </div>
+          <p className="text-[14.5px] leading-[1.6] text-ink/55">
+            Keep this code safe — quote it to pay in person, or to check your
+            status. Asked for hostel? We&rsquo;ll confirm availability first, only
+            12 places.
           </p>
         </div>
       ) : (
@@ -106,7 +167,7 @@ export function ApplicationForm() {
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[22px]">
             <label className={labelClass}>
-              Email (optional)
+              Email {payNow ? "(required to pay online)" : "(optional)"}
               <input
                 {...register("email")}
                 type="email"
@@ -132,18 +193,38 @@ export function ApplicationForm() {
               </span>
             </span>
             <div className="flex flex-wrap gap-2.5">
-              <HostelButton
+              <ChoiceButton
                 selected={hostel === true}
                 onClick={() => setValue("hostel", true)}
               >
                 Yes, reserve me a bed
-              </HostelButton>
-              <HostelButton
+              </ChoiceButton>
+              <ChoiceButton
                 selected={hostel === false}
                 onClick={() => setValue("hostel", false)}
               >
                 No, I&rsquo;ll commute
-              </HostelButton>
+              </ChoiceButton>
+            </div>
+          </div>
+
+          <div className="grid gap-2.5">
+            <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
+              How would you like to pay?
+            </span>
+            <div className="flex flex-wrap gap-2.5">
+              <ChoiceButton
+                selected={payNow === false}
+                onClick={() => setValue("payNow", false)}
+              >
+                Pay later
+              </ChoiceButton>
+              <ChoiceButton
+                selected={payNow === true}
+                onClick={() => setValue("payNow", true)}
+              >
+                Pay now (card / MoMo)
+              </ChoiceButton>
             </div>
           </div>
 
@@ -165,13 +246,18 @@ export function ApplicationForm() {
 
           <button
             type="submit"
-            className="rounded-full border-none bg-accent px-[34px] py-[18px] font-sans text-[16px] font-semibold tracking-[0.06em] text-[#FDFAF3] transition-colors hover:bg-ink"
+            disabled={submitting}
+            className="rounded-full border-none bg-accent px-[34px] py-[18px] font-sans text-[16px] font-semibold tracking-[0.06em] text-[#FDFAF3] transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Submit application
+            {submitting
+              ? "Submitting…"
+              : payNow
+                ? "Continue to payment"
+                : "Submit application"}
           </button>
           <p className="text-center text-[13px] text-ink/50">
             By applying you agree to be contacted by Khady&rsquo;s Kitchen about
-            enrolment. No payment is taken online.
+            enrolment. {payNow ? "You'll pay securely via Paystack." : "You can pay now or later."}
           </p>
         </form>
       )}
@@ -179,7 +265,7 @@ export function ApplicationForm() {
   );
 }
 
-function HostelButton({
+function ChoiceButton({
   selected,
   onClick,
   children,

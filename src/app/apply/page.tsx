@@ -1,8 +1,5 @@
 import { SiteHeader } from "@/components/bake-school/site-header";
-import { Hero } from "@/components/bake-school/hero";
-import { Costs } from "@/components/bake-school/costs";
-import { WhatToBring } from "@/components/bake-school/what-to-bring";
-import { ApplicationForm } from "@/components/bake-school/application-form";
+import { ApplyContent } from "@/components/bake-school/apply-content";
 import { SiteFooter } from "@/components/bake-school/site-footer";
 import { routes } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
@@ -38,10 +35,7 @@ export default function BakeSchoolApplyPage() {
         mobileMenu
       />
       <main>
-        <Hero />
-        <Costs />
-        <WhatToBring />
-        <ApplicationForm />
+        <ApplyContent />
       </main>
       <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
     </div>
