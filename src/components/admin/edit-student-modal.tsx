@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +36,7 @@ export function EditStudentModal({
   student: IStudent;
   onClose: () => void;
 }) {
+  const titleId = useId();
   const [updateStudent, { isLoading }] = useUpdateStudentMutation();
   const {
     register,
@@ -78,8 +80,10 @@ export function EditStudentModal({
   };
 
   return (
-    <Modal open onClose={onClose}>
-      <h2 className="mb-4 font-serif text-[22px]">Edit student</h2>
+    <Modal open onClose={onClose} labelledBy={titleId}>
+      <h2 id={titleId} className="mb-4 font-serif text-[22px]">
+        Edit student
+      </h2>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="grid gap-4">
         <TextField
           label="Full name"

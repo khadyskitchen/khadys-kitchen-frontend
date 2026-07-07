@@ -32,9 +32,12 @@ export function Modal({
   const restoreRef = useRef<HTMLElement | null>(null);
   // Keep the latest onClose without making it an effect dependency - otherwise
   // an inline `onClose` prop would re-run the effect on every render and steal
-  // focus back to the dialog mid-typing.
+  // focus back to the dialog mid-typing. Updated in an effect (never during
+  // render) so the ref stays a render-free value.
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;

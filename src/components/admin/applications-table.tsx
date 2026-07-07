@@ -16,9 +16,10 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import {
   APPLICATION_DELETE_COPY,
-  APPLICATION_STATUS_ACTIONS,
+  applicationStatusActionsFor,
   applicationStatusCopy,
 } from "@/lib/admin/application-actions";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
 import {
   useDeleteApplicationMutation,
@@ -58,6 +59,7 @@ export function ApplicationsTable({
     useGetApplicationsQuery({ trainingId, ...queryParams } as IApplicationListQuery);
   const [updateStatus] = useUpdateApplicationStatusMutation();
   const [deleteApplication] = useDeleteApplicationMutation();
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
@@ -166,13 +168,11 @@ export function ApplicationsTable({
                     rows.map((a) => (
                     <tr
                       key={a.id}
-                      onClick={() => router.push(`/admin/applications/${a.id}`)}
-                      className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                      className="border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
                     >
                       <td className="px-6 py-4">
                         <Link
                           href={`/admin/applications/${a.id}`}
-                          onClick={(e) => e.stopPropagation()}
                           title={a.fullName}
                           className="block max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink no-underline"
                         >
@@ -203,7 +203,7 @@ export function ApplicationsTable({
                               onClick: () =>
                                 router.push(`/admin/applications/${a.id}`),
                             },
-                            ...APPLICATION_STATUS_ACTIONS.filter(
+                            ...applicationStatusActionsFor(isAdmin).filter(
                               (act) => act.status !== a.status,
                             ).map((act) => ({
                               label: act.label,
@@ -228,22 +228,26 @@ export function ApplicationsTable({
                                     ),
                                 }),
                             })),
-                            {
-                              label: "Delete",
-                              variant: "danger" as const,
-                              onClick: () =>
-                                confirm({
-                                  title: "Delete this application?",
-                                  description: APPLICATION_DELETE_COPY,
-                                  confirmText: "Delete application",
-                                  isDestructive: true,
-                                  onConfirm: () =>
-                                    run(
-                                      () => deleteApplication(a.id).unwrap(),
-                                      "Application deleted",
-                                    ),
-                                }),
-                            },
+                            ...(isAdmin
+                              ? [
+                                  {
+                                    label: "Delete",
+                                    variant: "danger" as const,
+                                    onClick: () =>
+                                      confirm({
+                                        title: "Delete this application?",
+                                        description: APPLICATION_DELETE_COPY,
+                                        confirmText: "Delete application",
+                                        isDestructive: true,
+                                        onConfirm: () =>
+                                          run(
+                                            () => deleteApplication(a.id).unwrap(),
+                                            "Application deleted",
+                                          ),
+                                      }),
+                                  },
+                                ]
+                              : []),
                           ]}
                         />
                       </td>

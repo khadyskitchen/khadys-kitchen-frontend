@@ -1,6 +1,7 @@
 import { apiSlice } from "../api-slice";
 import { toQueryString } from "@/lib/to-query-string";
 import type {
+  ApplicationStatus,
   IApplicationListQuery,
   IApplicationListResponse,
   IApplicationResponse,
@@ -58,7 +59,7 @@ export const applicationsApi = apiSlice.injectEndpoints({
 
     updateApplicationStatus: builder.mutation<
       IApplicationResponse,
-      { id: string; status: string }
+      { id: string; status: ApplicationStatus }
     >({
       query: ({ id, status }) => ({
         url: `admin/applications/${id}/status`,
@@ -87,6 +88,7 @@ export const applicationsApi = apiSlice.injectEndpoints({
         "Applications",
         "Students",
         "Trainings",
+        "DashboardStats",
       ],
     }),
 
@@ -126,25 +128,11 @@ export const applicationsApi = apiSlice.injectEndpoints({
         "Trainings",
       ],
     }),
-
-    refundPayment: builder.mutation<
-      { message: string; data: IPayment },
-      { paymentId: string; applicationId: string; reason?: string }
-    >({
-      query: ({ paymentId, reason }) => ({
-        url: `admin/payments/${paymentId}/refund`,
-        method: "POST",
-        body: { reason },
-      }),
-      invalidatesTags: (_r, _e, { applicationId }) => [
-        { type: "Application", id: applicationId },
-        "Applications",
-        "Payments",
-      ],
-    }),
   }),
 });
 
+// Refunds/reversals live in the payments slice (`useRefundPaymentMutation`) —
+// one mutation serves both ledgers.
 export const {
   useCreateApplicationMutation,
   useVerifyPaymentMutation,
@@ -154,6 +142,5 @@ export const {
   useGetApplicationPaymentsQuery,
   useRecordPaymentMutation,
   useRemindApplicantMutation,
-  useRefundPaymentMutation,
   useDeleteApplicationMutation,
 } = applicationsApi;

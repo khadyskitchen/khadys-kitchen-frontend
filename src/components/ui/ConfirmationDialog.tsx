@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
 
@@ -61,10 +61,14 @@ export function ConfirmationDialog({
   const resolvedTone: ConfirmTone = tone ?? (isDestructive ? "destructive" : "success");
   const styles = TONE_STYLES[resolvedTone];
 
-  // Reset the gate whenever the dialog re-opens.
-  useEffect(() => {
-    if (open) setTyped("");
-  }, [open]);
+  // Reset the gate whenever the dialog toggles open/closed. Deriving from the
+  // previous `open` during render (rather than an effect) avoids a cascading
+  // extra render — the React-recommended way to reset state on a prop change.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    setTyped("");
+  }
 
   const gated = Boolean(requireExactMatch) && typed.trim() !== requireExactMatch;
 

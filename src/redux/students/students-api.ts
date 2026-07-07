@@ -56,7 +56,7 @@ export const studentsApi = apiSlice.injectEndpoints({
 
     createStudent: builder.mutation<IStudentResponse, IStudentCreateInput>({
       query: (body) => ({ url: "admin/students", method: "POST", body }),
-      invalidatesTags: ["Students", "Trainings"],
+      invalidatesTags: ["Students", "Trainings", "DashboardStats"],
     }),
 
     updateStudent: builder.mutation<
@@ -96,7 +96,11 @@ export const studentsApi = apiSlice.injectEndpoints({
           patch.undo();
         }
       },
-      invalidatesTags: (_r, _e, { id }) => [{ type: "Student", id }, "Students"],
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Student", id },
+        "Students",
+        "DashboardStats",
+      ],
     }),
 
     deleteStudent: builder.mutation<IMessageResponse, string>({
@@ -105,6 +109,7 @@ export const studentsApi = apiSlice.injectEndpoints({
         { type: "Student", id },
         "Students",
         "Trainings",
+        "DashboardStats",
       ],
     }),
   }),

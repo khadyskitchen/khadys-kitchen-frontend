@@ -1,13 +1,26 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ContactForm } from "@/components/contact/contact-form";
+
+// Mock the data layer so the form is tested in isolation — no store/network.
+const { sendTrigger } = vi.hoisted(() => ({ sendTrigger: vi.fn() }));
+
+vi.mock("@/redux/contact/contact-api", () => ({
+  useSendContactMessageMutation: () => [sendTrigger, { isLoading: false }],
+}));
+
+beforeEach(() => {
+  sendTrigger.mockReset();
+  sendTrigger.mockReturnValue({ unwrap: () => Promise.resolve({ message: "ok" }) });
+});
 
 describe("ContactForm", () => {
   it("shows a validation error when submitted empty", async () => {
     render(<ContactForm />);
     await userEvent.click(screen.getByRole("button", { name: "Send message" }));
     expect(await screen.findByText(/Please add your name/i)).toBeInTheDocument();
+    expect(sendTrigger).not.toHaveBeenCalled();
   });
 
   it("shows the sent confirmation after a valid submit", async () => {
@@ -19,5 +32,6 @@ describe("ContactForm", () => {
 
     expect(await screen.findByText("Message sent")).toBeInTheDocument();
     expect(screen.getByText(/Thank you, Kofi/)).toBeInTheDocument();
+    expect(sendTrigger).toHaveBeenCalledTimes(1);
   });
 });

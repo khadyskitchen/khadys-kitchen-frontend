@@ -35,7 +35,10 @@ export const productsApi = apiSlice.injectEndpoints({
 
     getPublicProductBySlug: builder.query<IProductResponse, string>({
       query: (slug) => ({ url: `products/${slug}`, method: "GET" }),
-      providesTags: (_r, _e, slug) => [{ type: "Product", id: slug }],
+      // The slug key ({ Product, id: slug }) is never invalidated by admin
+      // mutations (they key by DB id), so also provide the "Products" list tag
+      // — which every product mutation invalidates — to keep this cache fresh.
+      providesTags: (_r, _e, slug) => [{ type: "Product", id: slug }, "Products"],
     }),
 
     // ── Admin ─────────────────────────────────────────────────

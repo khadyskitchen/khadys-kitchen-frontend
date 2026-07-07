@@ -18,26 +18,38 @@ export const paymentsApi = apiSlice.injectEndpoints({
       providesTags: ["Payments"],
     }),
 
-    /** Owner-agnostic refund — invalidates broadly since the payment may
-     * belong to either ledger (the applications slice has its own scoped one). */
-    refundLedgerPayment: builder.mutation<
+    /**
+     * The one refund/reverse mutation for both ledgers (`POST
+     * admin/payments/:id/refund`). Pass the owning `orderId`/`applicationId`
+     * when you know it — detail pages provide only per-id tags, so without it
+     * an open order/application detail would keep showing the stale balance.
+     */
+    refundPayment: builder.mutation<
       { message: string; data: IPayment },
-      { paymentId: string; reason?: string }
+      {
+        paymentId: string;
+        orderId?: string;
+        applicationId?: string;
+        reason?: string;
+      }
     >({
       query: ({ paymentId, reason }) => ({
         url: `admin/payments/${paymentId}/refund`,
         method: "POST",
         body: { reason },
       }),
-      invalidatesTags: [
+      invalidatesTags: (_r, _e, { orderId, applicationId }) => [
         "Payments",
         "Orders",
         "Applications",
         "DashboardStats",
+        ...(orderId ? [{ type: "Order" as const, id: orderId }] : []),
+        ...(applicationId
+          ? [{ type: "Application" as const, id: applicationId }]
+          : []),
       ],
     }),
   }),
 });
 
-export const { useGetPaymentsQuery, useRefundLedgerPaymentMutation } =
-  paymentsApi;
+export const { useGetPaymentsQuery, useRefundPaymentMutation } = paymentsApi;

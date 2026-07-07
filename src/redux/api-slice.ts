@@ -43,7 +43,13 @@ const baseQueryWithReauth: BaseQueryFn<
           api.dispatch(userLoggedIn({ user: refreshResult.data.data.user }));
           result = await baseQuery(args, api, extraOptions); // retry original
         } else {
-          api.dispatch(userLoggedOut()); // refresh failed → end the session
+          // Refresh failed → end the session AND drop every cached query so
+          // stale data (e.g. a still-resolved `getMe`) can't keep RequireAuth
+          // rendering the console; its error path now engages and bounces to
+          // login. The refresh call above is a raw `baseQuery` (not routed
+          // through this reauth wrapper), so its own 401 never re-triggers us.
+          api.dispatch(userLoggedOut());
+          api.dispatch(apiSlice.util.resetApiState());
         }
       } finally {
         release();

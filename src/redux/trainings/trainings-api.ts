@@ -82,7 +82,11 @@ export const trainingsApi = apiSlice.injectEndpoints({
           patch.undo();
         }
       },
-      invalidatesTags: (_r, _e, id) => [{ type: "Training", id }, "Trainings"],
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Training", id },
+        "Trainings",
+        "DashboardStats",
+      ],
     }),
 
     unpublishTraining: builder.mutation<ITrainingResponse, string>({
@@ -99,7 +103,11 @@ export const trainingsApi = apiSlice.injectEndpoints({
           patch.undo();
         }
       },
-      invalidatesTags: (_r, _e, id) => [{ type: "Training", id }, "Trainings"],
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Training", id },
+        "Trainings",
+        "DashboardStats",
+      ],
     }),
 
     deleteTraining: builder.mutation<IMessageResponse, string>({

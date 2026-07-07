@@ -33,7 +33,55 @@ export function ActionMenu({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const focusedRef = useRef(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
+  const closeAndRestore = () => {
+    setOpen(false);
+    // Return focus to the trigger — it's the element the menu belongs to.
+    rootRef.current?.querySelector<HTMLButtonElement>(":scope > button")?.focus();
+  };
+
+  // Roving focus: the menu is portaled, so the browser's Tab order would walk
+  // straight past it. We move focus in on open and keep it inside until close.
+  const onMenuKeyDown = (e: React.KeyboardEvent) => {
+    const buttons = Array.from(
+      menuRef.current?.querySelectorAll<HTMLButtonElement>(
+        'button[role="menuitem"]:not([disabled])',
+      ) ?? [],
+    );
+    if (buttons.length === 0) return;
+    const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const focusAt = (i: number) =>
+      buttons[(i + buttons.length) % buttons.length]?.focus();
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        focusAt(current + 1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        focusAt(current - 1);
+        break;
+      case "Home":
+        e.preventDefault();
+        buttons[0].focus();
+        break;
+      case "End":
+        e.preventDefault();
+        buttons[buttons.length - 1].focus();
+        break;
+      case "Tab":
+        e.preventDefault();
+        focusAt(e.shiftKey ? current - 1 : current + 1);
+        break;
+      case "Escape":
+        e.preventDefault();
+        closeAndRestore();
+        break;
+    }
+  };
 
   // The menu renders in a body portal with fixed positioning, so it overlays
   // the page instead of being clipped by a table's overflow container (which
@@ -78,6 +126,20 @@ export function ActionMenu({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Move focus onto the first item once the menu has mounted and positioned.
+  useEffect(() => {
+    if (!open) {
+      focusedRef.current = false;
+      return;
+    }
+    if (pos && !focusedRef.current && menuRef.current) {
+      focusedRef.current = true;
+      menuRef.current
+        .querySelector<HTMLButtonElement>('button[role="menuitem"]:not([disabled])')
+        ?.focus();
+    }
+  }, [open, pos]);
 
   if (items.length === 0) return null;
 
@@ -132,7 +194,9 @@ export function ActionMenu({
             <div
               ref={menuRef}
               role="menu"
+              aria-orientation="vertical"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={onMenuKeyDown}
               className="fixed z-[120] w-[190px] rounded-[14px] border border-ink/15 bg-card p-1.5"
               style={{ animation: "kk-rise .15s ease both", left: pos.left, top: pos.top }}
             >

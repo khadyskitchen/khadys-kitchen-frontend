@@ -18,17 +18,17 @@ import { formatDate, formatDateTime } from "@/lib/format-date";
 import {
   useDeleteApplicationMutation,
   useGetApplicationByIdQuery,
-  useRefundPaymentMutation,
   useRemindApplicantMutation,
   useUpdateApplicationStatusMutation,
 } from "@/redux/applications/applications-api";
+import { useRefundPaymentMutation } from "@/redux/payments/payments-api";
 import {
   APPLICATION_DELETE_COPY,
-  APPLICATION_STATUS_ACTIONS as STATUS_ACTIONS,
+  applicationStatusActionsFor,
   applicationStatusCopy,
 } from "@/lib/admin/application-actions";
-
-
+import type { ApplicationStatus } from "@/types/application.types";
+import { useAuthRole } from "@/hooks/use-auth-role";
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +39,7 @@ export default function ApplicationDetailPage() {
   const [remind, { isLoading: reminding }] = useRemindApplicantMutation();
   const [refund] = useRefundPaymentMutation();
   const [deleteApplication] = useDeleteApplicationMutation();
+  const { isAdmin } = useAuthRole();
 
   const { confirm, dialog } = useConfirm();
   const [recording, setRecording] = useState(false);
@@ -63,7 +64,7 @@ export default function ApplicationDetailPage() {
     );
   }
 
-  const doStatus = async (status: string) => {
+  const doStatus = async (status: ApplicationStatus) => {
     try {
       await updateStatus({ id, status }).unwrap();
       notify.success("Status updated");
@@ -131,8 +132,9 @@ export default function ApplicationDetailPage() {
         </div>
         <PageActions
           actions={[
-            ...STATUS_ACTIONS.filter((a) => a.status !== app.status).map(
-              (a, i) => ({
+            ...applicationStatusActionsFor(isAdmin)
+              .filter((a) => a.status !== app.status)
+              .map((a, i) => ({
                 label: a.label,
                 variant: a.variant,
                 // Admit (or the first sensible transition) stays visible on phones.
@@ -145,20 +147,23 @@ export default function ApplicationDetailPage() {
                     isDestructive: a.variant === "danger",
                     onConfirm: () => doStatus(a.status),
                   }),
-              }),
-            ),
-            {
-              label: "Delete",
-              variant: "danger" as const,
-              onClick: () =>
-                confirm({
-                  title: "Delete this application?",
-                  description: APPLICATION_DELETE_COPY,
-                  confirmText: "Delete application",
-                  isDestructive: true,
-                  onConfirm: onDelete,
-                }),
-            },
+              })),
+            ...(isAdmin
+              ? [
+                  {
+                    label: "Delete",
+                    variant: "danger" as const,
+                    onClick: () =>
+                      confirm({
+                        title: "Delete this application?",
+                        description: APPLICATION_DELETE_COPY,
+                        confirmText: "Delete application",
+                        isDestructive: true,
+                        onConfirm: onDelete,
+                      }),
+                  },
+                ]
+              : []),
           ]}
         />
       </div>
@@ -257,7 +262,7 @@ export default function ApplicationDetailPage() {
                   <span className="text-[13px] text-ink/50">
                     {formatDateTime(p.paidAt ?? null)}
                   </span>
-                  {p.status === "SUCCESS" ? (
+                  {isAdmin && p.status === "SUCCESS" ? (
                     <button
                       type="button"
                       onClick={() =>
@@ -285,7 +290,7 @@ export default function ApplicationDetailPage() {
       </Card>
 
       <RecordPaymentModal
-        applicationId={id}
+        owner={{ kind: "application", id }}
         open={recording}
         onClose={() => setRecording(false)}
       />

@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Reveal } from "@/components/reveal";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notify";
+import { extractApiError } from "@/lib/extract-api-error";
+import { useSendContactMessageMutation } from "@/redux/contact/contact-api";
 import {
   CONTACT_TOPICS,
   contactSchema,
@@ -26,25 +30,46 @@ const NEXT_STEPS = [
 export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [senderName, setSenderName] = useState("friend");
+  const [sendContactMessage, { isLoading: sending }] =
+    useSendContactMessageMutation();
 
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", contact: "", message: "", topic: "An order" },
+    defaultValues: {
+      name: "",
+      contact: "",
+      message: "",
+      topic: "An order",
+      website: "",
+    },
   });
 
-  const topic = watch("topic");
+  const topic = useWatch({ control, name: "topic" });
   const errorMessage =
     errors.name?.message ?? errors.contact?.message ?? errors.message?.message;
 
-  const onSubmit = (data: ContactValues) => {
-    setSenderName(data.name.trim().split(" ")[0] || "friend");
-    setSent(true);
+  const onSubmit = async (data: ContactValues) => {
+    try {
+      await sendContactMessage({
+        name: data.name.trim(),
+        contact: data.contact.trim(),
+        message: data.message.trim(),
+        topic: data.topic,
+        website: data.website ?? "",
+      }).unwrap();
+      setSenderName(data.name.trim().split(" ")[0] || "friend");
+      setSent(true);
+    } catch (err) {
+      notify.error("Couldn't send your message", {
+        description: extractApiError(err).message,
+      });
+    }
   };
 
   return (
@@ -81,7 +106,7 @@ export function ContactForm() {
               <Reveal variant="blur">
                 <form
                   noValidate
-                  onSubmit={handleSubmit(onSubmit)}
+                  onSubmit={(e) => void handleSubmit(onSubmit)(e)}
                   className="grid gap-5 rounded-[22px] border border-ink/10 bg-card p-[clamp(24px,4vw,40px)]"
                 >
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-5">
@@ -108,27 +133,17 @@ export function ContactForm() {
                       What&rsquo;s it about?
                     </span>
                     <div className="flex flex-wrap gap-2.5">
-                      {CONTACT_TOPICS.map((t) => {
-                        const on = topic === t;
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            aria-pressed={on}
-                            onClick={() =>
-                              setValue("topic", t, { shouldValidate: true })
-                            }
-                            className={cn(
-                              "cursor-pointer rounded-full border-[1.5px] px-5 py-2.5 font-sans text-[14px] font-semibold transition-colors",
-                              on
-                                ? "border-accent bg-accent text-[#FDFAF3]"
-                                : "border-ink/25 bg-transparent text-ink hover:border-ink/50",
-                            )}
-                          >
-                            {t}
-                          </button>
-                        );
-                      })}
+                      {CONTACT_TOPICS.map((t) => (
+                        <ChoiceButton
+                          key={t}
+                          selected={topic === t}
+                          onClick={() =>
+                            setValue("topic", t, { shouldValidate: true })
+                          }
+                        >
+                          {t}
+                        </ChoiceButton>
+                      ))}
                     </div>
                   </div>
 
@@ -142,6 +157,16 @@ export function ContactForm() {
                     />
                   </label>
 
+                  {/* Honeypot: invisible to people, irresistible to bots. */}
+                  <input
+                    {...register("website")}
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                  />
+
                   {errorMessage ? (
                     <div className="rounded-[12px] border border-danger/25 bg-danger/[0.08] px-4 py-3 text-[14.5px] text-danger">
                       {errorMessage}
@@ -150,9 +175,10 @@ export function ContactForm() {
 
                   <button
                     type="submit"
-                    className="cursor-pointer justify-self-start rounded-full border-none bg-accent px-[34px] py-[17px] font-sans text-[15.5px] font-semibold tracking-[0.06em] text-[#FDFAF3] transition-colors hover:bg-ink"
+                    disabled={sending}
+                    className="cursor-pointer justify-self-start rounded-full border-none bg-accent px-[34px] py-[17px] font-sans text-[15.5px] font-semibold tracking-[0.06em] text-[#FDFAF3] transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Send message
+                    {sending ? "Sending…" : "Send message"}
                   </button>
                 </form>
               </Reveal>

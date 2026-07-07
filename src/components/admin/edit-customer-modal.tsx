@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { TextField } from "@/components/ui/TextField";
@@ -18,6 +18,7 @@ export function EditCustomerModal({
   customer: ICustomer;
   onClose: () => void;
 }) {
+  const titleId = useId();
   const [fullName, setFullName] = useState(customer.fullName);
   const [email, setEmail] = useState(customer.email ?? "");
   const [notes, setNotes] = useState(customer.notes ?? "");
@@ -47,8 +48,10 @@ export function EditCustomerModal({
   };
 
   return (
-    <Modal open onClose={onClose}>
-      <h2 className="mb-4 font-serif text-[22px]">Edit customer</h2>
+    <Modal open onClose={onClose} labelledBy={titleId}>
+      <h2 id={titleId} className="mb-4 font-serif text-[22px]">
+        Edit customer
+      </h2>
       <div className="grid gap-4">
         <TextField
           label="Name"

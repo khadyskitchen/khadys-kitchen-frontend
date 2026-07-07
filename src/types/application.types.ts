@@ -14,6 +14,15 @@ export interface IApplyInput {
   payNow?: boolean;
 }
 
+/** Bake School application lifecycle — mirrors the backend `ApplicationStatus`
+ * enum (schema.prisma). */
+export type ApplicationStatus =
+  | "PENDING"
+  | "WAITLISTED"
+  | "RECRUITED"
+  | "REJECTED"
+  | "WITHDRAWN";
+
 export interface IFeeLine {
   id: string;
   name: string;
@@ -35,7 +44,7 @@ export interface IApplication {
   balance: number;
   currency: string;
   paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
-  status: string;
+  status: ApplicationStatus;
   source?: string;
   reviewedAt?: string | null;
   createdAt: string;
@@ -85,6 +94,8 @@ export interface IPayment {
   status: "PENDING" | "SUCCESS" | "FAILED" | "REVERSED";
   reference: string;
   paidAt: string | null;
+  createdAt: string;
+  note: string | null;
 }
 
 /** `POST /payments/verify`. */

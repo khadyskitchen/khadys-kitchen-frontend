@@ -89,4 +89,7 @@ export interface IOrderListQuery {
   paymentStatus?: string;
   customerId?: string;
   search?: string;
+  /** Inclusive created-at date range (ISO strings); backend coerces to dates. */
+  from?: string;
+  to?: string;
 }

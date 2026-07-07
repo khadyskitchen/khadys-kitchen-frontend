@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useId, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FieldError } from "@/components/ui/FieldError";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -32,6 +34,7 @@ export const ORDER_CODE_KEY = "kk_order_code";
 
 export function CheckoutForm() {
   const router = useRouter();
+  const fieldId = useId();
   const { lines, hydrated, subtotal, maxLeadDays, clear } = useCart();
   const [placeOrder, { isLoading: submitting }] = usePlaceOrderMutation();
 
@@ -62,11 +65,6 @@ export function CheckoutForm() {
   });
 
   const payNow = useWatch({ control, name: "payNow" });
-  const errorMessage =
-    errors.fullName?.message ??
-    errors.phone?.message ??
-    errors.email?.message ??
-    errors.pickupDate?.message;
 
   const onSubmit = async (data: CheckoutValues) => {
     if (data.payNow && !data.email) {
@@ -154,16 +152,24 @@ export function CheckoutForm() {
             <input
               {...register("fullName")}
               placeholder="e.g. Ama Mensah"
+              aria-invalid={errors.fullName ? true : undefined}
+              aria-describedby={
+                errors.fullName ? `${fieldId}-fullName` : undefined
+              }
               className={inputClass}
             />
+            <FieldError id={`${fieldId}-fullName`} message={errors.fullName?.message} />
           </label>
           <label className={labelClass}>
             Phone / WhatsApp
             <input
               {...register("phone")}
               placeholder="e.g. 024 000 0000"
+              aria-invalid={errors.phone ? true : undefined}
+              aria-describedby={errors.phone ? `${fieldId}-phone` : undefined}
               className={inputClass}
             />
+            <FieldError id={`${fieldId}-phone`} message={errors.phone?.message} />
           </label>
         </div>
 
@@ -174,8 +180,11 @@ export function CheckoutForm() {
               {...register("email")}
               type="email"
               placeholder="you@example.com"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? `${fieldId}-email` : undefined}
               className={inputClass}
             />
+            <FieldError id={`${fieldId}-email`} message={errors.email?.message} />
           </label>
           <label className={labelClass}>
             Pickup date (optional)
@@ -183,7 +192,15 @@ export function CheckoutForm() {
               {...register("pickupDate")}
               type="date"
               min={minDate}
+              aria-invalid={errors.pickupDate ? true : undefined}
+              aria-describedby={
+                errors.pickupDate ? `${fieldId}-pickupDate` : undefined
+              }
               className={inputClass}
+            />
+            <FieldError
+              id={`${fieldId}-pickupDate`}
+              message={errors.pickupDate?.message}
             />
           </label>
         </div>
@@ -211,7 +228,7 @@ export function CheckoutForm() {
               selected={payNow === false}
               onClick={() => setValue("payNow", false)}
             >
-              Pay at pickup
+              Pay offline
             </ChoiceButton>
             <ChoiceButton
               selected={payNow === true}
@@ -228,15 +245,12 @@ export function CheckoutForm() {
             {...register("note")}
             rows={3}
             placeholder="Cake message, colours, allergies, pickup time…"
+            aria-invalid={errors.note ? true : undefined}
+            aria-describedby={errors.note ? `${fieldId}-note` : undefined}
             className={cn(inputClass, "resize-y")}
           />
+          <FieldError id={`${fieldId}-note`} message={errors.note?.message} />
         </label>
-
-        {errorMessage ? (
-          <div className="rounded-[12px] border border-danger/25 bg-danger/[0.08] px-4 py-3 text-[14.5px] text-danger">
-            {errorMessage}
-          </div>
-        ) : null}
 
         <Button
           type="submit"
@@ -247,13 +261,13 @@ export function CheckoutForm() {
         >
           {payNow
             ? `Pay ${formatMoney(subtotal)} & place order`
-            : "Place order · pay at pickup"}
+            : "Place order · pay offline"}
         </Button>
         <p className="text-center text-[13px] text-ink/50">
           We&rsquo;ll text your order code to this number.{" "}
           {payNow
             ? "You'll pay securely via Paystack."
-            : "Pay cash or MoMo when you collect."}
+            : "We'll call you to arrange payment before we start baking."}
         </p>
       </form>
 
@@ -301,31 +315,5 @@ export function CheckoutForm() {
         </div>
       </aside>
     </div>
-  );
-}
-
-function ChoiceButton({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={cn(
-        "cursor-pointer rounded-full border-[1.5px] px-[22px] py-[11px] font-sans text-[14.5px] font-semibold transition-colors",
-        selected
-          ? "border-accent bg-accent text-[#FDFAF3]"
-          : "border-ink/25 bg-transparent text-ink hover:border-ink/50",
-      )}
-    >
-      {children}
-    </button>
   );
 }

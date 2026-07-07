@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export function ProfileAvatar({
   onStage?: (file: File) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const zoomTitleId = useId();
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
 
@@ -137,8 +138,12 @@ export function ProfileAvatar({
       <Modal
         open={zoomOpen}
         onClose={() => setZoomOpen(false)}
+        labelledBy={zoomTitleId}
         className="max-w-[min(90vw,520px)] p-3"
       >
+        <h2 id={zoomTitleId} className="sr-only">
+          Profile photo
+        </h2>
         {picture ? (
           <div className="relative mx-auto aspect-square w-full overflow-hidden rounded-[16px] bg-oat/40">
             {/* Square crop that fits the viewport; click zooms into the centre

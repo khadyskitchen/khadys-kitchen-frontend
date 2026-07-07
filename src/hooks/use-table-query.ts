@@ -74,6 +74,31 @@ export function useTableQuery<F extends Record<string, string>>({
     }
   }, [page, debouncedSearch, filters, pathname, key, router, defaults]);
 
+  // URL → state, for browser back/forward only. The mirror above uses
+  // `router.replace` (history.replaceState), which does NOT emit `popstate`, so
+  // this listener can't fire from our own writes — no feedback loop. A real
+  // back/forward changes the URL without touching our state, so we adopt the
+  // popped URL's values here; the mirror then sees the URL already matches state
+  // and skips navigating (no extra history entry).
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const parsedPage = Number(params.get(key("page")) ?? "1");
+      setPageState(parsedPage > 0 ? parsedPage : 1);
+      setSearchInput(params.get(key("search")) ?? "");
+      const next = { ...defaults };
+      for (const name of Object.keys(defaults)) {
+        const value = params.get(key(name));
+        if (value) (next as Record<string, string>)[name] = value;
+      }
+      setFiltersState(next);
+    };
+    window.addEventListener("popstate", syncFromUrl);
+    return () => {
+      window.removeEventListener("popstate", syncFromUrl);
+    };
+  }, [key, defaults]);
+
   const setSearch = useCallback((value: string) => {
     setSearchInput(value);
     setPageState(1);

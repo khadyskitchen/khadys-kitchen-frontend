@@ -20,6 +20,8 @@ export const contactSchema = z.object({
   contact: z.string().trim().min(1, REQUIRED_MESSAGE),
   message: z.string().trim().min(1, REQUIRED_MESSAGE),
   topic: z.enum(CONTACT_TOPICS),
+  /** Honeypot — humans never see it; bots that fill it are rejected. */
+  website: z.string().max(0, "Something went wrong").optional(),
 });
 
 export type ContactValues = z.infer<typeof contactSchema>;

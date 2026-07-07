@@ -15,6 +15,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
+import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
 import {
   useDeleteStudentMutation,
@@ -51,6 +52,7 @@ export function StudentsTable({
   const [setStatus] = useSetStudentStatusMutation();
   const [deleteStudent] = useDeleteStudentMutation();
   const [editing, setEditing] = useState<IStudent | null>(null);
+  const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
@@ -204,13 +206,11 @@ export function StudentsTable({
                     rows.map((st) => (
                     <tr
                       key={st.id}
-                      onClick={() => router.push(`/admin/students/${st.id}`)}
-                      className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
+                      className="border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
                     >
                       <td className="px-6 py-4">
                         <Link
                           href={`/admin/students/${st.id}`}
-                          onClick={(e) => e.stopPropagation()}
                           title={st.fullName}
                           className="block max-w-[170px] truncate sm:max-w-[260px] text-[15px] font-semibold text-ink no-underline"
                         >
@@ -241,23 +241,27 @@ export function StudentsTable({
                             },
                             { label: "Edit", onClick: () => setEditing(st) },
                             ...statusItems(st),
-                            {
-                              label: "Delete",
-                              variant: "danger" as const,
-                              onClick: () =>
-                                confirm({
-                                  title: "Delete this student?",
-                                  description:
-                                    "This removes the student record. This can't be undone from here.",
-                                  confirmText: "Delete student",
-                                  isDestructive: true,
-                                  onConfirm: () =>
-                                    run(
-                                      () => deleteStudent(st.id).unwrap(),
-                                      "Student deleted",
-                                    ),
-                                }),
-                            },
+                            ...(isAdmin
+                              ? [
+                                  {
+                                    label: "Delete",
+                                    variant: "danger" as const,
+                                    onClick: () =>
+                                      confirm({
+                                        title: "Delete this student?",
+                                        description:
+                                          "This removes the student record. This can't be undone from here.",
+                                        confirmText: "Delete student",
+                                        isDestructive: true,
+                                        onConfirm: () =>
+                                          run(
+                                            () => deleteStudent(st.id).unwrap(),
+                                            "Student deleted",
+                                          ),
+                                      }),
+                                  },
+                                ]
+                              : []),
                           ]}
                         />
                       </td>

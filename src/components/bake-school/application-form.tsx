@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8,6 +8,8 @@ import {
   type ApplicationValues,
 } from "@/validations/application-schema";
 import { Button } from "@/components/ui/Button";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { FieldError } from "@/components/ui/FieldError";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -24,6 +26,7 @@ const labelClass =
 export const APPLY_CODE_KEY = "kk_apply_code";
 
 export function ApplicationForm({ training }: { training: ITraining }) {
+  const fieldId = useId();
   const [submitted, setSubmitted] = useState(false);
   const [applicantName, setApplicantName] = useState("friend");
   const [receiptCode, setReceiptCode] = useState("");
@@ -52,8 +55,6 @@ export function ApplicationForm({ training }: { training: ITraining }) {
 
   const hostel = useWatch({ control, name: "hostel" });
   const payNow = useWatch({ control, name: "payNow" });
-  const errorMessage =
-    errors.name?.message ?? errors.phone?.message ?? errors.email?.message;
 
   const onSubmit = async (data: ApplicationValues) => {
     try {
@@ -153,16 +154,22 @@ export function ApplicationForm({ training }: { training: ITraining }) {
               <input
                 {...register("name")}
                 placeholder="e.g. Ama Mensah"
+                aria-invalid={errors.name ? true : undefined}
+                aria-describedby={errors.name ? `${fieldId}-name` : undefined}
                 className={inputClass}
               />
+              <FieldError id={`${fieldId}-name`} message={errors.name?.message} />
             </label>
             <label className={labelClass}>
               Phone / WhatsApp
               <input
                 {...register("phone")}
                 placeholder="e.g. 024 000 0000"
+                aria-invalid={errors.phone ? true : undefined}
+                aria-describedby={errors.phone ? `${fieldId}-phone` : undefined}
                 className={inputClass}
               />
+              <FieldError id={`${fieldId}-phone`} message={errors.phone?.message} />
             </label>
           </div>
 
@@ -173,15 +180,26 @@ export function ApplicationForm({ training }: { training: ITraining }) {
                 {...register("email")}
                 type="email"
                 placeholder="you@example.com"
+                aria-invalid={errors.email ? true : undefined}
+                aria-describedby={errors.email ? `${fieldId}-email` : undefined}
                 className={inputClass}
               />
+              <FieldError id={`${fieldId}-email`} message={errors.email?.message} />
             </label>
             <label className={labelClass}>
               Where are you based?
               <input
                 {...register("location")}
                 placeholder="e.g. Kumasi, Asokwa"
+                aria-invalid={errors.location ? true : undefined}
+                aria-describedby={
+                  errors.location ? `${fieldId}-location` : undefined
+                }
                 className={inputClass}
+              />
+              <FieldError
+                id={`${fieldId}-location`}
+                message={errors.location?.message}
               />
             </label>
           </div>
@@ -235,15 +253,15 @@ export function ApplicationForm({ training }: { training: ITraining }) {
               {...register("message")}
               rows={4}
               placeholder="Your baking experience, questions about fees, preferred start date…"
+              aria-invalid={errors.message ? true : undefined}
+              aria-describedby={errors.message ? `${fieldId}-message` : undefined}
               className={cn(inputClass, "resize-y")}
             />
+            <FieldError
+              id={`${fieldId}-message`}
+              message={errors.message?.message}
+            />
           </label>
-
-          {errorMessage ? (
-            <div className="rounded-[12px] border border-danger/25 bg-danger/[0.08] px-4 py-3 text-[14.5px] text-danger">
-              {errorMessage}
-            </div>
-          ) : null}
 
           <Button
             type="submit"
@@ -261,31 +279,5 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         </form>
       )}
     </section>
-  );
-}
-
-function ChoiceButton({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={cn(
-        "cursor-pointer rounded-full border-[1.5px] px-[22px] py-[11px] font-sans text-[14.5px] font-semibold transition-colors",
-        selected
-          ? "border-accent bg-accent text-[#FDFAF3]"
-          : "border-ink/25 bg-transparent text-ink hover:border-ink/50",
-      )}
-    >
-      {children}
-    </button>
   );
 }

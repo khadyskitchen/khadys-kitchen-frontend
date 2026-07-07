@@ -3,6 +3,7 @@ import { Marcellus, Karla } from "next/font/google";
 import "./globals.css";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { CustomToaster } from "@/components/ui/CustomToaster";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { StoreProvider } from "@/redux/store-provider";
 
 const marcellus = Marcellus({
@@ -123,6 +124,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd.website) }}
         />
         <StoreProvider>{children}</StoreProvider>
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[300] grid place-items-center p-3">
+          <div className="pointer-events-auto w-full max-w-[560px]">
+            <OfflineBanner />
+          </div>
+        </div>
         <CustomToaster />
       </body>
     </html>
