@@ -25,7 +25,23 @@ export default function ClassesPage() {
 
   const trainings = data?.data ?? [];
   const meta = data?.meta;
-  const hasActiveFilters = Boolean(search.trim()) || filters.status !== "all";
+  const hasActiveFilters =
+    Boolean(search.trim()) || filters.status !== "all" || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No trainings yet"
+          description="Create your first Bake School cohort to start taking applications."
+          action={{ label: "+ New training", href: "/admin/classes/new" }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -67,17 +83,8 @@ export default function ClassesPage() {
         </div>
       ) : trainings.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching trainings" : "No trainings yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filter — try clearing them."
-              : "Create your first Bake School cohort to start taking applications."
-          }
-          action={
-            hasActiveFilters
-              ? undefined
-              : { label: "+ New training", href: "/admin/classes/new" }
-          }
+          title="No matching trainings"
+          description="Nothing matches your current search or filter — try clearing them."
         />
       ) : (
         <>

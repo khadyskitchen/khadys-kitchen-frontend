@@ -56,7 +56,11 @@ export default function PaymentsPage() {
   const activeCount = Object.entries(filters).filter(
     ([, v]) => v !== "all",
   ).length;
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
 
   const doRefund = async (paymentId: string) => {
     try {
@@ -66,6 +70,17 @@ export default function PaymentsPage() {
       notify.error("Couldn't reverse", { description: extractApiError(err).message });
     }
   };
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No payments yet"
+          description="Every shop and bake-school payment lands in this ledger."
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -120,12 +135,8 @@ export default function PaymentsPage() {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching payments" : "No payments yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
-              : "Every shop and bake-school payment lands in this ledger."
-          }
+          title="No matching payments"
+          description="Nothing matches your current search or filters — try clearing them."
         />
       ) : (
         <>

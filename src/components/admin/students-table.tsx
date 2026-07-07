@@ -40,7 +40,24 @@ export function StudentsTable({
   const rows = data?.data ?? [];
   const meta = data?.meta;
   const activeCount = filters.status !== "all" ? 1 : 0;
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <EmptyState
+        title="No students yet"
+        description={
+          trainingId
+            ? "No one has been admitted to this cohort yet."
+            : "Admitted students will appear here."
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -71,14 +88,8 @@ export function StudentsTable({
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching students" : "No students yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
-              : trainingId
-                ? "No one has been admitted to this cohort yet."
-                : "Admitted students will appear here."
-          }
+          title="No matching students"
+          description="Nothing matches your current search or filters — try clearing them."
         />
       ) : (
         <>

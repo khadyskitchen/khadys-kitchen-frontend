@@ -31,6 +31,21 @@ export default function CustomersPage() {
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
+  const hasActiveFilters = Boolean(search.trim()) || page > 1;
+  // Truly empty (not just searched to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No customers yet"
+          description="Customers appear automatically the first time they order."
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -47,12 +62,8 @@ export default function CustomersPage() {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={search.trim() ? "No matching customers" : "No customers yet"}
-          description={
-            search.trim()
-              ? "Nothing matches your search — try clearing it."
-              : "Customers appear automatically the first time they order."
-          }
+          title="No matching customers"
+          description="Nothing matches your search — try clearing it."
         />
       ) : (
         <>

@@ -51,7 +51,22 @@ export default function AuditPage() {
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
-  const hasActiveFilters = filters.entity !== "all" || filters.action !== "all";
+  const hasActiveFilters =
+    filters.entity !== "all" || filters.action !== "all" || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No activity yet"
+          description="Admin actions will be recorded here as they happen."
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -100,12 +115,8 @@ export default function AuditPage() {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching events" : "No activity yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches these filters — try clearing them."
-              : "Admin actions will be recorded here as they happen."
-          }
+          title="No matching events"
+          description="Nothing matches these filters — try clearing them."
         />
       ) : (
         <>

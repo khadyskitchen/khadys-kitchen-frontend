@@ -49,7 +49,24 @@ export function ApplicationsTable({
   const activeCount =
     (filters.status !== "all" ? 1 : 0) +
     (filters.paymentStatus !== "all" ? 1 : 0);
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <EmptyState
+        title="No applications yet"
+        description={
+          trainingId
+            ? "No one has applied to this cohort yet."
+            : "Applications will appear here as people apply."
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -92,14 +109,8 @@ export function ApplicationsTable({
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching applications" : "No applications yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
-              : trainingId
-                ? "No one has applied to this cohort yet."
-                : "Applications will appear here as people apply."
-          }
+          title="No matching applications"
+          description="Nothing matches your current search or filters — try clearing them."
         />
       ) : (
         <>

@@ -49,7 +49,23 @@ export default function ItemsPage() {
   const activeCount =
     (filters.category !== "all" ? 1 : 0) +
     (filters.availability !== "all" ? 1 : 0);
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No items yet"
+          description="Add your first bake to open the shop."
+          action={{ label: "+ New item", href: "/admin/items/new" }}
+        />
+      </div>
+    );
+  }
 
   const toggle = (id: string, name: string, next: boolean) =>
     confirm({
@@ -121,17 +137,8 @@ export default function ItemsPage() {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching items" : "No items yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
-              : "Add your first bake to open the shop."
-          }
-          action={
-            hasActiveFilters
-              ? undefined
-              : { label: "+ New item", href: "/admin/items/new" }
-          }
+          title="No matching items"
+          description="Nothing matches your current search or filters — try clearing them."
         />
       ) : (
         <>

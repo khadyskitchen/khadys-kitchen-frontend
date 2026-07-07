@@ -252,9 +252,11 @@ function EditMemberModal({
 
 function ChangeRoleModal({
   user,
+  assignableRoles,
   onClose,
 }: {
   user: ITeamUser;
+  assignableRoles: UserRole[];
   onClose: () => void;
 }) {
   const [role, setRole] = useState<UserRole>(user.role);
@@ -284,7 +286,7 @@ function ChangeRoleModal({
           Role
         </span>
         <Select value={role} onChange={(e) => setRole(e.target.value as UserRole)}>
-          {Object.values(UserRole).map((r) => (
+          {assignableRoles.map((r) => (
             <option key={r} value={r}>
               {roleLabel(r)}
             </option>
@@ -336,7 +338,11 @@ export default function TeamPage() {
   const meta = data?.meta;
   const activeCount =
     (filters.role !== "all" ? 1 : 0) + (filters.status !== "all" ? 1 : 0);
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (no rows, nothing filtered): show only the empty state — a
+  // search box and filters over nothing is noise.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
 
   // Mirrors the backend rank rules: a super-admin manages anyone (incl. peers);
   // everyone else only strictly-lower roles. Never yourself (use Profile).
@@ -345,9 +351,11 @@ export default function TeamPage() {
     target.id !== me.id &&
     (isSuperAdmin || ROLE_RANK[me.role] > ROLE_RANK[target.role]);
 
+  // Mirrors the backend's canAssignRole: grant up to your OWN rank — an admin
+  // can make staff or admins, only a super admin can mint super admins.
   const assignableRoles = isSuperAdmin
     ? [UserRole.STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN]
-    : [UserRole.STAFF];
+    : [UserRole.STAFF, UserRole.ADMIN];
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     try {
@@ -357,6 +365,23 @@ export default function TeamPage() {
       notify.error("Action failed", { description: extractApiError(err).message });
     }
   };
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No team members yet"
+          description="Add the people who run the bakery with you — assign roles and manage their access from here."
+          action={{ label: "+ Add your first member", onClick: () => setAddOpen(true) }}
+        />
+        <AddMemberModal
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          assignableRoles={assignableRoles}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -475,15 +500,13 @@ export default function TeamPage() {
                             >
                               Edit
                             </Button>
-                            {isSuperAdmin ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setChangingRole(u)}
-                              >
-                                Role
-                              </Button>
-                            ) : null}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setChangingRole(u)}
+                            >
+                              Role
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -559,6 +582,7 @@ export default function TeamPage() {
       {changingRole ? (
         <ChangeRoleModal
           user={changingRole}
+          assignableRoles={assignableRoles}
           onClose={() => setChangingRole(null)}
         />
       ) : null}

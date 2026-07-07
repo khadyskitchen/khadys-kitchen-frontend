@@ -49,7 +49,24 @@ export default function OrdersPage() {
   const meta = data?.meta;
   const activeCount =
     (filters.status !== "all" ? 1 : 0) + (filters.payment !== "all" ? 1 : 0);
-  const hasActiveFilters = Boolean(search.trim()) || activeCount > 0;
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
+  // Truly empty (not just filtered to nothing): skip the toolbar entirely.
+  const noDataAtAll =
+    !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
+
+  if (noDataAtAll) {
+    return (
+      <div style={{ animation: "kk-rise .5s both" }}>
+        <EmptyState
+          title="No orders yet"
+          description="Shop orders land here the moment a customer checks out — or record a walk-in from the counter."
+          action={{ label: "+ Walk-in order", onClick: () => setRecording(true) }}
+        />
+        <WalkInOrderModal open={recording} onClose={() => setRecording(false)} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
@@ -93,12 +110,8 @@ export default function OrdersPage() {
         <TableSkeletonRows />
       ) : rows.length === 0 ? (
         <EmptyState
-          title={hasActiveFilters ? "No matching orders" : "No orders yet"}
-          description={
-            hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
-              : "Shop orders land here the moment a customer checks out."
-          }
+          title="No matching orders"
+          description="Nothing matches your current search or filters — try clearing them."
         />
       ) : (
         <>
