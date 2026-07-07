@@ -8,11 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/admin/ui";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
-import { Spinner } from "@/components/ui/Spinner";
 import { TextField } from "@/components/ui/TextField";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
-import { useUploadImageMutation } from "@/redux/uploads/uploads-api";
 import {
   useCreateProductMutation,
   useUpdateProductMutation,
@@ -74,20 +72,19 @@ const labelClass =
   "text-[12.5px] font-semibold uppercase tracking-[0.06em] text-ink/60";
 
 /** Create/edit form for a shop product. Price entered in GHS; empty stock
- * means made to order. The image uploads to Cloudinary first, then the URL is
- * saved with the product. */
+ * means made to order. A chosen photo is only staged locally — it travels with
+ * the save as multipart, and the backend uploads it (cleaning up on failure),
+ * so cancelling never leaves an orphaned image in Cloudinary. */
 export function ProductForm({ product }: { product?: IProduct }) {
   const router = useRouter();
   const editing = Boolean(product);
   const [createProduct, { isLoading: creating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: updating }] = useUpdateProductMutation();
-  const [upload, { isLoading: uploading }] = useUploadImageMutation();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     formState: { errors },
   } = useForm<ProductFormValues>({
@@ -120,21 +117,13 @@ export function ProductForm({ product }: { product?: IProduct }) {
 
   const onSubmit = async (v: ProductFormValues) => {
     try {
-      let imageUrl = v.image;
-      if (stagedFile) {
-        const formData = new FormData();
-        formData.append("file", stagedFile);
-        const res = await upload(formData).unwrap();
-        imageUrl = res.data.url;
-        setValue("image", imageUrl);
-        setStagedFile(null);
-      }
-      const payload = { ...toPayload(v), image: imageUrl || undefined };
+      const payload = toPayload(v);
+      const photo = stagedFile ?? undefined;
       if (product) {
-        await updateProduct({ id: product.id, body: payload }).unwrap();
+        await updateProduct({ id: product.id, body: payload, photo }).unwrap();
         notify.success("Product updated");
       } else {
-        await createProduct(payload).unwrap();
+        await createProduct({ body: payload, photo }).unwrap();
         notify.success("Product created");
       }
       router.push("/admin/items");
@@ -262,18 +251,9 @@ export function ProductForm({ product }: { product?: IProduct }) {
               type="button"
               variant="outline"
               size="sm"
-              disabled={uploading}
               onClick={() => fileRef.current?.click()}
             >
-              {uploading ? (
-                <span className="inline-flex items-center gap-2">
-                  <Spinner /> Uploading…
-                </span>
-              ) : preview || image ? (
-                "Replace photo"
-              ) : (
-                "Choose photo"
-              )}
+              {preview || image ? "Replace photo" : "Choose photo"}
             </Button>
             <span className="text-[12.5px] text-ink/50">
               JPG or PNG, up to 5MB.

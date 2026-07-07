@@ -11,7 +11,6 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useUpdateMeMutation } from "@/redux/auth/auth-api";
-import { useUploadImageMutation } from "@/redux/uploads/uploads-api";
 import { ProfileAvatar } from "@/components/admin/profile-avatar";
 
 const schema = z.object({
@@ -35,11 +34,11 @@ const roleLabel = (role: string) =>
 export default function ProfilePage() {
   const user = useCurrentUser();
   const [editing, setEditing] = useState(false);
-  const [updateMe, { isLoading: saving }] = useUpdateMeMutation();
-  const [upload, { isLoading: uploading }] = useUploadImageMutation();
+  const [updateMe, { isLoading }] = useUpdateMeMutation();
 
-  // A new photo is only staged here; it uploads on Save, so cancelling the
-  // edit never leaves an orphaned image in Cloudinary.
+  // A new photo is only staged here; it travels WITH the save as multipart and
+  // the backend uploads it (cleaning up on failure), so cancelling the edit
+  // never leaves an orphaned image in Cloudinary.
   const [stagedPhoto, setStagedPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -54,8 +53,6 @@ export default function ProfilePage() {
     setStagedPhoto(null);
     setPhotoPreview(null);
   };
-
-  const isLoading = saving || uploading;
 
   const {
     register,
@@ -80,17 +77,13 @@ export default function ProfilePage() {
 
   const onSubmit = async (values: Values) => {
     try {
-      let profilePicture: string | undefined;
-      if (stagedPhoto) {
-        const formData = new FormData();
-        formData.append("file", stagedPhoto);
-        profilePicture = (await upload(formData).unwrap()).data.url;
-      }
       await updateMe({
-        firstName: values.firstName,
-        lastName: values.lastName,
-        phone: values.phone.trim() || null,
-        ...(profilePicture ? { profilePicture } : {}),
+        body: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          phone: values.phone.trim() || null,
+        },
+        photo: stagedPhoto ?? undefined,
       }).unwrap();
       notify.success("Profile updated");
       clearStagedPhoto();

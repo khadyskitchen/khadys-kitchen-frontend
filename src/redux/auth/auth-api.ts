@@ -54,17 +54,30 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
 
-    /** Update the signed-in user's profile (name); refreshes the stored user. */
+    /** Update the signed-in user's profile; refreshes the stored user. A new
+     * photo travels WITH the save as multipart (payload JSON + file) — the
+     * backend uploads it to Cloudinary inside the same request and cleans up
+     * on failure, so nothing is ever pre-uploaded or orphaned. */
     updateMe: builder.mutation<
       IUserResponse,
       {
-        firstName?: string;
-        lastName?: string;
-        phone?: string | null;
-        profilePicture?: string | null;
+        body: {
+          firstName?: string;
+          lastName?: string;
+          phone?: string | null;
+        };
+        photo?: File;
       }
     >({
-      query: (body) => ({ url: "auth/me", method: "PATCH", body }),
+      query: ({ body, photo }) => {
+        if (photo) {
+          const form = new FormData();
+          form.append("payload", JSON.stringify(body));
+          form.append("profilePicture", photo);
+          return { url: "auth/me", method: "PATCH", body: form };
+        }
+        return { url: "auth/me", method: "PATCH", body };
+      },
       async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;

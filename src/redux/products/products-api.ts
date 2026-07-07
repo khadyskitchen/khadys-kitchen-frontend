@@ -8,6 +8,15 @@ import type {
   IProductResponse,
 } from "@/types/product.types";
 
+/** Wraps a JSON body + image file into the multipart shape the backend's
+ * `parseJsonPayload` + upload middleware expect. */
+const toMultipart = (body: unknown, photo: File): FormData => {
+  const form = new FormData();
+  form.append("payload", JSON.stringify(body));
+  form.append("image", photo);
+  return form;
+};
+
 /** The shop catalogue — public browse (available items only) and admin CRUD
  * with the availability toggle. Prices are pesewas. */
 export const productsApi = apiSlice.injectEndpoints({
@@ -49,19 +58,29 @@ export const productsApi = apiSlice.injectEndpoints({
       providesTags: (_r, _e, id) => [{ type: "Product", id }],
     }),
 
-    createProduct: builder.mutation<IProductResponse, IProductInput>({
-      query: (body) => ({ url: "admin/products", method: "POST", body }),
+    // A new photo travels WITH the save as multipart (payload JSON + file) —
+    // the backend uploads it inside the same request, cleans up on failure,
+    // and reclaims a replaced image, so nothing is pre-uploaded or orphaned.
+    createProduct: builder.mutation<
+      IProductResponse,
+      { body: IProductInput; photo?: File }
+    >({
+      query: ({ body, photo }) => ({
+        url: "admin/products",
+        method: "POST",
+        body: photo ? toMultipart(body, photo) : body,
+      }),
       invalidatesTags: ["Products"],
     }),
 
     updateProduct: builder.mutation<
       IProductResponse,
-      { id: string; body: Partial<IProductInput> }
+      { id: string; body: Partial<IProductInput>; photo?: File }
     >({
-      query: ({ id, body }) => ({
+      query: ({ id, body, photo }) => ({
         url: `admin/products/${id}`,
         method: "PATCH",
-        body,
+        body: photo ? toMultipart(body, photo) : body,
       }),
       invalidatesTags: (_r, _e, { id }) => [{ type: "Product", id }, "Products"],
     }),
