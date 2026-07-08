@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Pager } from "@/components/admin/ui";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -34,7 +34,7 @@ const ACTION_FILTERS = [
   "student.deleted",
   "settings.updated",
 ];
-const DEFAULTS = { entity: "all", action: "all" };
+const DEFAULTS = { entity: "all", action: "all", from: "", to: "" };
 const PAGE_SIZE = 20;
 
 const humanize = (action: string) =>
@@ -105,6 +105,12 @@ export default function AuditPage() {
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

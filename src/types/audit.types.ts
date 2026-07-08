@@ -19,6 +19,9 @@ export interface IAuditListResponse {
 }
 
 export interface IAuditListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   action?: string;

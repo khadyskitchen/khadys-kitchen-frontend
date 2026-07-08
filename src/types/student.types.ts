@@ -48,6 +48,9 @@ export interface IStudentPaymentsResponse {
 }
 
 export interface IStudentListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   trainingId?: string;

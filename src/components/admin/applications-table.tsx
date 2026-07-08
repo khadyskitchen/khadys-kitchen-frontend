@@ -6,7 +6,7 @@ import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { SkeletonCells } from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -37,7 +37,7 @@ const STATUS_FILTERS = [
   "WITHDRAWN",
 ];
 const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"];
-const DEFAULTS = { status: "all", paymentStatus: "all" };
+const DEFAULTS = { status: "all", paymentStatus: "all", from: "", to: "" };
 const PAGE_SIZE = 10;
 const label = (f: string) =>
   f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase();
@@ -128,6 +128,12 @@ export function ApplicationsTable({
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

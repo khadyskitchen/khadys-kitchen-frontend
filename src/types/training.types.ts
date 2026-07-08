@@ -110,6 +110,9 @@ export interface ITrainingInput {
 }
 
 export interface ITrainingListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   applicationsOpen?: boolean;

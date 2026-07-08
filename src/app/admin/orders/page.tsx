@@ -11,7 +11,7 @@ import {
   ORDER_CONFIRM_COPY,
 } from "@/lib/admin/order-actions";
 import { useAuthRole } from "@/hooks/use-auth-role";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
 import { WalkInOrderModal } from "@/components/admin/walk-in-order-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -39,7 +39,7 @@ const STATUS_FILTERS = [
   "CANCELLED",
 ];
 const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"];
-const DEFAULTS = { status: "all", payment: "all" };
+const DEFAULTS = { status: "all", payment: "all", from: "", to: "" };
 const PAGE_SIZE = 12;
 
 const titleCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
@@ -74,6 +74,8 @@ export default function OrdersPage() {
       search: (queryParams.search as string | undefined) ?? undefined,
       status: filters.status !== "all" ? filters.status : undefined,
       paymentStatus: filters.payment !== "all" ? filters.payment : undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
 
   const rows = data?.data ?? [];
@@ -144,6 +146,12 @@ export default function OrdersPage() {
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

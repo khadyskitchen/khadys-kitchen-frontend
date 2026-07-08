@@ -122,12 +122,16 @@ export function FilterBar({
         id="admin-filters"
         className={cn(
           "mt-3 gap-3 lg:mt-0",
-          open ? "grid grid-cols-2" : "hidden",
+          // Phones: two columns. Tablets: auto-fit tracks, so up to four
+          // compact filters share a row and wrap only when they'd overflow.
+          open
+            ? "grid grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]"
+            : "hidden",
           "lg:flex lg:flex-wrap lg:items-end lg:gap-2.5",
         )}
       >
         {hasSearch ? (
-          <div className="relative col-span-2 lg:col-span-1 lg:min-w-[180px] lg:max-w-[320px] lg:flex-[1_1_200px]">
+          <div className="relative col-span-full lg:col-span-1 lg:min-w-[180px] lg:max-w-[320px] lg:flex-[1_1_200px]">
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-ink/45"
@@ -165,6 +169,51 @@ export function FilterBar({
           {action}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * From/To created-date window, sent to the API as YYYY-MM-DD (native date
+ * inputs). Same labelled styling as the dropdowns; either side may be empty.
+ */
+export function DateRangeFields({
+  from,
+  to,
+  onFrom,
+  onTo,
+}: {
+  from: string;
+  to: string;
+  onFrom: (value: string) => void;
+  onTo: (value: string) => void;
+}) {
+  const cls =
+    "w-full min-w-0 rounded-[12px] border-[1.5px] bg-cream px-3 py-[8px] font-sans text-[13.5px] normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent";
+  // `contents` dissolves the wrapper: From/To become direct grid/flex items of
+  // the toolbar, so they flow with the other filters.
+  return (
+    <div className="contents">
+      <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55">
+        From
+        <input
+          type="date"
+          value={from}
+          max={to || undefined}
+          onChange={(e) => onFrom(e.target.value)}
+          className={cn(cls, from ? "border-accent/60" : "border-ink/20")}
+        />
+      </label>
+      <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55">
+        To
+        <input
+          type="date"
+          value={to}
+          min={from || undefined}
+          onChange={(e) => onTo(e.target.value)}
+          className={cn(cls, to ? "border-accent/60" : "border-ink/20")}
+        />
+      </label>
     </div>
   );
 }

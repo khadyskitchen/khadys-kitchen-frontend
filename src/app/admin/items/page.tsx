@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { SkeletonCells } from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -25,7 +25,7 @@ import {
 import { PRODUCT_CATEGORIES } from "@/types/product.types";
 
 const AVAILABILITY_FILTERS = ["all", "available", "unavailable"];
-const DEFAULTS = { category: "all", availability: "all" };
+const DEFAULTS = { category: "all", availability: "all", from: "", to: "" };
 const PAGE_SIZE = 12;
 
 export default function ItemsPage() {
@@ -43,6 +43,8 @@ export default function ItemsPage() {
         filters.availability === "all"
           ? undefined
           : filters.availability === "available",
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
   const [setAvailability] = useSetProductAvailabilityMutation();
   const [deleteProduct] = useDeleteProductMutation();
@@ -131,6 +133,12 @@ export default function ItemsPage() {
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

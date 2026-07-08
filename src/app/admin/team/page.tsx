@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -33,7 +33,7 @@ import { UserRole, type ITeamUser } from "@/types/user.types";
 
 const ROLE_FILTERS = ["all", "SUPER_ADMIN", "ADMIN", "STAFF"];
 const STATUS_FILTERS = ["all", "active", "inactive"];
-const DEFAULTS = { role: "all", status: "all" };
+const DEFAULTS = { role: "all", status: "all", from: "", to: "" };
 const PAGE_SIZE = 10;
 
 export default function TeamPage() {
@@ -51,6 +51,8 @@ export default function TeamPage() {
       role: filters.role !== "all" ? filters.role : undefined,
       isActive:
         filters.status === "all" ? undefined : filters.status === "active",
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
 
   const [setActive] = useSetUserActiveMutation();
@@ -154,6 +156,12 @@ export default function TeamPage() {
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

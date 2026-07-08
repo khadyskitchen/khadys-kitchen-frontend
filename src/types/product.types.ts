@@ -36,6 +36,9 @@ export interface IProductListResponse {
 }
 
 export interface IProductListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   category?: string;

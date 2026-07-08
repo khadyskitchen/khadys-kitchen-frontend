@@ -8,7 +8,7 @@ import { ActionMenu } from "@/components/admin/action-menu";
 import { EditStudentModal } from "@/components/admin/edit-student-modal";
 import { SkeletonCells } from "@/components/admin/table-bits";
 import { useConfirm } from "@/components/admin/use-confirm";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -25,7 +25,7 @@ import {
 import type { IStudent } from "@/types/student.types";
 
 const STATUS_FILTERS = ["all", "ACTIVE", "SUSPENDED", "GRADUATED", "WITHDRAWN"];
-const DEFAULTS = { status: "all" };
+const DEFAULTS = { status: "all", from: "", to: "" };
 const PAGE_SIZE = 10;
 
 /** Students table — standalone or scoped to a training via `trainingId`. */
@@ -47,6 +47,8 @@ export function StudentsTable({
       trainingId,
       search: (queryParams.search as string | undefined) ?? undefined,
       status: filters.status !== "all" ? filters.status : undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
 
   const [setStatus] = useSetStudentStatusMutation();
@@ -161,6 +163,12 @@ export function StudentsTable({
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Pager } from "@/components/admin/ui";
-import { FilterBar } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar } from "@/components/admin/filter-bar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -13,11 +13,12 @@ import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetTrainingsQuery } from "@/redux/trainings/trainings-api";
 import type { ITrainingListQuery } from "@/types/training.types";
 
-const DEFAULTS = {};
+const DEFAULTS = { from: "", to: "" };
 const PAGE_SIZE = 12;
 
 export default function ClassesPage() {
-  const { page, search, setSearch, setPage, queryParams } = useTableQuery({
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({
     defaults: DEFAULTS,
     pageSize: PAGE_SIZE,
   });
@@ -27,7 +28,9 @@ export default function ClassesPage() {
 
   const trainings = data?.data ?? [];
   const meta = data?.meta;
-  const hasActiveFilters = Boolean(search.trim()) || page > 1;
+  const activeCount = (filters.from ? 1 : 0) + (filters.to ? 1 : 0);
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
   // Truly empty (not just filtered to nothing): skip the toolbar entirely.
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
@@ -50,12 +53,20 @@ export default function ClassesPage() {
         search={search}
         onSearch={setSearch}
         searchPlaceholder="Search trainings…"
+        activeCount={activeCount}
         action={
           <ButtonLink href="/admin/classes/new" size="sm">
             + New training
           </ButtonLink>
         }
-      />
+      >
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
+      </FilterBar>
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />

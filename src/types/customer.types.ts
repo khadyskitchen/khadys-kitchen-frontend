@@ -27,6 +27,9 @@ export interface ICustomerListResponse {
 }
 
 export interface ICustomerListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   search?: string;

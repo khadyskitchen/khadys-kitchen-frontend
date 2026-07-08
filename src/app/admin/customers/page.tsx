@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { EditCustomerModal } from "@/components/admin/edit-customer-modal";
-import { FilterBar } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar } from "@/components/admin/filter-bar";
 import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -15,12 +15,13 @@ import { useTableQuery } from "@/hooks/use-table-query";
 import type { ICustomer } from "@/types/customer.types";
 import { useGetCustomersQuery } from "@/redux/customers/customers-api";
 
-const DEFAULTS = {};
+const DEFAULTS = { from: "", to: "" };
 const PAGE_SIZE = 12;
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { page, search, setSearch, setPage, queryParams } = useTableQuery({
+  const { page, search, filters, setSearch, setFilter, setPage, queryParams } =
+    useTableQuery({
     defaults: DEFAULTS,
     pageSize: PAGE_SIZE,
   });
@@ -30,12 +31,16 @@ export default function CustomersPage() {
       page,
       limit: PAGE_SIZE,
       search: (queryParams.search as string | undefined) ?? undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
 
   const [editing, setEditing] = useState<ICustomer | null>(null);
   const rows = data?.data ?? [];
   const meta = data?.meta;
-  const hasActiveFilters = Boolean(search.trim()) || page > 1;
+  const activeCount = (filters.from ? 1 : 0) + (filters.to ? 1 : 0);
+  const hasActiveFilters =
+    Boolean(search.trim()) || activeCount > 0 || page > 1;
   // Truly empty (not just searched to nothing): skip the toolbar entirely.
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
@@ -57,8 +62,16 @@ export default function CustomersPage() {
         search={search}
         onSearch={setSearch}
         searchPlaceholder="Search name, phone, email…"
+        activeCount={activeCount}
         resultLabel={meta ? `${String(meta.total)} total` : undefined}
-      />
+      >
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
+      </FilterBar>
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />

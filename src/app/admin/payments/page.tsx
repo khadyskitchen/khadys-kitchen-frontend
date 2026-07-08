@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
-import { FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
+import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import { DateTimeCell, SkeletonCells } from "@/components/admin/table-bits";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -36,7 +36,7 @@ const METHOD_FILTERS = [
   "BANK_TRANSFER",
   "OTHER",
 ];
-const DEFAULTS = { owner: "all", status: "all", method: "all" };
+const DEFAULTS = { owner: "all", status: "all", method: "all", from: "", to: "" };
 const PAGE_SIZE = 15;
 
 const titleCase = (s: string) =>
@@ -58,6 +58,8 @@ export default function PaymentsPage() {
           : undefined,
       status: filters.status !== "all" ? filters.status : undefined,
       method: filters.method !== "all" ? filters.method : undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
     });
   const [refund] = useRefundPaymentMutation();
   const { isAdmin } = useAuthRole();
@@ -149,6 +151,12 @@ export default function PaymentsPage() {
             </option>
           ))}
         </LabeledSelect>
+        <DateRangeFields
+          from={filters.from}
+          to={filters.to}
+          onFrom={(v) => setFilter("from", v)}
+          onTo={(v) => setFilter("to", v)}
+        />
       </FilterBar>
 
       {isError ? (

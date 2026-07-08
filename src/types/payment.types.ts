@@ -21,6 +21,9 @@ export interface ILedgerListResponse {
 }
 
 export interface ILedgerListQuery {
+  /** Created-date window, YYYY-MM-DD (inclusive). */
+  from?: string;
+  to?: string;
   page?: number;
   limit?: number;
   status?: string;
