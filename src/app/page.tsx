@@ -42,7 +42,7 @@ export default function LandingPage() {
         <FeaturedTrainings />
         <BakeSchoolCta />
       </main>
-      <SiteFooter cta={{ label: "Explore our trainings →", href: routes.trainings }} />
+      <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />
     </div>
   );
 }

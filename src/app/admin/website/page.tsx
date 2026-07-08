@@ -43,6 +43,8 @@ export default function WebsitePage() {
 
   const about = data?.data;
 
+  // Read-only until Edit — same idiom as the profile pages.
+  const [editing, setEditing] = useState(false);
   const [photo, setPhoto] = useState<{ cleared: boolean; file: File | null }>({
     cleared: false,
     file: null,
@@ -51,6 +53,7 @@ export default function WebsitePage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -98,12 +101,28 @@ export default function WebsitePage() {
         image: photo.file ?? undefined,
       }).unwrap();
       notify.success("About section updated");
+      setPhoto({ cleared: false, file: null });
+      setEditing(false);
     } catch (err) {
       notify.error("Couldn't save the About section", {
         description: extractApiError(err).message,
       });
     }
   };
+
+  const stopEditing = () => {
+    reset();
+    setPhoto({ cleared: false, file: null });
+    setEditing(false);
+  };
+
+  const preview: [string, string | null][] = [
+    ["Eyebrow", about?.storyEyebrow ?? null],
+    ["Heading", about?.storyHeading ?? null],
+    ["Body", about?.storyBody ?? null],
+    ["Pull quote", about?.storyPullQuote ?? null],
+    ["Quote credit", about?.storyFounder ?? null],
+  ];
 
   return (
     <div style={{ animation: "kk-rise .5s both" }} className="max-w-[720px]">
@@ -113,71 +132,121 @@ export default function WebsitePage() {
         className="grid gap-[18px]"
       >
         <Card className="grid gap-4 p-[clamp(20px,3vw,28px)]">
-          <div>
-            <h2 className="font-serif text-[20px]">Home page · About section</h2>
-            <p className="mt-1 text-[14px] text-ink/55">
-              What visitors read in the “About” band on the home page. Leave a
-              field blank to use the site&rsquo;s built-in copy.
-              {about?.updatedAt
-                ? ` Last saved ${formatDateTime(about.updatedAt)}.`
-                : ""}
-            </p>
-          </div>
-
-          <TextField
-            label="Eyebrow"
-            placeholder="e.g. About"
-            hint="The small label above the heading."
-            error={errors.storyEyebrow?.message}
-            {...register("storyEyebrow")}
-          />
-          <TextField
-            label="Heading"
-            placeholder="e.g. Two ovens, one obsession."
-            error={errors.storyHeading?.message}
-            {...register("storyHeading")}
-          />
-          <div className="grid gap-[7px]">
-            <span className={labelCls}>Body</span>
-            <textarea
-              rows={6}
-              placeholder="The story itself. Separate paragraphs with a blank line."
-              {...register("storyBody")}
-              className={areaCls}
-            />
-            {errors.storyBody ? (
-              <span className="text-[12.5px] font-semibold text-danger">
-                {errors.storyBody.message}
-              </span>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-serif text-[20px]">
+                Home page · About section
+              </h2>
+              <p className="mt-1 text-[14px] text-ink/55">
+                What visitors read in the “About” band on the home page.
+                {editing
+                  ? " Leave a field blank to use the site’s built-in copy."
+                  : ""}
+                {about?.updatedAt
+                  ? ` Last saved ${formatDateTime(about.updatedAt)}.`
+                  : ""}
+              </p>
+            </div>
+            {!editing ? (
+              <Button type="button" size="sm" onClick={() => setEditing(true)}>
+                Edit
+              </Button>
             ) : null}
           </div>
-          <TextField
-            label="Pull quote"
-            placeholder="e.g. Bread should taste like someone was up early caring about it."
-            error={errors.storyPullQuote?.message}
-            {...register("storyPullQuote")}
-          />
-          <TextField
-            label="Quote credit"
-            placeholder="e.g. Khady, founder"
-            error={errors.storyFounder?.message}
-            {...register("storyFounder")}
-          />
-          <FileUploadField
-            label="Section photo"
-            kind="image"
-            accept="image/*"
-            hint="JPG, PNG or WebP, up to 10MB. Blank = the default photo."
-            currentUrl={about?.storyImage}
-            onChange={setPhoto}
-          />
+
+          {!editing ? (
+            <div className="grid gap-3">
+              {preview.map(([label, value]) => (
+                <div key={label} className="grid gap-0.5 text-[14px]">
+                  <span className={labelCls}>{label}</span>
+                  <span className="whitespace-pre-line font-medium text-ink">
+                    {value ?? (
+                      <span className="font-normal italic text-ink/45">
+                        Using the site&rsquo;s built-in copy
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
+              <div className="grid gap-0.5">
+                <span className={labelCls}>Section photo</span>
+                {about?.storyImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={about.storyImage}
+                    alt="About section"
+                    className="mt-1 h-[120px] w-[180px] rounded-[12px] border border-ink/10 object-cover"
+                  />
+                ) : (
+                  <span className="text-[14px] font-normal italic text-ink/45">
+                    Using the default photo
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <TextField
+                label="Eyebrow"
+                placeholder="e.g. About"
+                hint="The small label above the heading."
+                error={errors.storyEyebrow?.message}
+                {...register("storyEyebrow")}
+              />
+              <TextField
+                label="Heading"
+                placeholder="e.g. Two ovens, one obsession."
+                error={errors.storyHeading?.message}
+                {...register("storyHeading")}
+              />
+              <div className="grid gap-[7px]">
+                <span className={labelCls}>Body</span>
+                <textarea
+                  rows={6}
+                  placeholder="The story itself. Separate paragraphs with a blank line."
+                  {...register("storyBody")}
+                  className={areaCls}
+                />
+                {errors.storyBody ? (
+                  <span className="text-[12.5px] font-semibold text-danger">
+                    {errors.storyBody.message}
+                  </span>
+                ) : null}
+              </div>
+              <TextField
+                label="Pull quote"
+                placeholder="e.g. Bread should taste like someone was up early caring about it."
+                error={errors.storyPullQuote?.message}
+                {...register("storyPullQuote")}
+              />
+              <TextField
+                label="Quote credit"
+                placeholder="e.g. Khady, founder"
+                error={errors.storyFounder?.message}
+                {...register("storyFounder")}
+              />
+              <FileUploadField
+                label="Section photo"
+                kind="image"
+                accept="image/*"
+                hint="JPG, PNG or WebP, up to 10MB. Blank = the default photo."
+                currentUrl={about?.storyImage}
+                onChange={setPhoto}
+              />
+            </>
+          )}
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" isLoading={saving} loadingText="Saving…">
-            Save changes
-          </Button>
-        </div>
+        {editing ? (
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button type="button" variant="outline" onClick={stopEditing}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={saving} loadingText="Saving…">
+              Save changes
+            </Button>
+          </div>
+        ) : null}
       </form>
     </div>
   );

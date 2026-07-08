@@ -111,6 +111,8 @@ export function useTableQuery<F extends Record<string, string>>({
 
   const setPage = useCallback((next: number) => {
     setPageState(Math.max(1, next));
+    // A new page of rows starts at the top, not wherever the pager sat.
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   /** Back to the default filters (and page 1); the search text stays. */
