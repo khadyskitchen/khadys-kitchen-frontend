@@ -27,15 +27,38 @@ interface PageMetaInput {
   image?: string;
 }
 
+// Search results truncate titles around 60 characters and social previews cut
+// descriptions near 125 — clamp centrally so DB-driven pages (a long training
+// name or product blurb) can never overflow either.
+const MAX_TITLE = 60;
+const MAX_DESCRIPTION = 125;
+
+const clampTitle = (title: string): string => {
+  const suffix = ` · ${siteConfig.name}`;
+  const budget = MAX_TITLE - suffix.length;
+  const page =
+    title.length > budget ? `${title.slice(0, budget - 1).trimEnd()}…` : title;
+  return `${page}${suffix}`;
+};
+
+const clampDescription = (description: string): string => {
+  if (description.length <= MAX_DESCRIPTION) return description;
+  // Cut on a word boundary so the ellipsis never splits a word.
+  const slice = description.slice(0, MAX_DESCRIPTION - 1);
+  const atWord = slice.slice(0, slice.lastIndexOf(" "));
+  return `${(atWord || slice).trimEnd()}…`;
+};
+
 export function pageMetadata({
   title,
-  description,
+  description: rawDescription,
   path,
   keywords,
   index = true,
   image,
 }: PageMetaInput): Metadata {
-  const fullTitle = `${title} · ${siteConfig.name}`;
+  const fullTitle = clampTitle(title);
+  const description = clampDescription(rawDescription);
   const ogImage = image
     ? { url: image, width: 1200, height: 630, alt: fullTitle }
     : undefined;

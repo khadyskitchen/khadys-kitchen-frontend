@@ -13,9 +13,9 @@ export const siteConfig = {
   name: "Khady's Kitchen",
   shortName: "Khady's Kitchen",
   /** Full home-page title (the layout template's `default`). */
-  title: "Khady's Kitchen · Kumasi patisserie - the authentic taste",
+  title: "Khady's Kitchen · Kumasi patisserie & bake school",
   description:
-    "Small-batch breads, laminated pastries, and celebration cakes - baked by hand every morning in Khady's open kitchen in Kumasi. Plus a hands-on Bake School.",
+    "Small-batch breads, pastries and celebration cakes, baked daily in Khady's Kumasi kitchen. Plus a hands-on Bake School.",
   locale: "en_GH",
   email: "hello@khadyskitchen.com",
   instagram: "https://instagram.com/khadyskitchen",

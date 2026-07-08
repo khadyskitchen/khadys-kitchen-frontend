@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Trainings",
   description:
-    "Hands-on baking classes in Kumasi - bakery classes, pastry courses, and wedding-cake trainings taught in Khady's own kitchen. Browse every class and apply online.",
+    "Hands-on baking classes in Kumasi - bread, pastry and cake courses taught in a working kitchen. See dates, fees and apply.",
   path: "/trainings",
   keywords: [
     "baking classes Kumasi",

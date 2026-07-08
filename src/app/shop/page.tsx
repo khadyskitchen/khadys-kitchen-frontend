@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Shop · Order custom bakes",
   description:
-    "Every order is baked to order for pickup in Kumasi - croissants, sourdough, celebration cakes, bofrot and more. Nothing sits on a shelf.",
+    "Croissants, sourdough and celebration cakes - every order baked to order for pickup in Kumasi. Order online, pay your way.",
   path: "/shop",
   keywords: [
     "order bread Kumasi",

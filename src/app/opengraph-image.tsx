@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import { ImageResponse } from "next/og";
 
 export const alt =
@@ -10,7 +13,12 @@ const INK = "#241A12";
 const ACCENT = "#C2185B";
 const LIGHT = "#FDFAF3";
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  // The real brand logo from public/ — file conventions run on the Node
+  // runtime, so it's read straight from disk and embedded as a data URI.
+  const logo = await readFile(path.join(process.cwd(), "public", "logo.png"));
+  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -45,21 +53,14 @@ export default function OpengraphImage() {
           >
             Kumasi patisserie · The authentic taste
           </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 96,
-              height: 96,
-              borderRadius: 96,
-              background: ACCENT,
-              color: LIGHT,
-              fontSize: 44,
-            }}
-          >
-            KK
-          </div>
+          { }
+          <img
+            src={logoSrc}
+            alt=""
+            width={96}
+            height={96}
+            style={{ width: 96, height: 96, borderRadius: 96, objectFit: "cover" }}
+          />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -75,6 +76,24 @@ export default function OpengraphImage() {
             }}
           >
             Baked before sunrise, gone by noon.
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              marginTop: 36,
+              alignSelf: "flex-start",
+              background: ACCENT,
+              color: LIGHT,
+              borderRadius: 999,
+              padding: "18px 40px",
+              fontSize: 32,
+              fontFamily: "sans-serif",
+              fontWeight: 600,
+            }}
+          >
+            Order fresh bakes at khadyskitchen.com →
           </div>
         </div>
 
