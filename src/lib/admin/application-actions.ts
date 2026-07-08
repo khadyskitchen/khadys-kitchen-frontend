@@ -18,8 +18,9 @@ export const APPLICATION_STATUS_ACTIONS: ApplicationStatusAction[] = [
 ];
 
 /**
- * The transitions the current user may take. Rejecting reverses payments and
- * withdraws the student — admin-and-above on the backend, so staff never see it.
+ * The transitions the current user may take. Rejecting withdraws the student
+ * and is blocked until any payments are refunded — admin-and-above on the
+ * backend, so staff never see it.
  */
 export const applicationStatusActionsFor = (isAdmin: boolean) =>
   isAdmin
@@ -31,7 +32,7 @@ export const applicationStatusCopy = (status: string): string =>
   status === "RECRUITED"
     ? "This admits the applicant and creates their student record."
     : status === "REJECTED"
-      ? "This rejects the applicant — any admission is reversed and paid fees refunded."
+      ? "This rejects the applicant and reverses any admission. Applications with payments on record must be refunded before they can be rejected."
       : `This sets the application to ${status.toLowerCase()}.`;
 
 export const APPLICATION_DELETE_COPY =

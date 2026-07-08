@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useRef } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/Button";
 import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldError } from "@/components/ui/FieldError";
+import {
+  TurnstileWidget,
+  TURNSTILE_ENABLED,
+} from "@/components/ui/TurnstileWidget";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -42,6 +46,11 @@ export function CheckoutForm() {
   // retry replays the same order instead of creating a duplicate.
   const idempotencyKey = useRef<string>(crypto.randomUUID());
 
+  // Cloudflare Turnstile: the token gates submit only when a site key is set.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState(false);
+  const [turnstileReset, setTurnstileReset] = useState(0);
+
   const minDate = useMemo(() => isoDaysFromNow(maxLeadDays), [maxLeadDays]);
 
   const {
@@ -67,14 +76,14 @@ export function CheckoutForm() {
   const payNow = useWatch({ control, name: "payNow" });
 
   const onSubmit = async (data: CheckoutValues) => {
-    if (data.payNow && !data.email) {
-      setError("email", { message: "An email is required to pay online" });
-      return;
-    }
     if (data.pickupDate && data.pickupDate < minDate) {
       setError("pickupDate", {
         message: `That date is too soon - the longest bake in your order needs ${maxLeadDays} day${maxLeadDays > 1 ? "s" : ""}. Earliest is ${minDate}.`,
       });
+      return;
+    }
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setTurnstileError(true);
       return;
     }
     try {
@@ -88,6 +97,7 @@ export function CheckoutForm() {
           note: data.note?.trim() || undefined,
           payNow: data.payNow,
           website: data.website ?? "",
+          turnstileToken: turnstileToken || undefined,
         },
         idempotencyKey: idempotencyKey.current,
       }).unwrap();
@@ -118,6 +128,8 @@ export function CheckoutForm() {
         }
       }
       notify.error("Couldn't place your order", { description: message });
+      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      setTurnstileReset((n) => n + 1);
     }
   };
 
@@ -251,6 +263,20 @@ export function CheckoutForm() {
           />
           <FieldError id={`${fieldId}-note`} message={errors.note?.message} />
         </label>
+
+        <TurnstileWidget
+          onVerify={(token) => {
+            setTurnstileToken(token);
+            if (token) setTurnstileError(false);
+          }}
+          resetSignal={turnstileReset}
+        />
+        {turnstileError ? (
+          <FieldError
+            id={`${fieldId}-turnstile`}
+            message="Please complete the verification to place your order."
+          />
+        ) : null}
 
         <Button
           type="submit"

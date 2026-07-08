@@ -10,6 +10,10 @@ import {
 import { Button } from "@/components/ui/Button";
 import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { FieldError } from "@/components/ui/FieldError";
+import {
+  TurnstileWidget,
+  TURNSTILE_ENABLED,
+} from "@/components/ui/TurnstileWidget";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -40,6 +44,10 @@ export function ApplicationForm({ training }: { training: ITraining }) {
   const [submitted, setSubmitted] = useState(false);
   const [applicantName, setApplicantName] = useState("friend");
   const [receiptCode, setReceiptCode] = useState("");
+  // Cloudflare Turnstile: the token gates submit only when a site key is set.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState(false);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [createApplication, { isLoading: submitting }] =
     useCreateApplicationMutation();
 
@@ -67,6 +75,10 @@ export function ApplicationForm({ training }: { training: ITraining }) {
   const payNow = useWatch({ control, name: "payNow" });
 
   const onSubmit = async (data: ApplicationValues) => {
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setTurnstileError(true);
+      return;
+    }
     try {
       const res = await createApplication({
         trainingId: training.id,
@@ -77,6 +89,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         needsHostel: data.hostel ?? false,
         message: data.message || undefined,
         payNow: data.payNow,
+        turnstileToken: turnstileToken || undefined,
       }).unwrap();
 
       // Paying now: hand off to Paystack, remembering the code for the return trip.
@@ -107,6 +120,8 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         }
       }
       notify.error("Couldn't submit your application", { description: message });
+      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      setTurnstileReset((n) => n + 1);
     }
   };
 
@@ -279,6 +294,20 @@ export function ApplicationForm({ training }: { training: ITraining }) {
               message={errors.message?.message}
             />
           </label>
+
+          <TurnstileWidget
+            onVerify={(token) => {
+              setTurnstileToken(token);
+              if (token) setTurnstileError(false);
+            }}
+            resetSignal={turnstileReset}
+          />
+          {turnstileError ? (
+            <FieldError
+              id={`${fieldId}-turnstile`}
+              message="Please complete the verification to submit your application."
+            />
+          ) : null}
 
           <Button
             type="submit"

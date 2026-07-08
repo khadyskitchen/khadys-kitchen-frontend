@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ORDER_CODE_KEY } from "@/components/shop/checkout-form";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -79,6 +80,9 @@ function PayBalance({ order }: { order: IOrder }) {
         code: order.code,
         email: order.email ? undefined : email.trim(),
       }).unwrap();
+      // Stash the code so /shop/verify can link back to this order on return —
+      // every other Paystack handoff stashes before redirecting out.
+      sessionStorage.setItem(ORDER_CODE_KEY, order.code);
       window.location.assign(res.data.authorizationUrl);
     } catch (err) {
       notify.error("Couldn't start the payment", {

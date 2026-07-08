@@ -106,10 +106,12 @@ export const applicationsApi = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
+      // Matches recordOrderPayment: money received feeds dashboard revenue.
       invalidatesTags: (_r, _e, { id }) => [
         { type: "Application", id },
         "Applications",
         "Payments",
+        "DashboardStats",
       ],
     }),
 
@@ -122,10 +124,14 @@ export const applicationsApi = apiSlice.injectEndpoints({
 
     deleteApplication: builder.mutation<{ message: string }, string>({
       query: (id) => ({ url: `admin/applications/${id}`, method: "DELETE" }),
+      // Deletion is only allowed for an unpaid, never-admitted application, so
+      // no Students change; but it drops a pending application from the
+      // dashboard counts and the training's application tally.
       invalidatesTags: (_r, _e, id) => [
         { type: "Application", id },
         "Applications",
         "Trainings",
+        "DashboardStats",
       ],
     }),
   }),

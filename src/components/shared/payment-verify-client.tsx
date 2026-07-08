@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RippleLoader } from "@/components/ui/Loader";
 import { useVerifyPaymentMutation } from "@/redux/applications/applications-api";
@@ -49,11 +50,13 @@ export function PaymentVerifyClient({
   );
   const ran = useRef(false);
 
-  // One-shot: `ran` guards re-runs even if a dep identity changes.
-  useEffect(() => {
-    if (ran.current || !reference) return;
-    ran.current = true;
-
+  // Fires the verify. Reusable so the auto-attempt and the manual "Try again"
+  // share one path — transient errors right after a mobile redirect shouldn't
+  // dead-end on a link.
+  const runVerify = useCallback(() => {
+    if (!reference) return;
+    setState("verifying");
+    setMessage("");
     verify({ reference })
       .unwrap()
       .then((res) => {
@@ -71,6 +74,14 @@ export function PaymentVerifyClient({
         setMessage(extractApiError(err).message);
       });
   }, [reference, verify, codeKey, onConfirmed]);
+
+  // One-shot auto-attempt on mount: `ran` guards re-runs even if a dep identity
+  // changes. Manual retries below bypass this guard.
+  useEffect(() => {
+    if (ran.current || !reference) return;
+    ran.current = true;
+    runVerify();
+  }, [reference, runVerify]);
 
   if (state === "verifying") {
     return (
@@ -98,11 +109,22 @@ export function PaymentVerifyClient({
     message || "Please try again, or contact us and we’ll sort it out.",
   );
   return (
-    <EmptyState
-      title="We couldn’t confirm this payment"
-      description={outcome.description}
-      action={outcome.action}
-      className="w-full max-w-[520px]"
-    />
+    <div className="flex w-full max-w-[520px] flex-col items-center">
+      <EmptyState
+        title="We couldn’t confirm this payment"
+        description={outcome.description}
+        action={outcome.action}
+        className="w-full"
+      />
+      {reference ? (
+        <Button
+          variant="outline"
+          onClick={runVerify}
+          className="-mt-2 rounded-full"
+        >
+          Try again
+        </Button>
+      ) : null}
+    </div>
   );
 }

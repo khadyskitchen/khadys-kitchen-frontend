@@ -80,6 +80,8 @@ export interface IPlaceOrderInput {
   payNow?: boolean;
   /** Honeypot — must stay empty. */
   website?: string;
+  /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
+  turnstileToken?: string;
 }
 
 export interface IOrderListQuery {

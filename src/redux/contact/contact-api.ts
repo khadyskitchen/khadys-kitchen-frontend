@@ -8,6 +8,8 @@ export interface ISendContactMessageInput {
   topic?: string;
   /** Honeypot — must stay empty. */
   website?: string;
+  /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
+  turnstileToken?: string;
 }
 
 export interface ISendContactMessageResponse {

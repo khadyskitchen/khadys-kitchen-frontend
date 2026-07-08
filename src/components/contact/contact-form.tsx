@@ -5,6 +5,10 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Reveal } from "@/components/reveal";
 import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import {
+  TurnstileWidget,
+  TURNSTILE_ENABLED,
+} from "@/components/ui/TurnstileWidget";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
@@ -30,6 +34,10 @@ const NEXT_STEPS = [
 export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [senderName, setSenderName] = useState("friend");
+  // Cloudflare Turnstile: the token gates submit only when a site key is set.
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState(false);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [sendContactMessage, { isLoading: sending }] =
     useSendContactMessageMutation();
 
@@ -52,9 +60,18 @@ export function ContactForm() {
 
   const topic = useWatch({ control, name: "topic" });
   const errorMessage =
-    errors.name?.message ?? errors.contact?.message ?? errors.message?.message;
+    errors.name?.message ??
+    errors.contact?.message ??
+    errors.message?.message ??
+    (turnstileError
+      ? "Please complete the verification to send your message."
+      : undefined);
 
   const onSubmit = async (data: ContactValues) => {
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setTurnstileError(true);
+      return;
+    }
     try {
       await sendContactMessage({
         name: data.name.trim(),
@@ -62,6 +79,7 @@ export function ContactForm() {
         message: data.message.trim(),
         topic: data.topic,
         website: data.website ?? "",
+        turnstileToken: turnstileToken || undefined,
       }).unwrap();
       setSenderName(data.name.trim().split(" ")[0] || "friend");
       setSent(true);
@@ -69,6 +87,8 @@ export function ContactForm() {
       notify.error("Couldn't send your message", {
         description: extractApiError(err).message,
       });
+      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      setTurnstileReset((n) => n + 1);
     }
   };
 
@@ -165,6 +185,14 @@ export function ContactForm() {
                     autoComplete="off"
                     aria-hidden="true"
                     className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                  />
+
+                  <TurnstileWidget
+                    onVerify={(token) => {
+                      setTurnstileToken(token);
+                      if (token) setTurnstileError(false);
+                    }}
+                    resetSignal={turnstileReset}
                   />
 
                   {errorMessage ? (

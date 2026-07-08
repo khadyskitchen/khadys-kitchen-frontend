@@ -12,6 +12,8 @@ export interface IApplyInput {
   message?: string;
   /** When true (and a balance is owed), the backend returns a Paystack URL. */
   payNow?: boolean;
+  /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
+  turnstileToken?: string;
 }
 
 /** Bake School application lifecycle — mirrors the backend `ApplicationStatus`

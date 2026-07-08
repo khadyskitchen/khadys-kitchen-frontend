@@ -91,19 +91,8 @@ export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
   tagTypes: apiSliceTags,
-  endpoints: (builder) => ({
-    refreshToken: builder.mutation<IUserResponse, void>({
-      query: () => ({ url: "auth/refresh-token", method: "POST" }),
-      async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(userLoggedIn({ user: data.data.user }));
-        } catch {
-          dispatch(userLoggedOut());
-        }
-      },
-    }),
-  }),
+  // Feature endpoints attach via `injectEndpoints`; the auth-refresh flow is
+  // handled entirely by `baseQueryWithReauth` above, so no endpoints are
+  // declared here.
+  endpoints: () => ({}),
 });
-
-export const { useRefreshTokenMutation } = apiSlice;

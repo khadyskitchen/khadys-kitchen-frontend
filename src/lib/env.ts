@@ -19,4 +19,11 @@ export const env = {
   ),
   /** Canonical site origin, used for metadata/links. */
   BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "",
+  /**
+   * Cloudflare Turnstile site key for the public forms. Optional on purpose:
+   * left unset in dev, the widget renders nothing and forms submit normally
+   * (the backend also skips verification when its secret is unset). When set,
+   * the widget challenges and the token is sent with each submission.
+   */
+  TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
 } as const;

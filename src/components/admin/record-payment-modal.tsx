@@ -26,7 +26,7 @@ const schema = z.object({
   // field starts blank and empty/zero/NaN all surface the same friendly error.
   amount: z.string().refine((v) => Number(v) > 0, "Enter a valid amount"),
   method: z.enum(["CASH", "MOMO", "BANK_TRANSFER", "OTHER"]),
-  note: z.string().trim().max(2000).optional(),
+  note: z.string().trim().max(300).optional(),
 });
 type Values = z.infer<typeof schema>;
 
