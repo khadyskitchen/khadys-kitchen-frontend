@@ -172,6 +172,7 @@ export function FilterBar({
         <div className="flex flex-wrap items-center gap-3">
           {searchField}
           {toggle}
+          {!open ? clearButton : null}
           <div className="ml-auto flex items-center gap-3">
             {resultLabel ? (
               <span className="hidden whitespace-nowrap text-[13px] text-ink/55 sm:inline">
@@ -195,7 +196,10 @@ export function FilterBar({
           a persistent action drops onto its own line on very narrow screens
           (e.g. a Galaxy Fold) instead of squeezing the button text. */}
       <div className="flex flex-wrap items-center justify-between gap-3 lg:hidden">
-        {toggle}
+        <div className="flex items-center gap-3">
+          {toggle}
+          {!open ? clearButton : null}
+        </div>
         {action ??
           (resultLabel ? (
             <span className="whitespace-nowrap text-[13px] text-ink/55">

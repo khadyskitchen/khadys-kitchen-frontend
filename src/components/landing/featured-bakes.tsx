@@ -9,8 +9,10 @@ import { shopProduct } from "@/lib/routes";
 import { FALLBACK_PRODUCT_IMG, listPriceLabel } from "@/lib/shop-data";
 import { useGetPublicProductsQuery } from "@/redux/products/products-api";
 
+// Fixed tracks (not auto-fit): max three across on lg, and one or two
+// featured bakes keep the same card width as a full row.
 const GRID_CLASS =
-  "grid grid-cols-[repeat(auto-fit,minmax(min(100%,270px),1fr))] gap-[clamp(20px,3vw,32px)]";
+  "grid grid-cols-1 gap-[clamp(20px,3vw,32px)] sm:grid-cols-2 lg:grid-cols-3";
 
 /**
  * "This morning's bakes" — the home page's featured shop items (admin picks
@@ -21,7 +23,7 @@ const GRID_CLASS =
 export function FeaturedBakes() {
   const { data, isLoading, isError } = useGetPublicProductsQuery({
     featured: true,
-    limit: 6,
+    limit: 3,
   });
 
   const products = data?.data ?? [];
