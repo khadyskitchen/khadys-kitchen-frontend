@@ -122,7 +122,7 @@ export default function DashboardPage() {
       {isLoading ? (
         <div className="grid gap-5" aria-busy="true">
           {/* Stat tiles: label + big number + sublabel, echoing the real cards. */}
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
@@ -224,7 +224,7 @@ function AggregatesSection({
         )}
       >
         {/* Shop stats — the first three tiles are live/now, the fourth follows the range. */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3.5">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
           <TileLink
             label="Orders today"
             value={String(shop.ordersToday)}

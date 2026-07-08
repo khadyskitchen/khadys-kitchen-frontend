@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "./use-debounce";
 
@@ -54,6 +54,32 @@ export function useTableQuery<F extends Record<string, string>>({
 
   const debouncedSearch = useDebounce(searchInput, 350);
 
+  // Session memory: re-entering a table through the sidebar (a bare URL, no
+  // params) restores where you left it — page, search and filters — while an
+  // explicit URL always wins and a fresh browser session starts clean.
+  const storageKey = `kk-table:${pathname}${prefix ? `:${prefix}` : ""}`;
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const live = new URLSearchParams(window.location.search);
+    const names = ["page", "search", ...Object.keys(defaults)];
+    if (names.some((n) => live.has(key(n)))) return; // explicit URL wins
+    const saved = sessionStorage.getItem(storageKey);
+    if (!saved) return;
+    const sp = new URLSearchParams(saved);
+    const parsedPage = Number(sp.get(key("page")) ?? "1");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot restore on mount
+    setPageState(parsedPage > 0 ? parsedPage : 1);
+    setSearchInput(sp.get(key("search")) ?? "");
+    const next = { ...defaults };
+    for (const name of Object.keys(defaults)) {
+      const value = sp.get(key(name));
+      if (value) (next as Record<string, string>)[name] = value;
+    }
+    setFiltersState(next);
+  }, [defaults, key, storageKey]);
+
   // State → URL. Depends only on state (never on searchParams), reads the live
   // URL to preserve unrelated params, and navigates only when it changed.
   useEffect(() => {
@@ -72,7 +98,17 @@ export function useTableQuery<F extends Record<string, string>>({
     if (target !== `${window.location.pathname}${window.location.search}`) {
       router.replace(target, { scroll: false });
     }
-  }, [page, debouncedSearch, filters, pathname, key, router, defaults]);
+
+    // Remember only this table's own params for the session-memory restore.
+    const mine = new URLSearchParams();
+    if (page > 1) mine.set(key("page"), String(page));
+    if (debouncedSearch.trim()) mine.set(key("search"), debouncedSearch.trim());
+    for (const [name, value] of Object.entries(filters)) {
+      if (value && value !== defaults[name]) mine.set(key(name), value);
+    }
+    if (mine.toString()) sessionStorage.setItem(storageKey, mine.toString());
+    else sessionStorage.removeItem(storageKey);
+  }, [page, debouncedSearch, filters, pathname, key, router, defaults, storageKey]);
 
   // URL → state, for browser back/forward only. The mirror above uses
   // `router.replace` (history.replaceState), which does NOT emit `popstate`, so
