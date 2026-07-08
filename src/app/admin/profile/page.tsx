@@ -181,9 +181,9 @@ export default function ProfilePage() {
         ) : (
           <div className="grid gap-2.5">
             {info.map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4 text-[14px]">
+              <div key={label} className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4 text-[14px]">
                 <span className="flex-none text-ink/55">{label}</span>
-                <span className="min-w-0 break-all text-right font-medium text-ink">
+                <span className="min-w-0 break-all font-medium text-ink min-[480px]:text-right">
                   {value}
                 </span>
               </div>

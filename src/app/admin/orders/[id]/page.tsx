@@ -181,7 +181,7 @@ export default function OrderDetailPage() {
             {timeline
               .filter(([, at]) => at)
               .map(([label, at]) => (
-                <div key={label} className="flex justify-between gap-4">
+                <div key={label} className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4">
                   <span>{label}</span>
                   <span>{formatDateTime(at)}</span>
                 </div>

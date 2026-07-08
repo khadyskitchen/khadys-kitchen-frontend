@@ -143,7 +143,7 @@ export default function ItemDetailPage() {
             </div>
             <div className="grid gap-2.5">
               {info.map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-4 text-[14px]">
+                <div key={label} className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4 text-[14px]">
                   <span className="text-ink/55">{label}</span>
                   <span className="font-medium text-ink">{value}</span>
                 </div>
