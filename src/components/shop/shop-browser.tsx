@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "@/components/shop/product-card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ShopCardSkeleton } from "@/components/ui/ShopCardSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { Select } from "@/components/ui/Select";
+import { LabeledSelect } from "@/components/ui/LabeledSelect";
 import { cn } from "@/lib/utils";
 import { useGetPublicProductsQuery } from "@/redux/products/products-api";
 import {
@@ -24,51 +24,25 @@ import type { IProduct, ProductCategory } from "@/types/product.types";
 const PAGE_SIZE = 9;
 
 /**
- * Compact labelled dropdown built on the shared `Select`. A dropdown keeps the
- * toolbar small and scales to any number of options (e.g. a long category list)
- * without a wall of chips.
+ * The catalogue browser. The `/shop` page fetches the full list server-side and
+ * passes it as `initialProducts`, so the first HTML is real content (crawlers
+ * and no-JS clients see the bakes). RTK Query then hydrates and takes over for
+ * live data; filtering/sorting stays instant and client-side over the list.
  */
-function LabeledSelect({
-  label,
-  value,
-  active,
-  onChange,
-  className,
-  children,
+export function ShopBrowser({
+  initialProducts = [],
 }: {
-  label: string;
-  value: string;
-  active: boolean;
-  onChange: (value: string) => void;
-  className?: string;
-  children: ReactNode;
+  initialProducts?: IProduct[];
 }) {
-  return (
-    <label
-      className={cn(
-        "grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55",
-        className,
-      )}
-    >
-      {label}
-      <Select
-        value={value}
-        active={active}
-        onChange={(e) => onChange(e.target.value)}
-        className="py-[9px] text-[14px] normal-case tracking-normal"
-      >
-        {children}
-      </Select>
-    </label>
-  );
-}
-
-export function ShopBrowser() {
   // One fetch for the whole catalogue; filtering/sorting stays client-side so
-  // the toolbar feels instant (the bakery's range is small).
+  // the toolbar feels instant (the bakery's range is small). Fall back to the
+  // server-fetched list until RTK Query's own data lands.
   const { data, isLoading, isError, error, refetch } =
     useGetPublicProductsQuery({ limit: 100 });
-  const products = useMemo(() => data?.data ?? [], [data]);
+  const products = useMemo(
+    () => data?.data ?? initialProducts,
+    [data, initialProducts],
+  );
 
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<"all" | ProductCategory>("all");
@@ -152,11 +126,13 @@ export function ShopBrowser() {
     setPage(1);
   };
 
-  if (isError) {
+  // Only surface error/loading when there's no server-rendered list to show —
+  // if we already have products, a background refetch shouldn't blank the page.
+  if (isError && products.length === 0) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
   }
 
-  if (isLoading) {
+  if (isLoading && products.length === 0) {
     return (
       <div
         aria-busy="true"

@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { TrainingCard } from "@/components/trainings/training-card";
 import { TrainingGridSkeleton } from "@/components/trainings/training-card-skeleton";
-import { Select } from "@/components/ui/Select";
+import { LabeledSelect } from "@/components/ui/LabeledSelect";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -15,35 +15,6 @@ const PAGE_SIZE = 9;
 
 type StatusKey = "all" | "open" | "closed";
 type SortKey = "featured" | "soonest" | "newest";
-
-/** Compact labelled dropdown — same toolbar idiom as the shop browser. */
-function LabeledSelect({
-  label,
-  value,
-  active,
-  onChange,
-  children,
-}: {
-  label: string;
-  value: string;
-  active: boolean;
-  onChange: (value: string) => void;
-  children: ReactNode;
-}) {
-  return (
-    <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55">
-      {label}
-      <Select
-        value={value}
-        active={active}
-        onChange={(e) => onChange(e.target.value)}
-        className="py-[9px] text-[14px] normal-case tracking-normal"
-      >
-        {children}
-      </Select>
-    </label>
-  );
-}
 
 const sortTrainings = (list: ITraining[], sort: SortKey): ITraining[] => {
   const sorted = [...list];
@@ -65,13 +36,22 @@ const sortTrainings = (list: ITraining[], sort: SortKey): ITraining[] => {
 
 /**
  * The catalogue: every published class, with the same instant client-side
- * search/filter/sort toolbar and pagination the shop browser uses (one fetch —
- * the list is a bakery school's worth).
+ * search/filter/sort toolbar and pagination the shop browser uses. The
+ * `/trainings` page fetches the list server-side and passes it as
+ * `initialTrainings`, so the first HTML is real content; RTK Query hydrates
+ * over it and takes over for live data.
  */
-export function TrainingsCatalogue() {
+export function TrainingsCatalogue({
+  initialTrainings = [],
+}: {
+  initialTrainings?: ITraining[];
+}) {
   const { data, isLoading, isError, error, refetch } =
     useGetPublicTrainingsQuery({ limit: 100 });
-  const trainings = useMemo(() => data?.data ?? [], [data]);
+  const trainings = useMemo(
+    () => data?.data ?? initialTrainings,
+    [data, initialTrainings],
+  );
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusKey>("all");
@@ -141,11 +121,13 @@ export function TrainingsCatalogue() {
     setPage(1);
   };
 
-  if (isError) {
+  // Only surface error/loading when there's no server-rendered list to show —
+  // if we already have classes, a background refetch shouldn't blank the page.
+  if (isError && trainings.length === 0) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
   }
 
-  if (isLoading) {
+  if (isLoading && trainings.length === 0) {
     return <TrainingGridSkeleton />;
   }
 

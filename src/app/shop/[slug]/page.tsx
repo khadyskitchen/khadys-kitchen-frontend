@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { pageMetadata } from "@/lib/seo";
-import { fetchPublicProduct } from "@/lib/public-api";
+import { lookupPublicProduct } from "@/lib/public-api";
 import { shopProduct } from "@/lib/routes";
 
 // The catalogue is dynamic (admin-managed), so the real product is fetched at
-// request time (cached with a revalidate window). If the backend is
-// unreachable the title falls back to a slug-derived guess rather than
-// failing the page.
+// request time (cached with a revalidate window). The same lookup feeds the
+// metadata and the page; Next memoizes the identical fetch within a request, so
+// this is one round-trip.
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await fetchPublicProduct(slug);
+  const lookup = await lookupPublicProduct(slug);
+  const product = lookup.kind === "found" ? lookup.data : null;
 
+  // If the backend is unreachable the title falls back to a slug-derived guess
+  // rather than failing the page.
   const title =
     product?.name ??
     slug
@@ -39,5 +44,11 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <ProductDetail slug={slug} />;
+  // A genuinely retired slug 404s (stops returning HTTP 200); a backend hiccup
+  // falls through to the client island's retry UX instead.
+  const lookup = await lookupPublicProduct(slug);
+  if (lookup.kind === "not-found") notFound();
+  const initialProduct = lookup.kind === "found" ? lookup.data : undefined;
+
+  return <ProductDetail slug={slug} initialProduct={initialProduct} />;
 }

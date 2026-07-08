@@ -11,6 +11,7 @@ import {
 } from "@/lib/public-api";
 import { routes, trainingDetail } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
+import type { ITraining } from "@/types/training.types";
 
 const NAV_LINKS = [
   { label: "← All trainings", href: routes.trainings },
@@ -74,10 +75,13 @@ export default async function TrainingPage({
   const isCode = APPLICATION_CODE.test(slug);
 
   // A genuinely unknown slug 404s to the branded not-found page; a backend
-  // hiccup falls through to the client island's retry UX instead.
+  // hiccup falls through to the client island's retry UX instead. On success we
+  // keep the record and pass it into the render as initial data (real HTML).
+  let initialTraining: ITraining | undefined;
   if (!isCode) {
     const lookup = await lookupPublicTraining(slug);
     if (lookup.kind === "not-found") notFound();
+    if (lookup.kind === "found") initialTraining = lookup.data;
   }
 
   return (
@@ -95,7 +99,7 @@ export default async function TrainingPage({
         {isCode ? (
           <ApplicationStatusSection code={slug.toUpperCase()} />
         ) : (
-          <TrainingDetail slug={slug} />
+          <TrainingDetail slug={slug} initialTraining={initialTraining} />
         )}
       </main>
       <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />

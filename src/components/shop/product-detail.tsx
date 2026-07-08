@@ -14,11 +14,25 @@ import {
   listPriceLabel,
 } from "@/lib/shop-data";
 import { useGetPublicProductBySlugQuery } from "@/redux/products/products-api";
+import type { IProduct } from "@/types/product.types";
 
-export function ProductDetail({ slug }: { slug: string }) {
-  const { data, isLoading, isError, error, refetch } =
+/**
+ * The product detail body. The `/shop/[slug]` page fetches the record
+ * server-side and passes it as `initialProduct`, so the primary content (name,
+ * price, image, description) is real HTML on first paint; RTK Query hydrates
+ * over it and keeps stock/price live. The server shell has already 404'd
+ * genuinely-retired slugs.
+ */
+export function ProductDetail({
+  slug,
+  initialProduct,
+}: {
+  slug: string;
+  initialProduct?: IProduct;
+}) {
+  const { data, isLoading, error, refetch } =
     useGetPublicProductBySlugQuery(slug);
-  const product = data?.data;
+  const product = data?.data ?? initialProduct;
 
   const back = (
     <Link
@@ -29,7 +43,8 @@ export function ProductDetail({ slug }: { slug: string }) {
     </Link>
   );
 
-  if (isLoading) {
+  // Only block on the loader when there's no server-rendered product to show.
+  if (isLoading && !product) {
     return (
       <section className="mx-auto max-w-[1180px] px-[clamp(20px,5vw,48px)] py-[clamp(36px,5vw,64px)]">
         {back}
@@ -40,7 +55,7 @@ export function ProductDetail({ slug }: { slug: string }) {
     );
   }
 
-  if (isError || !product) {
+  if (!product) {
     // A 404 means the bake was retired or the link is stale — not an error.
     const notFound =
       typeof error === "object" &&

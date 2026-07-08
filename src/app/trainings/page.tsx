@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/bake-school/site-header";
 import { SiteFooter } from "@/components/bake-school/site-footer";
 import { TrainingsCatalogue } from "@/components/trainings/trainings-catalogue";
+import { fetchPublicTrainingList } from "@/lib/public-api";
 import { routes } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
 
@@ -24,7 +25,10 @@ const NAV_LINKS = [
   { label: "Contact", href: routes.contact },
 ];
 
-export default function TrainingsPage() {
+export default async function TrainingsPage() {
+  // Fetch the catalogue server-side so the list is real HTML for crawlers; the
+  // client catalogue hydrates over it and keeps filtering/apply behaviour.
+  const initialTrainings = await fetchPublicTrainingList();
   return (
     <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
       <SiteHeader
@@ -51,7 +55,7 @@ export default function TrainingsPage() {
         </section>
 
         <section className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,48px)] pb-[clamp(56px,8vw,100px)]">
-          <TrainingsCatalogue />
+          <TrainingsCatalogue initialTrainings={initialTrainings} />
         </section>
       </main>
       <SiteFooter cta={{ label: "Order custom bakes", href: routes.shop }} />

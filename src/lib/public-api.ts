@@ -3,6 +3,9 @@
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
 // breaks a sitemap or a page render.
+import type { IProduct } from "@/types/product.types";
+import type { ITraining } from "@/types/training.types";
+
 const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;
 
 const REVALIDATE_SECONDS = 3600;
@@ -84,14 +87,25 @@ export async function fetchPublicProducts(): Promise<PublicProduct[]> {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-/** A single product by slug, or null when unknown/unreachable. */
-export async function fetchPublicProduct(
+/**
+ * The full published catalogue as `IProduct[]`, for server-rendering the shop
+ * list page (real HTML for crawlers). The client `ShopBrowser` island takes
+ * this as its initial data and RTK Query hydrates/refetches over it.
+ */
+export async function fetchPublicProductList(): Promise<IProduct[]> {
+  const json = await fetchJson<{ data?: IProduct[] }>("/products?limit=100");
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+/**
+ * A single full product by slug, keeping "backend said 404" distinct from
+ * "backend unreachable" so `/shop/[slug]` can `notFound()` on a retired product
+ * yet degrade to the client island's retry UX on a hiccup.
+ */
+export async function lookupPublicProduct(
   slug: string,
-): Promise<PublicProduct | null> {
-  const json = await fetchJson<{ data?: PublicProduct }>(
-    `/products/${encodeURIComponent(slug)}`,
-  );
-  return json?.data ?? null;
+): Promise<PublicLookup<IProduct>> {
+  return lookupJson<IProduct>(`/products/${encodeURIComponent(slug)}`);
 }
 
 /** The public training DTO fields the SEO surfaces care about. */
@@ -112,12 +126,23 @@ export async function fetchPublicTrainings(): Promise<PublicTraining[]> {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-/** A single training by slug — the `/trainings/[slug]` shell needs 404 vs
- * unreachable kept apart (real 404 → `notFound()`, hiccup → client island). */
+/**
+ * The full published trainings as `ITraining[]`, for server-rendering the
+ * trainings list page. The client `TrainingsCatalogue` island takes this as its
+ * initial data and RTK Query hydrates/refetches over it.
+ */
+export async function fetchPublicTrainingList(): Promise<ITraining[]> {
+  const json = await fetchJson<{ data?: ITraining[] }>("/trainings?limit=100");
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+/** A single full training by slug — the `/trainings/[slug]` shell needs 404 vs
+ * unreachable kept apart (real 404 → `notFound()`, hiccup → client island). The
+ * returned `ITraining` is passed into the detail render as initial data. */
 export async function lookupPublicTraining(
   slug: string,
-): Promise<PublicLookup<PublicTraining>> {
-  return lookupJson<PublicTraining>(`/trainings/${encodeURIComponent(slug)}`);
+): Promise<PublicLookup<ITraining>> {
+  return lookupJson<ITraining>(`/trainings/${encodeURIComponent(slug)}`);
 }
 
 /** The public application DTO (`GET /applications/:code`) — enough for the

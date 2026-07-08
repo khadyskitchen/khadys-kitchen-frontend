@@ -250,15 +250,25 @@ function ContentSections({ training }: { training: ITraining }) {
 
 /**
  * The class detail page body — hero, quick facts, curriculum, fees, and the
- * application section. Client-side so seats/fees/enrolment state stay live via
- * RTK Query; the server shell has already 404'd genuinely unknown slugs.
+ * application section. The `/trainings/[slug]` page fetches the record
+ * server-side and passes it as `initialTraining`, so the primary content is
+ * real HTML on first paint; RTK Query hydrates over it so seats/fees/enrolment
+ * state stay live. The server shell has already 404'd genuinely unknown slugs.
  */
-export function TrainingDetail({ slug }: { slug: string }) {
-  const { data: training, isLoading, isError, error, refetch } =
+export function TrainingDetail({
+  slug,
+  initialTraining,
+}: {
+  slug: string;
+  initialTraining?: ITraining;
+}) {
+  const { data, isLoading, error, refetch } =
     useGetPublicTrainingBySlugQuery(slug);
+  const training = data ?? initialTraining;
   const heroRef = useRef<HTMLElement>(null);
 
-  if (isLoading) {
+  // Only block on the skeleton when there's no server-rendered class to show.
+  if (isLoading && !training) {
     return (
       <div aria-busy="true">
         <div className="h-[clamp(380px,50vw,520px)] animate-pulse bg-ink/[0.06]" />
@@ -271,7 +281,7 @@ export function TrainingDetail({ slug }: { slug: string }) {
     );
   }
 
-  if (isError || !training) {
+  if (!training) {
     // A 404 here means the class was unpublished after the shell rendered —
     // a stale link, not a failure.
     const notFound =
