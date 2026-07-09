@@ -20,8 +20,8 @@ export const siteConfig = {
   email: 'hello@khadyskitchen.com',
   socials: {
     instagram:
-      'https://www.instagram.com/khadys_kitchen?igsh=MXFkOHBpczNvajR1dA==',
-    facebook: 'https://www.facebook.com/share/1D656H7Qxv/',
+      'https://www.instagram.com/khadys_kitchen?igsh=MXFkOHBpczNvajR1dA%3D%3D',
+    facebook: 'https://web.facebook.com/khadijahNuhu111',
     tiktok: 'https://www.tiktok.com/@khadyskitchen?_r=1&_t=ZS-97t2TzV0oVx',
   },
   instagramHandle: '@khadyskitchen',
