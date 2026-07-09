@@ -85,11 +85,11 @@ export const isoDaysFromNow = (days: number) => {
 export const readyBy = (leadTimeDays: number, byDate: string) =>
   !byDate || isoDaysFromNow(leadTimeDays) <= byDate;
 
-/** "ready today" / "ready next morning" / "needs N days". */
+/** "ready today" / "ready next morning" / "needs N days to process". */
 export const leadLabel = (leadTimeDays: number): string => {
   if (leadTimeDays <= 0) return "ready today";
   if (leadTimeDays === 1) return "ready next morning";
-  return `needs ${leadTimeDays} days`;
+  return `needs ${leadTimeDays} days to process`;
 };
 
 /** "from GHS 350.00" when the unit says so (e.g. "Made to order · from"). */

@@ -42,8 +42,13 @@ export function ProductCard({ product }: { product: IProduct }) {
           <p className="line-clamp-2 min-h-[3.2em] text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {product.description}
           </p>
+          {/* Lead time runs smaller than the CTA so even "needs N days to
+              process" stays on one line at the narrowest card widths. */}
           <span className="mt-auto pt-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink">
-            {leadLabel(product.leadTimeDays)} · Order →
+            <span className="text-[11px] tracking-[0.06em] text-ink/75">
+              {leadLabel(product.leadTimeDays)}
+            </span>{" "}
+            · Order →
           </span>
         </div>
       </Link>
