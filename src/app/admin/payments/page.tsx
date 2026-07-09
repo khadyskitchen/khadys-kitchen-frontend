@@ -215,7 +215,8 @@ export default function PaymentsPage() {
                     rows.map((p) => (
                       <tr
                         key={p.id}
-                        className="border-b border-ink/[0.08] last:border-0"
+                        onClick={() => router.push(`/admin/payments/${p.id}`)}
+                        className="cursor-pointer border-b border-ink/[0.08] transition-colors last:border-0 hover:bg-accent/[0.05]"
                       >
                         <td className="px-6 py-3">
                           <div className="max-w-[220px] truncate text-[13px] font-semibold text-ink">
@@ -236,6 +237,7 @@ export default function PaymentsPage() {
                                 </span>
                                 <Link
                                   href={`/admin/orders/${p.order.id}`}
+                                  onClick={(e) => e.stopPropagation()}
                                   className="font-semibold text-accent"
                                 >
                                   {p.order.code}
@@ -253,6 +255,7 @@ export default function PaymentsPage() {
                                 </span>
                                 <Link
                                   href={`/admin/applications/${p.application.id}`}
+                                  onClick={(e) => e.stopPropagation()}
                                   className="font-semibold text-accent"
                                 >
                                   {p.application.code}
@@ -285,32 +288,27 @@ export default function PaymentsPage() {
                           ) : null}
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <ActionMenu
-                            items={[
-                              {
-                                label: "View details",
-                                onClick: () =>
-                                  router.push(`/admin/payments/${p.id}`),
-                              },
-                              ...(isAdmin && p.status === "SUCCESS"
-                                ? [
-                                    {
-                                      label: "Reverse payment",
-                                      variant: "danger" as const,
-                                      onClick: () =>
-                                        confirm({
-                                          title: "Reverse this payment?",
-                                          description:
-                                            "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
-                                          confirmText: "Reverse payment",
-                                          isDestructive: true,
-                                          onConfirm: () => doRefund(p),
-                                        }),
-                                    },
-                                  ]
-                                : []),
-                            ]}
-                          />
+                          {/* Row click covers viewing; the menu only appears
+                              when there's a real action left (admin refund). */}
+                          {isAdmin && p.status === "SUCCESS" ? (
+                            <ActionMenu
+                              items={[
+                                {
+                                  label: "Reverse payment",
+                                  variant: "danger" as const,
+                                  onClick: () =>
+                                    confirm({
+                                      title: "Reverse this payment?",
+                                      description:
+                                        "Paystack payments are refunded via Paystack; cash/MoMo are marked reversed. The owning order or application is re-credited.",
+                                      confirmText: "Reverse payment",
+                                      isDestructive: true,
+                                      onConfirm: () => doRefund(p),
+                                    }),
+                                },
+                              ]}
+                            />
+                          ) : null}
                         </td>
                       </tr>
                     ))
