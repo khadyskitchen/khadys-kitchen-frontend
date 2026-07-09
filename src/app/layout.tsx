@@ -94,6 +94,7 @@ const jsonLd = {
         closes: "14:00",
       },
     ],
+    telephone: "+233540546469",
     sameAs: Object.values(siteConfig.socials),
   },
   website: {

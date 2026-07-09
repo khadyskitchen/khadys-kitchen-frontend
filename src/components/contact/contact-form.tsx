@@ -105,8 +105,9 @@ export function ContactForm() {
         </Reveal>
 
         <div className="grid gap-[clamp(28px,4vw,56px)] lg:grid-cols-[1fr_minmax(0,420px)] lg:items-start">
-          {/* Form */}
-          <div>
+          {/* Form (min-w-0 so no child — e.g. the Turnstile iframe — can force
+              the shared grid column wider than the viewport) */}
+          <div className="min-w-0">
             {sent ? (
               <div
                 className="rounded-[22px] border border-ink/10 bg-card p-[clamp(36px,5vw,52px)] text-center"
@@ -214,7 +215,7 @@ export function ContactForm() {
           </div>
 
           {/* What happens next */}
-          <Reveal variant="right" className="lg:sticky lg:top-[104px]">
+          <Reveal variant="right" className="min-w-0 lg:sticky lg:top-[104px]">
             <aside className="rounded-[22px] border border-ink/10 bg-card p-[clamp(24px,3.5vw,34px)]">
               <h3 className="font-serif text-[23px] font-normal">
                 What happens next
