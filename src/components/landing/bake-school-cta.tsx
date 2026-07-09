@@ -1,7 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Reveal } from "@/components/reveal";
-import { routes } from "@/lib/routes";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Reveal } from '@/components/reveal';
+import { routes } from '@/lib/routes';
 
 /**
  * Compact trainings banner at the foot of the landing page — one cover-style
@@ -13,7 +13,7 @@ export function BakeSchoolCta() {
     <section className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,48px)] py-[clamp(48px,7vw,96px)]">
       <Reveal className="relative overflow-hidden rounded-[28px] bg-ink text-cream">
         <Image
-          src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1600&q=80&auto=format&fit=crop"
+          src="/trainings-cta-backdrop.avif"
           alt=""
           aria-hidden="true"
           fill
@@ -33,8 +33,8 @@ export function BakeSchoolCta() {
               Don&rsquo;t just taste it. Learn to bake it.
             </h2>
             <p className="text-[16px] leading-[1.65] text-cream/80">
-              Hands-on classes for every level - from your first loaf to
-              wedding cakes - taught in Khady&rsquo;s own kitchen.
+              Hands-on classes for every level - from your first loaf to wedding
+              cakes - taught in Khady&rsquo;s own kitchen.
             </p>
           </div>
           <Link

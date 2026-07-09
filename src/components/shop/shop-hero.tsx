@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { Reveal } from "@/components/reveal";
+import Image from 'next/image';
+import { Reveal } from '@/components/reveal';
 
 export function ShopHero() {
   return (
@@ -7,7 +7,7 @@ export function ShopHero() {
       <div>
         <p
           className="mb-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-accent"
-          style={{ animation: "kk-fadein .8s .1s both" }}
+          style={{ animation: 'kk-fadein .8s .1s both' }}
         >
           Made to order · Pickup in Kumasi
         </p>
@@ -15,7 +15,10 @@ export function ShopHero() {
           <span className="block overflow-hidden">
             <span
               className="inline-block"
-              style={{ animation: "kk-lineup .9s .15s cubic-bezier(.16,.84,.28,1) both" }}
+              style={{
+                animation:
+                  'kk-lineup .9s .15s cubic-bezier(.16,.84,.28,1) both',
+              }}
             >
               Nothing sits on a shelf.
             </span>
@@ -23,19 +26,21 @@ export function ShopHero() {
           <span className="block overflow-hidden">
             <span
               className="inline-block"
-              style={{ animation: "kk-lineup .9s .3s cubic-bezier(.16,.84,.28,1) both" }}
+              style={{
+                animation: 'kk-lineup .9s .3s cubic-bezier(.16,.84,.28,1) both',
+              }}
             >
-              Everything is baked{" "}
+              Everything is baked{' '}
               <em className="font-serif not-italic text-accent">for you.</em>
             </span>
           </span>
         </h1>
         <p
           className="max-w-[54ch] text-[clamp(16px,1.4vw,18px)] leading-[1.65] text-ink/70"
-          style={{ animation: "kk-fadein .8s .5s both" }}
+          style={{ animation: 'kk-fadein .8s .5s both' }}
         >
-          Every order is made custom for its owner. Tell us when you need it, and
-          it comes out of the oven on time - never before.
+          Every order is made custom for its owner. Tell us when you need it,
+          and it comes out of the oven on time - never before.
         </p>
       </div>
       <Reveal
@@ -43,7 +48,7 @@ export function ShopHero() {
         className="relative block h-[clamp(300px,36vw,440px)] w-full overflow-hidden rounded-b-[20px] rounded-t-[min(220px,36vw)] border border-ink/15"
       >
         <Image
-          src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=1200&q=80&auto=format&fit=crop"
+          src="/shop-pastry-counter.jpg"
           alt="Freshly baked pastries on display"
           fill
           priority

@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { Reveal } from "@/components/reveal";
-import { useGetPublicAboutQuery } from "@/redux/about/about-api";
+import Image from 'next/image';
+import { Reveal } from '@/components/reveal';
+import { useGetPublicAboutQuery } from '@/redux/about/about-api';
 
 // Static copy used until an admin saves their own version (and for any field
 // they leave blank) — the section never renders half-empty.
 const DEFAULTS = {
-  eyebrow: "About",
-  heading: "Two ovens, one obsession.",
-  body: "Khady learned to bake in her grandmother's kitchen and refined her craft in professional pastry rooms. Her counter in Kumasi is where the two meet - classic technique alongside the flavors of home.\n\nEverything is mixed, shaped, and baked on site. No freezers, no shortcuts - and every week, she teaches the next generation of bakers to do the same.",
-  pullQuote: "Bread should taste like someone was up early caring about it.",
-  founder: "Khady, founder",
-  image:
-    "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1200&q=80&auto=format&fit=crop",
+  eyebrow: 'Our story',
+  heading: 'Nine years of cake artistry in Kumasi.',
+  body: "For over 9 years, Khady's Kitchen has been at the forefront of cake artistry in Kumasi, building a reputation for excellence, creativity, and unforgettable taste. Today, we are proudly recognized as one of the city's leading cake brands, trusted by thousands of families, businesses, and institutions for life's most important celebrations.\n\nOur impact goes beyond cakes. We have trained thousands of aspiring bakers, many of whom have gone on to build successful baking businesses of their own. Through innovation, consistency, and an uncompromising commitment to quality, Khady's Kitchen continues to raise the standard in the baking industry.\n\nWhether it's a simple birthday cake or an extraordinary custom masterpiece, every creation reflects our passion, craftsmanship, and pursuit of perfection.",
+  pullQuote:
+    "We don't just bake cakes — we create memories, celebrate milestones, and inspire excellence.",
+  founder: "Khady's Kitchen",
+  image: '/story-graduation-class.jpg',
 };
 
 /**
@@ -46,7 +46,7 @@ export function Story() {
         >
           <Image
             src={image}
-            alt="Hands at work in the kitchen"
+            alt="Khady with a graduating class at Khady's Kitchen"
             fill
             sizes="(max-width: 900px) 100vw, 45vw"
             className="object-cover"
@@ -65,8 +65,8 @@ export function Story() {
               key={i}
               className={
                 i === paragraphs.length - 1
-                  ? "mb-8 text-[17px] leading-[1.7] text-ink/75"
-                  : "mb-[18px] text-[17px] leading-[1.7] text-ink/75"
+                  ? 'mb-8 text-[17px] leading-[1.7] text-ink/75'
+                  : 'mb-[18px] text-[17px] leading-[1.7] text-ink/75'
               }
             >
               {paragraph}

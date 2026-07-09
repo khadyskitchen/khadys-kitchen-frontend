@@ -1,18 +1,18 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Reveal } from "@/components/reveal";
-import { routes } from "@/lib/routes";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Reveal } from '@/components/reveal';
+import { routes } from '@/lib/routes';
 
 const STATS = [
-  { value: "4:30 am", label: "First bake" },
-  { value: "14", label: "Daily bakes" },
-  { value: "Zero", label: "Day-old sales" },
+  { value: '4:30 am', label: 'First bake' },
+  { value: '14', label: 'Daily bakes' },
+  { value: 'Zero', label: 'Day-old sales' },
 ];
 
 export function Hero() {
   return (
     <section className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] items-center gap-[clamp(32px,5vw,64px)] px-[clamp(20px,5vw,48px)] pb-[clamp(56px,8vw,96px)] pt-[clamp(48px,7vw,88px)]">
-      <div style={{ animation: "kk-rise 0.8s ease both" }}>
+      <div style={{ animation: 'kk-rise 0.8s ease both' }}>
         <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-accent">
           Kumasi patisserie · The authentic taste
         </p>
@@ -20,7 +20,9 @@ export function Hero() {
           <span className="block overflow-hidden">
             <span
               className="inline-block"
-              style={{ animation: "kk-lineup 1s .1s cubic-bezier(.16,.84,.28,1) both" }}
+              style={{
+                animation: 'kk-lineup 1s .1s cubic-bezier(.16,.84,.28,1) both',
+              }}
             >
               Baked before sunrise,
             </span>
@@ -28,9 +30,11 @@ export function Hero() {
           <span className="block overflow-hidden">
             <span
               className="inline-block"
-              style={{ animation: "kk-lineup 1s .28s cubic-bezier(.16,.84,.28,1) both" }}
+              style={{
+                animation: 'kk-lineup 1s .28s cubic-bezier(.16,.84,.28,1) both',
+              }}
             >
-              gone by{" "}
+              gone by{' '}
               <em className="font-serif not-italic text-accent">noon.</em>
             </span>
           </span>
@@ -70,15 +74,15 @@ export function Hero() {
 
       <div
         className="relative pb-[30px]"
-        style={{ animation: "kk-rise 0.8s 0.15s ease both" }}
+        style={{ animation: 'kk-rise 0.8s 0.15s ease both' }}
       >
         <Reveal
           variant="mask-img"
           className="relative block h-[clamp(380px,44vw,560px)] w-full overflow-hidden rounded-b-[20px] rounded-t-[min(260px,40vw)] border border-ink/15"
         >
           <Image
-            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&q=80&auto=format&fit=crop"
-            alt="Fresh artisan bread and baguettes"
+            src="/hero-birthday-cake.png"
+            alt="Decorated pink birthday cake from Khady's Kitchen"
             fill
             priority
             sizes="(max-width: 900px) 100vw, 45vw"
@@ -93,7 +97,7 @@ export function Hero() {
           <svg
             viewBox="0 0 100 100"
             className="absolute inset-0 h-full w-full"
-            style={{ animation: "kk-spin 24s linear infinite" }}
+            style={{ animation: 'kk-spin 24s linear infinite' }}
           >
             <defs>
               <path
@@ -103,7 +107,7 @@ export function Hero() {
             </defs>
             <text className="fill-[#FDFAF3] font-sans text-[10.5px] font-semibold tracking-[0.24em]">
               <textPath href="#kk-circ">
-                FRESH DAILY · BAKED BY HAND ·{" "}
+                FRESH DAILY · BAKED BY HAND ·{' '}
               </textPath>
             </text>
           </svg>

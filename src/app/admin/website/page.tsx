@@ -191,14 +191,14 @@ export default function WebsitePage() {
             <>
               <TextField
                 label="Eyebrow"
-                placeholder="e.g. About"
+                placeholder="e.g. Our story"
                 hint="The small label above the heading."
                 error={errors.storyEyebrow?.message}
                 {...register("storyEyebrow")}
               />
               <TextField
                 label="Heading"
-                placeholder="e.g. Two ovens, one obsession."
+                placeholder="e.g. Nine years of cake artistry in Kumasi."
                 error={errors.storyHeading?.message}
                 {...register("storyHeading")}
               />
@@ -218,13 +218,13 @@ export default function WebsitePage() {
               </div>
               <TextField
                 label="Pull quote"
-                placeholder="e.g. Bread should taste like someone was up early caring about it."
+                placeholder="e.g. We don't just bake cakes — we create memories."
                 error={errors.storyPullQuote?.message}
                 {...register("storyPullQuote")}
               />
               <TextField
                 label="Quote credit"
-                placeholder="e.g. Khady, founder"
+                placeholder="e.g. Khady's Kitchen"
                 error={errors.storyFounder?.message}
                 {...register("storyFounder")}
               />
