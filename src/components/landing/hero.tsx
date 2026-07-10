@@ -14,7 +14,7 @@ export function Hero() {
     <section className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] items-center gap-[clamp(32px,5vw,64px)] px-[clamp(20px,5vw,48px)] pb-[clamp(56px,8vw,96px)] pt-[clamp(48px,7vw,88px)]">
       <div style={{ animation: 'kk-rise 0.8s ease both' }}>
         <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-accent">
-          Kumasi patisserie · The authentic taste
+          Number One in Kumasi · The authentic taste
         </p>
         <h1 className="mb-[26px] font-serif text-[clamp(42px,6.2vw,84px)] font-normal leading-[1.04]">
           <span className="block overflow-hidden">
