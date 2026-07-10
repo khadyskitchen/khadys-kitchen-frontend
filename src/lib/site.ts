@@ -17,7 +17,7 @@ export const siteConfig = {
   description:
     "Small-batch breads, pastries and celebration cakes, baked daily in Khady's Kumasi kitchen. Plus a hands-on Bake School.",
   locale: 'en_GH',
-  email: 'hello@khadyskitchen.com',
+  email: 'Khadijanuhuassad@gmail.com',
   socials: {
     instagram:
       'https://www.instagram.com/khadys_kitchen?igsh=MXFkOHBpczNvajR1dA%3D%3D',

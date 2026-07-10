@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SocialLinks } from "@/components/social-links";
 import { routes } from "@/lib/routes";
+import { siteConfig } from "@/lib/site";
 
 const FOOTER_LINKS = [
   { label: "Home", href: routes.home },
@@ -63,7 +64,7 @@ export function SiteFooter({ cta }: SiteFooterProps) {
             Kumasi, Ghana
           </p>
           <p className="mb-[18px] text-[16px] leading-[1.7] text-cream/70">
-            hello@khadyskitchen.com
+            {siteConfig.email}
           </p>
           <SocialLinks tone="dark" size="sm" className="mb-[22px]" />
           <div className="flex justify-between gap-4 border-t border-cream/15 pt-3 text-[16px]">
