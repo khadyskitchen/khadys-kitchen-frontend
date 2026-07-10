@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
+import { optimizeImage } from "@/lib/optimize-image";
 import type { IUser } from "@/types/user.types";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -44,17 +45,20 @@ export function ProfileAvatar({
     `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() ||
     "?";
 
-  const pick = (file: File | undefined) => {
+  const pick = async (file: File | undefined) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       notify.error("Please choose an image file");
       return;
     }
-    if (file.size > MAX_BYTES) {
+    // Avatars render at 92px — shrink big phone shots before staging so the
+    // size cap applies to what actually uploads.
+    const staged = await optimizeImage(file, 1024);
+    if (staged.size > MAX_BYTES) {
       notify.error("Image must be under 5MB");
       return;
     }
-    onStage?.(file);
+    onStage?.(staged);
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -160,7 +164,7 @@ export function ProfileAvatar({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => pick(e.target.files?.[0])}
+        onChange={(e) => void pick(e.target.files?.[0])}
       />
 
       <Modal

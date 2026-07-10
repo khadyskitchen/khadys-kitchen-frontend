@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { notify } from "@/lib/notify";
+import { optimizeImage } from "@/lib/optimize-image";
 import { cn } from "@/lib/utils";
 
 const MAX_BYTES = 10 * 1024 * 1024; // matches the backend's 10MB cap
@@ -60,7 +61,7 @@ export function FileUploadField({
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
   };
 
-  const pick = (chosen: File | undefined) => {
+  const pick = async (chosen: File | undefined) => {
     if (!chosen) return;
     const okType =
       accept === "image/*"
@@ -74,16 +75,19 @@ export function FileUploadField({
       );
       return;
     }
-    if (chosen.size > MAX_BYTES) {
+    // Shrink big photos first — the size cap applies to what actually uploads,
+    // so a 12MB phone shot that optimizes down to a few hundred KB is fine.
+    const staged = kind === "image" ? await optimizeImage(chosen) : chosen;
+    if (staged.size > MAX_BYTES) {
       notify.error("File must be under 10MB");
       return;
     }
     revoke();
-    setFile(chosen);
+    setFile(staged);
     setCleared(false);
-    setPreviewUrl(kind === "image" ? URL.createObjectURL(chosen) : "");
+    setPreviewUrl(kind === "image" ? URL.createObjectURL(staged) : "");
     if (inputRef.current) inputRef.current.value = "";
-    onChange({ cleared: false, file: chosen });
+    onChange({ cleared: false, file: staged });
   };
 
   const remove = () => {
@@ -162,7 +166,7 @@ export function FileUploadField({
           type="file"
           accept={accept}
           className="hidden"
-          onChange={(e) => pick(e.target.files?.[0])}
+          onChange={(e) => void pick(e.target.files?.[0])}
         />
       </div>
     </div>
