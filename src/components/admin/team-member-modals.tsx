@@ -125,6 +125,7 @@ export function AddMemberModal({
           placeholder="At least 8 characters"
           type="password"
           autoComplete="new-password"
+          revealable
           error={errors.password?.message}
           {...register("password")}
         />
