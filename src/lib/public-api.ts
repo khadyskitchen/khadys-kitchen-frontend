@@ -3,6 +3,7 @@
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
 // breaks a sitemap or a page render.
+import type { IGalleryImage } from "@/types/gallery.types";
 import type { IProduct } from "@/types/product.types";
 import type { ITraining } from "@/types/training.types";
 
@@ -133,6 +134,18 @@ export async function fetchPublicTrainings(): Promise<PublicTraining[]> {
  */
 export async function fetchPublicTrainingList(): Promise<ITraining[]> {
   const json = await fetchJson<{ data?: ITraining[] }>("/trainings?limit=100");
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+/**
+ * The published kitchen gallery (newest first, one page at the backend's
+ * `limit` cap of 100). The `/gallery` page server-renders this and the client
+ * `GalleryShowcase` island takes it as initial data, RTK Query hydrating over it.
+ */
+export async function fetchPublicGalleryList(): Promise<IGalleryImage[]> {
+  const json = await fetchJson<{ data?: IGalleryImage[] }>(
+    "/gallery?limit=100",
+  );
   return Array.isArray(json?.data) ? json.data : [];
 }
 

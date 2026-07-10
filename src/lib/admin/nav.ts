@@ -37,6 +37,7 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   { label: "Customers", href: "/admin/customers", isActive: (p) => p.startsWith("/admin/customers") },
   { label: "Shop items", href: "/admin/items", isActive: (p) => p.startsWith("/admin/items") },
   { label: "Payments", href: "/admin/payments", isActive: (p) => p.startsWith("/admin/payments") },
+  { label: "Gallery", href: "/admin/gallery", isActive: (p) => p.startsWith("/admin/gallery") },
   { label: "Website", href: "/admin/website", isActive: (p) => p.startsWith("/admin/website"), adminOnly: true },
   { label: "Team & roles", href: "/admin/team", isActive: (p) => p.startsWith("/admin/team"), adminOnly: true },
   {
@@ -97,6 +98,8 @@ export function routeMeta(pathname: string): { crumb: string; title: string } {
   if (pathname.startsWith("/admin/items/")) return { crumb: "Shop · Items", title: "Item & orders" };
 
   if (pathname.startsWith("/admin/payments")) return { crumb: "Money", title: "Payments & payouts" };
+
+  if (pathname.startsWith("/admin/gallery")) return { crumb: "Configuration", title: "Kitchen gallery" };
 
   if (pathname.startsWith("/admin/website")) return { crumb: "Configuration", title: "Website content" };
 

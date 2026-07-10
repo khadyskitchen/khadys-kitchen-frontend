@@ -9,6 +9,7 @@ export const routes = {
   shopCart: "/shop/cart",
   shopCheckout: "/shop/checkout",
   shopTrack: "/shop/orders",
+  gallery: "/gallery",
   contact: "/contact",
   privacy: "/privacy",
   terms: "/terms",

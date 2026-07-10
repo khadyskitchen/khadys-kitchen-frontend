@@ -12,6 +12,7 @@ import { routes } from "@/lib/routes";
 const NAV_LINKS = [
   { label: "Shop", href: routes.shop },
   { label: "About", href: "#about" },
+  { label: "Gallery", href: routes.gallery },
   { label: "Contact", href: routes.contact },
 ];
 

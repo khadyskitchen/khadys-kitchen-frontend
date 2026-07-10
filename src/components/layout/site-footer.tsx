@@ -14,6 +14,7 @@ const FOOTER_LINKS = [
   { label: "Shop", href: routes.shop },
   { label: "Track your order", href: routes.shopTrack },
   { label: "Trainings", href: routes.trainings },
+  { label: "Gallery", href: routes.gallery },
   { label: "Contact", href: routes.contact },
 ];
 
