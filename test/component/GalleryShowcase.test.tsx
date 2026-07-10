@@ -106,4 +106,30 @@ describe("GalleryShowcase", () => {
     render(<GalleryShowcase initialImages={[]} />);
     expect(screen.getByText("The gallery is warming up.")).toBeInTheDocument();
   });
+
+  it("toggles between filling the frame and the photo's true proportions", async () => {
+    const user = userEvent.setup();
+    render(<GalleryShowcase initialImages={photos(2)} />);
+
+    const toggle = screen.getByRole("button", { name: "Show the whole photo" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await user.click(toggle);
+    expect(
+      screen.getByRole("button", { name: "Fill the frame" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("opens the enlarged view from a grid tile and closes it again", async () => {
+    const user = userEvent.setup();
+    render(<GalleryShowcase initialImages={[photo(1, "Oven fresh")]} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "View photo: Oven fresh" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
 });

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { useGetPublicGalleryImagesQuery } from "@/redux/gallery/gallery-api";
@@ -39,7 +40,12 @@ export function GalleryShowcase({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovering, setHovering] = useState(false);
+  // Whole-photo mode: letterbox the active photo at its natural proportions
+  // instead of cropping it to fill the stage.
+  const [fitWhole, setFitWhole] = useState(false);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  // Phone grid: the photo opened in the enlarge dialog.
+  const [viewing, setViewing] = useState<IGalleryImage | null>(null);
 
   const count = photos.length;
   // Clamp against the live list — a refetch can shrink it under the raw index.
@@ -98,7 +104,7 @@ export function GalleryShowcase({
     return (
       <div aria-busy="true">
         <div className="hidden md:block">
-          <Skeleton className="aspect-[16/9] w-full rounded-[22px]" />
+          <Skeleton className="h-[clamp(300px,56dvh,620px)] w-full rounded-[22px]" />
           <div className="mt-4 flex items-center gap-3">
             <Skeleton className="h-[46px] w-[46px] rounded-full" />
             <div className="flex flex-1 gap-2.5 overflow-hidden">
@@ -141,19 +147,21 @@ export function GalleryShowcase({
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >
+        {/* Viewport-capped height so the photo AND the filmstrip below fit
+            on screen together without scrolling. */}
         <div
           aria-live={paused ? "polite" : "off"}
-          className="relative aspect-[16/9] w-full overflow-hidden rounded-[22px] border border-ink/10 bg-oat"
+          className="relative h-[clamp(300px,56dvh,620px)] w-full overflow-hidden rounded-[22px] border border-ink/10 bg-oat"
         >
           {active ? (
             <Image
-              key={active.id}
+              key={`${active.id}-${String(fitWhole)}`}
               src={active.image}
               alt={altFor(active)}
               fill
               priority
               sizes="(max-width: 1280px) 92vw, 1184px"
-              className="object-cover"
+              className={fitWhole ? "object-contain" : "object-cover"}
               style={{ animation: "kk-fadein .6s both" }}
             />
           ) : null}
@@ -162,8 +170,42 @@ export function GalleryShowcase({
               {active.caption}
             </p>
           ) : null}
-          <span className="absolute right-4 top-4 rounded-full bg-black/45 px-3 py-1 text-[12.5px] font-semibold tracking-[0.06em] text-[#FDFAF3]">
-            {shownIndex + 1} / {count}
+          <span className="absolute right-4 top-4 flex items-center gap-2">
+            <span className="rounded-full bg-black/45 px-3 py-1 text-[12.5px] font-semibold tracking-[0.06em] text-[#FDFAF3]">
+              {shownIndex + 1} / {count}
+            </span>
+            <button
+              type="button"
+              aria-pressed={fitWhole}
+              aria-label={
+                fitWhole ? "Fill the frame" : "Show the whole photo"
+              }
+              title={fitWhole ? "Fill the frame" : "Show the whole photo"}
+              onClick={() => setFitWhole((f) => !f)}
+              className={cn(
+                "grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-full text-[#FDFAF3] transition-colors",
+                fitWhole ? "bg-accent" : "bg-black/45 hover:bg-black/65",
+              )}
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+              >
+                {fitWhole ? (
+                  // Collapse arrows — back to filling the frame.
+                  <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+                ) : (
+                  // Expand arrows — see the photo's true proportions.
+                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+                )}
+              </svg>
+            </button>
           </span>
         </div>
 
@@ -231,9 +273,12 @@ export function GalleryShowcase({
       <div ref={gridTopRef} className="scroll-mt-24 md:hidden">
         <div className="grid grid-cols-2 gap-3">
           {paged.map((p) => (
-            <figure
+            <button
               key={p.id}
-              className="relative m-0 aspect-square overflow-hidden rounded-[16px] border border-ink/10 bg-oat"
+              type="button"
+              onClick={() => setViewing(p)}
+              aria-label={`View photo${p.caption ? `: ${p.caption}` : ""}`}
+              className="relative aspect-square cursor-zoom-in overflow-hidden rounded-[16px] border border-ink/10 bg-oat"
             >
               <Image
                 src={p.image}
@@ -243,11 +288,11 @@ export function GalleryShowcase({
                 className="object-cover"
               />
               {p.caption ? (
-                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2.5 pt-8 text-[12px] font-medium leading-snug text-[#FDFAF3]">
+                <span className="absolute inset-x-0 bottom-0 block bg-gradient-to-t from-black/60 to-transparent px-3 pb-2.5 pt-8 text-left text-[12px] font-medium leading-snug text-[#FDFAF3]">
                   <span className="line-clamp-2">{p.caption}</span>
-                </figcaption>
+                </span>
               ) : null}
-            </figure>
+            </button>
           ))}
         </div>
 
@@ -277,6 +322,34 @@ export function GalleryShowcase({
           </div>
         ) : null}
       </div>
+
+      {/* Enlarged view for the phone grid — the photo at its natural
+          proportions with its caption beneath. */}
+      <Modal
+        open={Boolean(viewing)}
+        onClose={() => setViewing(null)}
+        labelledBy="gallery-lightbox-caption"
+        className="max-w-[560px] p-3"
+      >
+        {viewing ? (
+          <figure className="m-0">
+            <Image
+              src={viewing.image}
+              alt={altFor(viewing)}
+              width={1200}
+              height={900}
+              sizes="92vw"
+              className="h-auto max-h-[76dvh] w-full rounded-[14px] object-contain"
+            />
+            <figcaption
+              id="gallery-lightbox-caption"
+              className="px-1 pb-1 pt-3 text-[13.5px] leading-snug text-ink/80"
+            >
+              {viewing.caption ?? "Inside Khady's Kitchen"}
+            </figcaption>
+          </figure>
+        ) : null}
+      </Modal>
     </>
   );
 }
