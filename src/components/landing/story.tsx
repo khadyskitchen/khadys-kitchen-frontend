@@ -1,8 +1,6 @@
-'use client';
-
 import Image from 'next/image';
 import { Reveal } from '@/components/reveal';
-import { useGetPublicAboutQuery } from '@/redux/about/about-api';
+import type { IAboutContent } from '@/types/about.types';
 
 // Static copy used until an admin saves their own version (and for any field
 // they leave blank) — the section never renders half-empty.
@@ -18,12 +16,11 @@ const DEFAULTS = {
 
 /**
  * The editable "About" band. Content comes from the backend's About singleton
- * (admins edit it under Website in the console); each missing field falls back
+ * (admins edit it under Website in the console), fetched server-side by the
+ * page so a reload never flashes the defaults; each missing field falls back
  * to the static default so the section always reads complete.
  */
-export function Story() {
-  const { data } = useGetPublicAboutQuery();
-  const about = data?.data;
+export function Story({ about }: { about: IAboutContent | null }) {
 
   const eyebrow = about?.storyEyebrow || DEFAULTS.eyebrow;
   const heading = about?.storyHeading || DEFAULTS.heading;

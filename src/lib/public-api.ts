@@ -3,6 +3,7 @@
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
 // breaks a sitemap or a page render.
+import type { IAboutContent } from "@/types/about.types";
 import type { IGalleryImage } from "@/types/gallery.types";
 import type { IProduct } from "@/types/product.types";
 import type { ITraining } from "@/types/training.types";
@@ -135,6 +136,31 @@ export async function fetchPublicTrainings(): Promise<PublicTraining[]> {
 export async function fetchPublicTrainingList(): Promise<ITraining[]> {
   const json = await fetchJson<{ data?: ITraining[] }>("/trainings?limit=100");
   return Array.isArray(json?.data) ? json.data : [];
+}
+
+/** The home page's featured shop items (admin's "Featured" toggle, max 3).
+ * Fetched server-side so the section is real cached HTML — /api/revalidate
+ * refreshes it the moment an admin changes what's featured. */
+export async function fetchFeaturedProducts(): Promise<IProduct[]> {
+  const json = await fetchJson<{ data?: IProduct[] }>(
+    "/products?featured=true&limit=3",
+  );
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+/** The home page's featured classes (same treatment as featured products). */
+export async function fetchFeaturedTrainings(): Promise<ITraining[]> {
+  const json = await fetchJson<{ data?: ITraining[] }>(
+    "/trainings?featured=true&limit=3",
+  );
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+/** The editable "Our Story" content (null when never saved — the section's
+ * static defaults apply). Server-side so the band renders without a flash. */
+export async function fetchPublicAbout(): Promise<IAboutContent | null> {
+  const json = await fetchJson<{ data?: IAboutContent | null }>("/about");
+  return json?.data ?? null;
 }
 
 /**

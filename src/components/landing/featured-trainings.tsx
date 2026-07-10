@@ -1,11 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { TrainingCard } from "@/components/trainings/training-card";
-import { TrainingCardSkeleton } from "@/components/trainings/training-card-skeleton";
 import { routes } from "@/lib/routes";
-import { useGetPublicTrainingsQuery } from "@/redux/trainings/trainings-api";
+import type { ITraining } from "@/types/training.types";
 
 // Fixed tracks (not auto-fit): one or two featured classes keep the same card
 // width as a full row of three instead of stretching across the section.
@@ -13,20 +10,16 @@ const GRID_CLASS =
   "grid grid-cols-1 gap-[clamp(20px,3vw,32px)] sm:grid-cols-2 lg:grid-cols-3";
 
 /**
- * Home page teaser for the Bake School: the newest three featured classes
- * (admin picks them with the "Featured on the home page" toggle), rendered
- * with the catalogue's TrainingCard. When nothing is featured (or the API
- * can't be reached) the section disappears entirely. Sits on the oat band
- * (like Story) so it reads as its own section against the dark CTA below.
+ * Home page teaser for the Bake School: the featured classes (admin picks
+ * them with the "Featured on the home page" toggle), rendered with the
+ * catalogue's TrainingCard. Rendered on the server from the page's cached
+ * fetch so a reload never shows skeletons; when nothing is featured (or the
+ * API couldn't be reached at revalidation time) the section disappears
+ * entirely. Sits on the oat band (like Story) so it reads as its own section
+ * against the dark CTA below.
  */
-export function FeaturedTrainings() {
-  const { data, isLoading, isError } = useGetPublicTrainingsQuery({
-    featured: true,
-    limit: 3,
-  });
-
-  const trainings = data?.data ?? [];
-  if (isError || (!isLoading && trainings.length === 0)) return null;
+export function FeaturedTrainings({ trainings }: { trainings: ITraining[] }) {
+  if (trainings.length === 0) return null;
 
   return (
     <section className="border-y border-ink/10 bg-oat">
@@ -43,19 +36,11 @@ export function FeaturedTrainings() {
         </Link>
       </Reveal>
 
-      {isLoading ? (
-        <div className={GRID_CLASS} aria-busy="true">
-          {Array.from({ length: 3 }, (_, i) => (
-            <TrainingCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : (
-        <div className={GRID_CLASS}>
-          {trainings.map((training) => (
-            <TrainingCard key={training.id} training={training} />
-          ))}
-        </div>
-      )}
+      <div className={GRID_CLASS}>
+        {trainings.map((training) => (
+          <TrainingCard key={training.id} training={training} />
+        ))}
+      </div>
       </div>
     </section>
   );

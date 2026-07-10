@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/admin/use-confirm";
 import { ApplicationsTable } from "@/components/admin/applications-table";
 import { StudentsTable } from "@/components/admin/students-table";
 import { notify } from "@/lib/notify";
+import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate } from "@/lib/format-date";
@@ -69,6 +70,7 @@ export default function TrainingDetailPage() {
       if (training.isPublished) await unpublish(id).unwrap();
       else await publish(id).unwrap();
       notify.success(training.isPublished ? "Unpublished" : "Published");
+      void revalidatePublicPaths("/", "/trainings");
     } catch (err) {
       notify.error("Action failed", { description: extractApiError(err).message });
     }
@@ -78,6 +80,7 @@ export default function TrainingDetailPage() {
     try {
       await deleteTraining(id).unwrap();
       notify.success("Training deleted");
+      void revalidatePublicPaths("/", "/trainings");
       router.push("/admin/classes");
     } catch (err) {
       notify.error("Couldn't delete", { description: extractApiError(err).message });
