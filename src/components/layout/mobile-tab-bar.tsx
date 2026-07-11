@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { routes } from "@/lib/routes";
@@ -36,17 +37,47 @@ const TABS = [
 /**
  * Facebook-style bottom tab navigation, mobile only (< 900px — the same
  * breakpoint where the header nav collapses). The five canonical
- * destinations, always one tap away; contextual extras (Track order, the
- * About anchor, promo CTAs) stay in the header's overlay menu. The trainings
- * StickyApplyBar and the footer spacer both budget for this bar's height.
+ * destinations; contextual extras (Track order, the About anchor, promo
+ * CTAs) stay in the header's overlay menu.
+ *
+ * The bar auto-hides: scrolling down slides it away (reclaiming the height
+ * on content-dense pages like the shop, where the header already stacks),
+ * scrolling up — or being near the top — brings it back. Its current height
+ * is published as --kk-tab-offset so anything else pinned to the bottom
+ * (the trainings apply bar) can ride along instead of floating over a gap.
  */
 export function MobileTabBar() {
   const pathname = usePathname();
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      // Ignore sub-4px jitter (elastic scrolling, address-bar resizes).
+      if (Math.abs(y - lastY) > 4) {
+        setHidden(y > lastY && y > 80);
+        lastY = y;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--kk-tab-offset",
+      hidden ? "0px" : "60px",
+    );
+  }, [hidden]);
 
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-50 grid h-[60px] grid-cols-5 border-t border-ink/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-[8px] min-[900px]:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 grid h-[60px] grid-cols-5 border-t border-ink/10 bg-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-[8px] transition-transform duration-300 ease-out min-[900px]:hidden",
+        hidden && "translate-y-full",
+      )}
     >
       {TABS.map((tab) => {
         const active = tab.exact

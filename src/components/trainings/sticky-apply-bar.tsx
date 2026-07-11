@@ -51,7 +51,9 @@ export function StickyApplyBar({
     <div
       inert={!visible}
       className={cn(
-        "fixed inset-x-0 bottom-[60px] z-40 transition-transform duration-300 ease-out md:hidden",
+        // Rides on the auto-hiding tab bar's published height: sits above it
+        // while it shows, drops to the screen edge when it slides away.
+        "fixed inset-x-0 bottom-[var(--kk-tab-offset,60px)] z-40 transition-[transform,bottom] duration-300 ease-out md:hidden",
         visible ? "translate-y-0" : "translate-y-full",
       )}
     >
