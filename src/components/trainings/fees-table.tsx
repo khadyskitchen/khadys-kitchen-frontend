@@ -1,11 +1,9 @@
 import { Reveal } from "@/components/reveal";
 import {
-  feeRowStacks,
   isAddOn,
   itemPriceLabel,
   splitFeeItems,
 } from "@/components/trainings/training-price";
-import { cn } from "@/lib/utils";
 import type { IFeeItem, ITraining } from "@/types/training.types";
 
 /**
@@ -50,23 +48,14 @@ function FeeRow({
   item: IFeeItem;
   currency: string;
 }) {
-  // A name/note that wraps keeps the price BELOW it at every width — the
-  // text spreads the full row instead of squeezing beside a price column.
-  const stacks = feeRowStacks(item.name, item.note);
+  // Phones stack text above the price. From sm, flex-wrap keeps the two on
+  // one row when the text fits a single line and drops the price below —
+  // text spreading the full row — only when it can't. The text block keeps
+  // its natural (auto) basis so the wrap decision follows the actual words,
+  // not a fixed column width.
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-2.5 px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)]",
-        !stacks &&
-          "sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6",
-      )}
-    >
-      <div
-        className={cn(
-          "flex items-baseline gap-[18px]",
-          !stacks && "sm:flex-[1_1_320px]",
-        )}
-      >
+    <div className="flex flex-col gap-2.5 px-[clamp(20px,3.5vw,36px)] py-[clamp(20px,3vw,28px)] sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6">
+      <div className="flex min-w-0 items-baseline gap-[18px]">
         <span className="min-w-[22px] font-serif text-[15px] text-accent">
           {index}
         </span>
@@ -86,7 +75,7 @@ function FeeRow({
           ) : null}
         </div>
       </div>
-      <div className={cn("pl-10", !stacks && "sm:pl-0 sm:text-right")}>
+      <div className="pl-10 sm:pl-0 sm:text-right">
         <div className="whitespace-nowrap font-serif text-[clamp(18px,2vw,22px)] leading-tight">
           {itemPriceLabel(item, currency)}
         </div>

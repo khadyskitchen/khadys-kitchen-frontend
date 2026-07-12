@@ -14,8 +14,6 @@ import { StudentsTable } from "@/components/admin/students-table";
 import { notify } from "@/lib/notify";
 import { revalidatePublicPaths } from "@/lib/revalidate-public";
 import { extractApiError } from "@/lib/extract-api-error";
-import { cn } from "@/lib/utils";
-import { feeRowStacks } from "@/components/trainings/training-price";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
@@ -226,14 +224,10 @@ export default function TrainingDetailPage() {
               {training.feeItems.map((f) => (
                 <div
                   key={f.id}
-                  className={cn(
-                    // Amount below the name on phones; from sm they share a
-                    // row only when the name fits one line (long names stay
-                    // stacked, flex-wrap catches borderline cell widths).
-                    "flex flex-col gap-1 rounded-[12px] border border-ink/10 bg-oat/30 px-4 py-3 text-[14px]",
-                    !feeRowStacks(f.name) &&
-                      "sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-3",
-                  )}
+                  // Amount below the name on phones; from sm, flex-wrap keeps
+                  // the two on one row when the name fits and drops the amount
+                  // below only when it can't share the row.
+                  className="flex flex-col gap-1 rounded-[12px] border border-ink/10 bg-oat/30 px-4 py-3 text-[14px] sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-3"
                 >
                   <span className="text-ink/70">
                     {f.name}
