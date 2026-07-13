@@ -14,6 +14,7 @@ import { useAuthRole } from "@/hooks/use-auth-role";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import {
   DateTimeCell,
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -26,7 +27,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
-import { formatDateTime } from "@/lib/format-date";
+import { formatDate } from "@/lib/format-date";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { useTableQuery } from "@/hooks/use-table-query";
@@ -233,26 +234,26 @@ export default function OrdersPage() {
                       onOpen={() => router.push(`/admin/orders/${o.id}`)}
                       action={<ActionMenu items={menuItemsFor(o)} />}
                     >
-                      <div className="truncate text-[15px] font-semibold text-ink">
-                        {o.fullName}
-                      </div>
-                      <div className="mt-0.5 text-[12.5px] text-ink/55">
-                        {o.code}
-                      </div>
-                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                        <StatusBadge status={o.status} />
-                        <StatusBadge status={o.paymentStatus} />
-                      </div>
-                      <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                        <span className="text-[14px] font-semibold text-ink">
-                          {formatMoney(o.total, o.currency)}
-                          <span className="font-normal text-ink/55">
-                            {" "}
-                            · {itemCount} item{itemCount === 1 ? "" : "s"}
-                          </span>
+                      {/* The money never truncates — the name and meta give way. */}
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
+                          {o.fullName}
                         </span>
-                        <span className="text-[12.5px] text-ink/50">
-                          {formatDateTime(o.createdAt)}
+                        <span className="flex-none text-[13px] font-medium text-ink/80">
+                          {formatMoney(o.total, o.currency)}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-[11.5px] text-ink/50">
+                          {formatDate(o.createdAt)} · {itemCount} item
+                          {itemCount === 1 ? "" : "s"}
+                        </span>
+                        <span className="flex flex-none gap-1">
+                          <StatusBadge status={o.status} className={ROW_BADGE} />
+                          <StatusBadge
+                            status={o.paymentStatus}
+                            className={ROW_BADGE}
+                          />
                         </span>
                       </div>
                     </RowCard>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import {
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -226,25 +227,29 @@ export function ApplicationsTable({
                     onOpen={() => router.push(`/admin/applications/${a.id}`)}
                     action={<ActionMenu items={menuItemsFor(a)} />}
                   >
-                    <div className="truncate text-[15px] font-semibold text-ink">
-                      {a.fullName}
-                    </div>
-                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
-                      {a.code}
-                      {a.email ? ` · ${a.email}` : ""}
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                      <StatusBadge status={a.status} />
-                      <StatusBadge status={a.paymentStatus} />
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                      <span className="text-[13.5px] text-ink/70">
-                        Balance{" "}
-                        <span className="font-semibold text-ink">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
+                        {a.fullName}
+                      </span>
+                      <span className="flex-none text-[12px] text-ink/55">
+                        Bal{" "}
+                        <span className="font-medium text-ink/80">
                           {formatMoney(a.balance, a.currency)}
                         </span>
                       </span>
-                      <span className="text-[12.5px] text-ink/50">{a.phone}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-[12px] text-ink/55">
+                        {a.code}
+                        {a.email ? ` · ${a.email}` : ""}
+                      </span>
+                      <span className="flex flex-none gap-1">
+                        <StatusBadge status={a.status} className={ROW_BADGE} />
+                        <StatusBadge
+                          status={a.paymentStatus}
+                          className={ROW_BADGE}
+                        />
+                      </span>
                     </div>
                   </RowCard>
                 ))

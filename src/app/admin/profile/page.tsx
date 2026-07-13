@@ -102,8 +102,8 @@ export default function ProfilePage() {
     }
   };
 
+  // No "Name" row — the profile header beside the photo already shows it.
   const info: [string, string][] = [
-    ["Name", `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "—"],
     ["Email", user?.email ?? "—"],
     ["Phone", user?.phone ?? "—"],
     ["Role", user ? roleLabel(user.role) : "—"],
@@ -169,7 +169,7 @@ export default function ProfilePage() {
               error={errors.email?.message}
               {...register("email")}
             />
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-wrap justify-end gap-3">
               <Button type="button" variant="outline" onClick={stopEditing}>
                 Cancel
               </Button>

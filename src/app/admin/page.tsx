@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card } from "@/components/admin/ui";
+import { Card, statValueCls } from "@/components/admin/ui";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   BestSellersMeters,
@@ -46,9 +46,7 @@ function TileLink({
       <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/50 sm:text-[12px]">
         {label}
       </div>
-      <div className="mt-2 break-words font-serif text-[clamp(19px,5vw,30px)] sm:text-[clamp(22px,2.6vw,30px)]">
-        {value}
-      </div>
+      <div className={cn("mt-2", statValueCls(value))}>{value}</div>
       {note ? (
         <div className="mt-1 text-[12.5px] font-semibold text-accent">
           {note}

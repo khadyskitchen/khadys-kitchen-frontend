@@ -85,7 +85,9 @@ export default function PaymentDetailPage() {
       </BackLink>
 
       <div className="mb-5 min-w-0">
-        <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
+        {/* break-words + a viewport-scaled size keep a huge figure (e.g.
+            GHS 908,383,393.90) on-screen instead of overflowing the page. */}
+        <h1 className="break-words font-serif text-[clamp(22px,7vw,36px)] font-normal">
           {formatMoney(payment.amount, payment.currency)}
         </h1>
         <div className="mt-1 break-all text-[13.5px] text-ink/55">

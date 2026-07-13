@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import {
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -225,57 +226,62 @@ export default function ItemsPage() {
                     onOpen={() => router.push(`/admin/items/${p.id}`)}
                     action={<ActionMenu items={menuItemsFor(p)} />}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-2.5">
                       {p.image ? (
                         <Image
                           src={p.image}
                           alt=""
-                          width={48}
-                          height={48}
-                          className="h-12 w-12 flex-none rounded-[10px] object-cover"
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 flex-none rounded-[8px] object-cover"
                         />
                       ) : (
-                        <span className="grid h-12 w-12 flex-none place-items-center rounded-[10px] bg-ink/[0.06] text-[16px]">
+                        <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] bg-ink/[0.06] text-[14px]">
                           🍞
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[15px] font-semibold text-ink">
-                          {p.name}
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
+                            {p.name}
+                          </span>
+                          <span className="flex-none text-[12.5px] font-medium text-ink/80">
+                            {formatMoney(p.price, p.currency)}
+                          </span>
                         </div>
-                        <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
-                          {p.unit}
-                        </div>
-                        <div className="mt-1 text-[13.5px] font-medium text-ink">
-                          {formatMoney(p.price, p.currency)}
-                          <span className="font-normal text-ink/55">
-                            {" "}
-                            ·{" "}
+                        <div className="mt-0.5 flex items-center justify-between gap-2">
+                          <span className="min-w-0 truncate text-[12px] text-ink/55">
+                            {p.unit} ·{" "}
                             {p.stock === null
                               ? "Made to order"
                               : `${String(p.stock)} in stock`}
                           </span>
+                          <span className="flex flex-none items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggle(p.id, p.name, !p.isAvailable);
+                              }}
+                              className="cursor-pointer"
+                              title={p.isAvailable ? "Take off sale" : "Put on sale"}
+                            >
+                              <StatusBadge
+                                status={p.isAvailable ? "PUBLISHED" : "DRAFT"}
+                                label={p.isAvailable ? "Available" : "Unavailable"}
+                                className={ROW_BADGE}
+                              />
+                            </button>
+                            {p.isFeatured ? (
+                              <StatusBadge
+                                status="UPCOMING"
+                                label="Featured"
+                                className={ROW_BADGE}
+                              />
+                            ) : null}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggle(p.id, p.name, !p.isAvailable);
-                        }}
-                        className="cursor-pointer"
-                        title={p.isAvailable ? "Take off sale" : "Put on sale"}
-                      >
-                        <StatusBadge
-                          status={p.isAvailable ? "PUBLISHED" : "DRAFT"}
-                          label={p.isAvailable ? "Available" : "Unavailable"}
-                        />
-                      </button>
-                      {p.isFeatured ? (
-                        <StatusBadge status="UPCOMING" label="Featured" />
-                      ) : null}
                     </div>
                   </RowCard>
                 ))

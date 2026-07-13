@@ -143,6 +143,38 @@ export function Pager({
   );
 }
 
+/**
+ * Serif display classes for a stat value, scaled to its length — a huge figure
+ * like "GHS 908,383,393.90" steps down instead of overflowing or breaking
+ * mid-number. Shared by StatTile and the dashboard tiles.
+ */
+export function statValueCls(value: string): string {
+  return cn(
+    "break-words font-serif",
+    value.length > 16
+      ? "text-[clamp(15px,3.6vw,20px)]"
+      : value.length > 12
+        ? "text-[clamp(17px,4.2vw,24px)]"
+        : "text-[clamp(19px,5vw,30px)] sm:text-[clamp(22px,2.6vw,30px)]",
+  );
+}
+
+/**
+ * Serif page-title classes scaled to the title's length — a max-length name
+ * (150 chars) renders as a calm few lines instead of a screen-filling block
+ * of display type.
+ */
+export function detailTitleCls(text: string): string {
+  return cn(
+    "break-words font-serif font-normal",
+    text.length > 90
+      ? "text-[clamp(17px,4.5vw,22px)] leading-snug"
+      : text.length > 40
+        ? "text-[clamp(20px,5vw,28px)] leading-snug"
+        : "text-[clamp(26px,3.4vw,36px)]",
+  );
+}
+
 /** KPI stat tile: uppercase label, serif value, optional accent sub-note. */
 export function StatTile({
   label,
@@ -162,7 +194,7 @@ export function StatTile({
       <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/50 sm:text-[12px]">
         {label}
       </div>
-      <div className="mt-2 break-words font-serif text-[clamp(19px,5vw,30px)] sm:text-[clamp(22px,2.6vw,30px)]">{value}</div>
+      <div className={cn("mt-2", statValueCls(value))}>{value}</div>
       {sub ? <div className="mt-0.5 text-[12.5px] text-ink/45">{sub}</div> : null}
       {note ? (
         <div className="mt-1 text-[12.5px] font-semibold text-accent">{note}</div>

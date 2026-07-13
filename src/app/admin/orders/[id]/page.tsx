@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams } from "next/navigation";
-import { Card } from "@/components/admin/ui";
+import { Card, detailTitleCls } from "@/components/admin/ui";
 import { RecordPaymentModal } from "@/components/admin/record-payment-modal";
 import { useConfirm } from "@/components/admin/use-confirm";
 import { StatusPicker } from "@/components/admin/status-picker";
@@ -14,6 +14,8 @@ import {
 } from "@/lib/admin/order-actions";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { ROW_BADGE } from "@/components/admin/table-bits";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
@@ -109,7 +111,7 @@ export default function OrderDetailPage() {
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="break-words font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
+          <h1 className={detailTitleCls(order.fullName)}>
             {order.fullName}
           </h1>
           <div className="mt-1 text-[13.5px] text-ink/55">
@@ -162,8 +164,13 @@ export default function OrderDetailPage() {
                 key={label as string}
                 className="flex flex-col gap-0.5 min-[480px]:flex-row min-[480px]:justify-between min-[480px]:gap-4 text-[14px]"
               >
-                <span className="text-ink/55">{label}</span>
-                <span className="font-medium text-ink">{value}</span>
+                <span className="flex-none text-ink/55">{label}</span>
+                {/* break-all (not break-words): an unbroken 255-char email
+                    must also shrink the row's MIN-CONTENT, or the ancestor
+                    grid column stretches past the viewport. */}
+                <span className="min-w-0 break-all font-medium text-ink min-[480px]:text-right">
+                  {value}
+                </span>
               </div>
             ))}
           </div>
@@ -244,27 +251,28 @@ export default function OrderDetailPage() {
             {pay && pay.data.length > 0 ? (
               <div className="grid gap-2">
                 {pay.data.map((p) => (
+                  // Tidy ledger entry: amount · method with the status opposite,
+                  // dates on the second line, the note (clamped) beneath.
                   <div
                     key={p.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-ink/10 px-4 py-3 text-[14px]"
+                    className="min-w-0 rounded-[12px] border border-ink/10 px-3.5 py-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-[14px] font-semibold text-ink">
                         {formatMoney(p.amount, p.currency)}
                       </span>
-                      <span className="text-ink/55">
-                        {p.method.replace("_", " ")}
-                      </span>
-                      <StatusBadge status={p.status} />
+                      <StatusBadge
+                        status={p.status}
+                        className={cn(ROW_BADGE, "flex-none")}
+                      />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-right text-[13px] text-ink/50">
+                    <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+                      <span className="text-[12px] text-ink/50">
+                        {p.method.replace("_", " ")} ·{" "}
                         {formatDateTime(p.paidAt ?? null)}
-                        {p.reversedAt ? (
-                          <span className="block text-[12px] text-ink/45">
-                            Reversed {formatDateTime(p.reversedAt)}
-                          </span>
-                        ) : null}
+                        {p.reversedAt
+                          ? ` · Reversed ${formatDateTime(p.reversedAt)}`
+                          : ""}
                       </span>
                       {isAdmin && p.status === "SUCCESS" ? (
                         <button
@@ -279,14 +287,19 @@ export default function OrderDetailPage() {
                               onConfirm: () => doRefund(p.id),
                             })
                           }
-                          className="text-[13px] font-semibold text-danger"
+                          className="text-[12.5px] font-semibold text-danger"
                         >
                           Reverse
                         </button>
                       ) : null}
                     </div>
                     {p.note ? (
-                      <p className="w-full text-[13px] text-ink/55">{p.note}</p>
+                      <p
+                        title={p.note}
+                        className="mt-1.5 line-clamp-2 text-[12.5px] leading-snug text-ink/55"
+                      >
+                        {p.note}
+                      </p>
                     ) : null}
                   </div>
                 ))}

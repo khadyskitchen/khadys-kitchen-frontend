@@ -177,7 +177,9 @@ export default function WebsitePage() {
                   <img
                     src={about.storyImage}
                     alt="About section"
-                    className="mt-1 h-[120px] w-[180px] rounded-[12px] border border-ink/10 object-cover"
+                    // Full-width banner crop on phones (a fixed 180px thumb
+                    // left 40% of the row as dead space); compact from sm up.
+                    className="mt-1 h-[160px] w-full rounded-[12px] border border-ink/10 object-cover sm:h-[120px] sm:w-[180px]"
                   />
                 ) : (
                   <span className="text-[14px] font-normal italic text-ink/45">

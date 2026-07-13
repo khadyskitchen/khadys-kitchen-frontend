@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
-import { Card } from "@/components/admin/ui";
+import { Card, detailTitleCls } from "@/components/admin/ui";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
@@ -90,7 +90,7 @@ export default function StudentDetailPage() {
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="break-words font-serif text-[clamp(26px,3.4vw,36px)] font-normal">{student.fullName}</h1>
+          <h1 className={detailTitleCls(student.fullName)}>{student.fullName}</h1>
           <div className="mt-1 text-[13.5px] text-ink/55">
             {student.code}
             {student.training ? (

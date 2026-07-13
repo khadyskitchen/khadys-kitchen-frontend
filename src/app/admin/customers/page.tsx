@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
-import { formatDateTime } from "@/lib/format-date";
+import { formatDate } from "@/lib/format-date";
 import { useTableQuery } from "@/hooks/use-table-query";
 import type { ICustomer } from "@/types/customer.types";
 import { useGetCustomersQuery } from "@/redux/customers/customers-api";
@@ -129,24 +129,22 @@ export default function CustomersPage() {
                     onOpen={() => router.push(`/admin/customers/${c.id}`)}
                     action={<ActionMenu items={menuItemsFor(c)} />}
                   >
-                    <div className="truncate text-[15px] font-semibold text-ink">
-                      {c.fullName}
-                    </div>
-                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
-                      {c.phone}
-                      {c.email ? ` · ${c.email}` : ""}
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                      <span className="text-[13.5px] text-ink/70">
-                        <span className="font-semibold text-ink">
-                          {formatMoney(c.totalSpent)}
-                        </span>{" "}
-                        · {c.orderCount} order{c.orderCount === 1 ? "" : "s"}
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
+                        {c.fullName}
                       </span>
-                      <span className="text-[12.5px] text-ink/50">
-                        {c.lastOrderAt
-                          ? `Last ${formatDateTime(c.lastOrderAt)}`
-                          : "No orders yet"}
+                      <span className="flex-none text-[12.5px] font-medium text-ink/80">
+                        {formatMoney(c.totalSpent)}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-[12px] text-ink/55">
+                        {c.phone}
+                        {c.email ? ` · ${c.email}` : ""}
+                      </span>
+                      <span className="flex-none text-[11.5px] text-ink/45">
+                        {c.orderCount} order{c.orderCount === 1 ? "" : "s"}
+                        {c.lastOrderAt ? ` · ${formatDate(c.lastOrderAt)}` : ""}
                       </span>
                     </div>
                   </RowCard>

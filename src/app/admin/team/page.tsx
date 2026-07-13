@@ -7,6 +7,7 @@ import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import {
   DateTimeCell,
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -269,30 +270,37 @@ export default function TeamPage() {
                     onOpen={() => router.push(`/admin/team/${u.id}`)}
                     action={<ActionMenu items={menuItemsFor(u)} />}
                   >
-                    <div className="flex items-baseline gap-2">
-                      <span className="truncate text-[15px] font-semibold text-ink">
-                        {u.firstName} {u.lastName}
-                      </span>
-                      {me?.id === u.id ? (
-                        <span className="flex-none text-[12px] font-medium text-ink/45">
-                          (you)
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="flex min-w-0 items-baseline gap-1.5">
+                        <span className="truncate text-[14.5px] font-semibold text-ink">
+                          {u.firstName} {u.lastName}
                         </span>
-                      ) : null}
+                        {me?.id === u.id ? (
+                          <span className="flex-none text-[11.5px] font-medium text-ink/45">
+                            (you)
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="flex-none text-[11.5px] text-ink/45">
+                        {formatDate(u.createdAt)}
+                      </span>
                     </div>
-                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
-                      {u.email}
-                      {u.phone ? ` · ${u.phone}` : ""}
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                      <StatusBadge status={u.role} label={roleLabel(u.role)} />
-                      <StatusBadge
-                        status={u.isActive ? "ACTIVE" : "SUSPENDED"}
-                        label={u.isActive ? "Active" : "Deactivated"}
-                      />
-                    </div>
-                    <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[12.5px] text-ink/50">
-                      <span>2FA {u.twoFactorEnabled ? "on" : "off"}</span>
-                      <span>Joined {formatDate(u.createdAt)}</span>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-[12px] text-ink/55">
+                        {u.email}
+                      </span>
+                      <span className="flex flex-none gap-1">
+                        <StatusBadge
+                          status={u.role}
+                          label={roleLabel(u.role)}
+                          className={ROW_BADGE}
+                        />
+                        <StatusBadge
+                          status={u.isActive ? "ACTIVE" : "SUSPENDED"}
+                          label={u.isActive ? "Active" : "Deactivated"}
+                          className={ROW_BADGE}
+                        />
+                      </span>
                     </div>
                   </RowCard>
                 ))

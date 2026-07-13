@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
-import { Card } from "@/components/admin/ui";
+import { Card, detailTitleCls } from "@/components/admin/ui";
 import { PageActions } from "@/components/admin/page-actions";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { RippleLoader } from "@/components/ui/Loader";
@@ -112,7 +112,7 @@ export default function TrainingDetailPage() {
       </BackLink>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <h1 className="font-serif text-[clamp(26px,3.4vw,38px)] font-normal">{training.name}</h1>
+        <h1 className={detailTitleCls(training.name)}>{training.name}</h1>
         {/* Same action cluster as the other detail pages (consistent sm
             buttons; extras collapse into "More" on phones). */}
         <PageActions
@@ -177,14 +177,16 @@ export default function TrainingDetailPage() {
           </div>
           <div className="flex flex-wrap items-start gap-6">
             {training.coverImage ? (
-              <div className="w-[min(100%,220px)] flex-none overflow-hidden rounded-[14px] border border-ink/10 bg-oat/40">
+              <div className="w-full flex-none overflow-hidden rounded-[14px] border border-ink/10 bg-oat/40 sm:w-[220px]">
                 {/* Cover images are pasted URLs from any host, so next/image's
                     remotePatterns allowlist can't serve them. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={training.coverImage}
                   alt={`${training.name} cover`}
-                  className="aspect-[4/3] w-full object-cover"
+                  // Full-bleed banner crop on phones (same height as before);
+                  // the compact 4:3 thumbnail from sm up.
+                  className="h-[170px] w-full object-cover sm:aspect-[4/3] sm:h-auto"
                 />
               </div>
             ) : null}

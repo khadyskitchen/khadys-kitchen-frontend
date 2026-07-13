@@ -6,6 +6,7 @@ import Link from "next/link";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/admin/ui";
+import { cn } from "@/lib/utils";
 import { ProductForm } from "@/components/admin/product-form";
 import { PageActions } from "@/components/admin/page-actions";
 import { useConfirm } from "@/components/admin/use-confirm";
@@ -136,7 +137,17 @@ export default function ItemDetailPage() {
           </Card>
           <Card className="p-[clamp(20px,3vw,28px)]">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h1 className="font-serif text-[clamp(22px,3vw,30px)] font-normal">
+              <h1
+                className={cn(
+                  "break-words font-serif font-normal",
+                  // Max-length names step down instead of dominating the card.
+                  (product.name.length > 90
+                    ? "text-[clamp(16px,4.2vw,20px)] leading-snug"
+                    : product.name.length > 40
+                      ? "text-[clamp(18px,4.6vw,24px)] leading-snug"
+                      : "text-[clamp(22px,3vw,30px)]"),
+                )}
+              >
                 {product.name}
               </h1>
               <StatusBadge

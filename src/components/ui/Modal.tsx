@@ -13,6 +13,10 @@ export interface ModalProps {
   centered?: boolean;
   /** id of the element that labels the dialog (usually the title). */
   labelledBy?: string;
+  /** Mobile posture: "sheet" (default) slides up as a full-width bottom
+   * sheet; "card" stays a centred floating card at every size (photo zooms,
+   * small confirmations that shouldn't span the screen). */
+  variant?: "sheet" | "card";
 }
 
 /**
@@ -27,6 +31,7 @@ export function Modal({
   className,
   centered = false,
   labelledBy,
+  variant = "sheet",
 }: ModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
@@ -76,11 +81,16 @@ export function Modal({
 
   if (!open) return null;
 
-  // Phones get a bottom sheet (full width, slides up, safe-area padding);
-  // larger screens keep the centered card. One dialog, two postures.
+  // Phones get a bottom sheet (full width, slides up, safe-area padding) —
+  // or a centred floating card for variant="card". Larger screens always get
+  // the centered card. justify-items stays centred in every posture so a
+  // narrower card never pins to the sheet's end edge.
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] grid place-items-end sm:place-items-center sm:p-[clamp(16px,4vw,44px)]"
+      className={cn(
+        "fixed inset-0 z-[200] grid justify-items-center sm:items-center sm:p-[clamp(16px,4vw,44px)]",
+        variant === "sheet" ? "items-end" : "items-center p-4",
+      )}
       style={{ background: "rgba(24,16,10,0.55)", animation: "kk-fadein .2s both" }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -93,9 +103,11 @@ export function Modal({
         aria-labelledby={labelledBy}
         tabIndex={-1}
         className={cn(
-          "max-h-[92dvh] w-full overflow-y-auto rounded-t-[22px] bg-card p-5 pb-[max(20px,env(safe-area-inset-bottom))] outline-none",
-          "animate-[kk-sheetup_.28s_both]",
-          "sm:max-h-[calc(100dvh-32px)] sm:max-w-[400px] sm:animate-[kk-toastin_.25s_both] sm:rounded-[22px] sm:p-7",
+          "w-full overflow-y-auto bg-card outline-none",
+          variant === "sheet"
+            ? "max-h-[92dvh] animate-[kk-sheetup_.28s_both] rounded-t-[22px] p-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:rounded-[22px] sm:p-7"
+            : "max-h-[calc(100dvh-32px)] animate-[kk-toastin_.25s_both] rounded-[22px] p-5 sm:p-7",
+          "sm:max-h-[calc(100dvh-32px)] sm:max-w-[400px] sm:animate-[kk-toastin_.25s_both]",
           centered && "text-center",
           className,
         )}

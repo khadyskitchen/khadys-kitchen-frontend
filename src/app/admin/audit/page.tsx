@@ -140,38 +140,22 @@ export default function AuditPage() {
               {isLoading ? (
                 <SkeletonRowCards />
               ) : (
-                rows.map((log) => {
-                  const metaStr =
-                    log.metadata && typeof log.metadata === "object"
-                      ? JSON.stringify(log.metadata)
-                      : null;
-                  return (
-                    <RowCard key={log.id}>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                        <span className="rounded-full bg-ink/[0.06] px-2.5 py-1 text-[12.5px] font-medium text-ink/75">
-                          {humanize(log.action)}
-                        </span>
-                        <span className="text-[12px] text-ink/50">
-                          {log.entity}
-                          {log.entityId ? ` · ${log.entityId.slice(0, 8)}` : ""}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                        <span className="truncate text-[13.5px] font-medium text-ink">
-                          {log.actor ? log.actor.name : "System"}
-                        </span>
-                        <span className="text-[12px] text-ink/50">
-                          {formatDateTime(log.createdAt)}
-                        </span>
-                      </div>
-                      {metaStr ? (
-                        <div className="mt-1.5 truncate font-mono text-[11.5px] text-ink/45">
-                          {metaStr}
-                        </div>
-                      ) : null}
-                    </RowCard>
-                  );
-                })
+                rows.map((log) => (
+                  <RowCard key={log.id}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="min-w-0 truncate rounded-full bg-ink/[0.06] px-2 py-[3px] text-[11.5px] font-medium text-ink/75">
+                        {humanize(log.action)}
+                      </span>
+                      <span className="flex-none text-[11.5px] text-ink/45">
+                        {formatDateTime(log.createdAt)}
+                      </span>
+                    </div>
+                    <div className="mt-1 truncate text-[12px] text-ink/55">
+                      {log.actor ? log.actor.name : "System"} · {log.entity}
+                      {log.entityId ? ` · ${log.entityId.slice(0, 8)}` : ""}
+                    </div>
+                  </RowCard>
+                ))
               )}
             </RowCardList>
 

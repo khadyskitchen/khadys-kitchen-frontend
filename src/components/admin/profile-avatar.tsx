@@ -63,7 +63,10 @@ export function ProfileAvatar({
   };
 
   return (
-    <div className="flex items-center gap-4 sm:gap-5">
+    // Phones: a stacked, centred profile header — long names wrap under the
+    // photo instead of squeezing into a narrow column beside it. From sm the
+    // classic photo-beside-text row returns.
+    <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left">
       <div className="relative flex-none">
         <button
           type="button"
@@ -117,7 +120,7 @@ export function ProfileAvatar({
         ) : null}
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 max-w-full">
         {caption !== undefined ? (
           <>
             {caption}
@@ -125,7 +128,7 @@ export function ProfileAvatar({
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="mt-2 block text-[13.5px] font-semibold text-accent"
+                className="mx-auto mt-2 block text-[13.5px] font-semibold text-accent sm:mx-0"
               >
                 {picture ? "Change photo" : "Upload a photo"}
               </button>
@@ -167,11 +170,13 @@ export function ProfileAvatar({
         onChange={(e) => void pick(e.target.files?.[0])}
       />
 
+      {/* Rolls up like every other sheet; the base modal centres a
+          narrower-than-screen card horizontally. */}
       <Modal
         open={zoomOpen}
         onClose={() => setZoomOpen(false)}
         labelledBy={zoomTitleId}
-        className="max-w-[min(90vw,520px)] p-3"
+        className="max-w-[min(90vw,520px)] p-3 sm:p-3"
       >
         <h2 id={zoomTitleId} className="sr-only">
           Profile photo

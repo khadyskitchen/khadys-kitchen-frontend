@@ -6,6 +6,7 @@ import { Card, Pager } from "@/components/admin/ui";
 import { DateRangeFields, FilterBar, LabeledSelect } from "@/components/admin/filter-bar";
 import {
   DateTimeCell,
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
-import { formatDateTime } from "@/lib/format-date";
+import { formatDate, formatDateTime } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
 import {
@@ -227,47 +228,29 @@ export default function PaymentsPage() {
                       ) : undefined
                     }
                   >
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                      <span className="text-[15px] font-semibold text-ink">
+                    {/* The amount never truncates — the method/date give way. */}
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="flex-none text-[14.5px] font-semibold text-ink">
                         {formatMoney(p.amount, p.currency)}
                       </span>
-                      <span className="text-[12.5px] text-ink/55">
+                      <span className="min-w-0 truncate text-[11.5px] text-ink/45">
                         {titleCase(p.method)}
+                        {p.paidAt ? ` · ${formatDate(p.paidAt)}` : ""}
                       </span>
                     </div>
-                    <div className="mt-1 truncate text-[12px] text-ink/50">
-                      {p.reference}
-                    </div>
-                    {p.order ? (
-                      <div className="mt-2 flex min-w-0 items-center gap-2 text-[12.5px]">
-                        <span className="flex-none rounded-full bg-accent/10 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-accent">
-                          Order
-                        </span>
-                        <span className="truncate text-ink/70">
-                          {p.order.code} · {p.order.fullName}
-                        </span>
-                      </div>
-                    ) : p.application ? (
-                      <div className="mt-2 flex min-w-0 items-center gap-2 text-[12.5px]">
-                        <span className="flex-none rounded-full bg-ink/[0.07] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink/60">
-                          Training
-                        </span>
-                        <span className="truncate text-ink/70">
-                          {p.application.code} · {p.application.fullName}
-                        </span>
-                      </div>
-                    ) : null}
-                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                      <StatusBadge status={p.status} />
-                      <span className="text-[12.5px] text-ink/50">
-                        {p.paidAt ? formatDateTime(p.paidAt) : "—"}
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-[12.5px] text-ink/55">
+                        {p.order
+                          ? `${p.order.code} · ${p.order.fullName}`
+                          : p.application
+                            ? `${p.application.code} · ${p.application.fullName}`
+                            : p.reference}
                       </span>
+                      <StatusBadge
+                        status={p.status}
+                        className={cn(ROW_BADGE, "flex-none")}
+                      />
                     </div>
-                    {p.reversedAt ? (
-                      <div className="mt-1.5 text-[11.5px] text-ink/45">
-                        Reversed {formatDateTime(p.reversedAt)}
-                      </div>
-                    ) : null}
                   </RowCard>
                 ))
               )}

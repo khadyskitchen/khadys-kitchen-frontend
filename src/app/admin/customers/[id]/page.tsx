@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { BackLink } from "@/components/admin/back-link";
 import { useParams, useRouter } from "next/navigation";
-import { Card, StatTile } from "@/components/admin/ui";
-import { RowCard, RowCardList } from "@/components/admin/table-bits";
+import { Card, StatTile, detailTitleCls } from "@/components/admin/ui";
+import { ROW_BADGE, RowCard, RowCardList } from "@/components/admin/table-bits";
 import { EditCustomerModal } from "@/components/admin/edit-customer-modal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -52,11 +52,13 @@ export default function CustomerDetailPage() {
       </BackLink>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[clamp(26px,3.4vw,36px)] font-normal">
+        <div className="min-w-0">
+          <h1 className={detailTitleCls(customer.fullName)}>
             {customer.fullName}
           </h1>
-          <div className="mt-1 text-[13.5px] text-ink/55">
+          {/* break-words: an unbroken 255-char email must wrap, not widen
+              the page. */}
+          <div className="mt-1 break-words text-[13.5px] text-ink/55">
             {customer.phone}
             {customer.email ? ` · ${customer.email}` : ""}
           </div>
@@ -111,21 +113,24 @@ export default function CustomerDetailPage() {
                   key={o.id}
                   onOpen={() => router.push(`/admin/orders/${o.id}`)}
                 >
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                    <span className="text-[14px] font-semibold text-ink">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="min-w-0 truncate text-[13.5px] font-semibold text-ink">
                       {o.code}
                     </span>
-                    <span className="text-[14px] font-medium text-ink">
+                    <span className="flex-none text-[12.5px] font-medium text-ink/80">
                       {formatMoney(o.total, o.currency)}
                     </span>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-                    <span className="flex flex-wrap gap-1.5">
-                      <StatusBadge status={o.status} />
-                      <StatusBadge status={o.paymentStatus} />
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span className="flex-none text-[11.5px] text-ink/45">
+                      {formatDate(o.createdAt)}
                     </span>
-                    <span className="text-[12.5px] text-ink/50">
-                      {formatDateTime(o.createdAt)}
+                    <span className="flex flex-none gap-1">
+                      <StatusBadge status={o.status} className={ROW_BADGE} />
+                      <StatusBadge
+                        status={o.paymentStatus}
+                        className={ROW_BADGE}
+                      />
                     </span>
                   </div>
                 </RowCard>

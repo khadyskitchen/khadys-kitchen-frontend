@@ -59,10 +59,10 @@ export function RowCardList({
 }
 
 /**
- * One row of a RowCardList. `onOpen` makes the whole card tappable (mirroring
- * the table row's click-to-open); `action` pins an ActionMenu (or any control)
- * to the top-right corner, above the tap target, so the menu never triggers
- * navigation.
+ * One row of a RowCardList — a dense, messaging-app-style list row (two short
+ * lines, tight padding), not a card. `onOpen` makes the whole row tappable
+ * (mirroring the table row's click-to-open); `action` sits inline on the
+ * right, vertically centred, and never triggers the row's navigation.
  */
 export function RowCard({
   onOpen,
@@ -71,7 +71,7 @@ export function RowCard({
   children,
 }: {
   onOpen?: () => void;
-  /** Control pinned top-right (typically an ActionMenu). */
+  /** Control on the right edge (typically an ActionMenu). */
   action?: ReactNode;
   className?: string;
   children: ReactNode;
@@ -80,56 +80,31 @@ export function RowCard({
     <li
       onClick={onOpen}
       className={cn(
-        "relative border-b border-ink/[0.08] px-4 py-4 transition-colors last:border-0",
+        "flex items-center gap-1.5 border-b border-ink/[0.08] py-2.5 pl-4 transition-colors last:border-0",
         onOpen && "cursor-pointer active:bg-accent/[0.06]",
-        action && "pr-[52px]",
+        action ? "pr-2" : "pr-4",
         className,
       )}
     >
-      {children}
-      {action ? (
-        <div className="absolute right-3 top-3.5">{action}</div>
-      ) : null}
+      <div className="min-w-0 flex-1">{children}</div>
+      {action ? <div className="flex-none">{action}</div> : null}
     </li>
   );
 }
 
-/**
- * A small labelled value inside a RowCard — the card equivalent of a table
- * column: uppercase micro-label over the value, laid out in a 2-up grid.
- */
-export function RowCardKV({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={cn("min-w-0", className)}>
-      <div className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink/45">
-        {label}
-      </div>
-      <div className="mt-0.5 truncate text-[13.5px] text-ink/80">{children}</div>
-    </div>
-  );
-}
+/** Compact StatusBadge sizing for dense list rows (pass as its className). */
+export const ROW_BADGE =
+  "px-2 py-[3px] text-[10px] tracking-[0.04em]";
 
-/** Pulsing placeholder cards — the RowCardList counterpart of SkeletonCells. */
-export function SkeletonRowCards({ rows = 6 }: { rows?: number }) {
+/** Pulsing placeholder rows — the RowCardList counterpart of SkeletonCells. */
+export function SkeletonRowCards({ rows = 8 }: { rows?: number }) {
   return (
     <>
       {Array.from({ length: rows }).map((_, r) => (
-        <li key={r} className="border-b border-ink/[0.08] px-4 py-4 last:border-0">
-          <div className="animate-pulse space-y-2.5">
-            <div className="h-5 w-2/3 rounded bg-ink/[0.06]" />
-            <div className="h-3.5 w-1/2 rounded bg-ink/[0.06]" />
-            <div className="flex gap-2">
-              <div className="h-6 w-20 rounded-full bg-ink/[0.06]" />
-              <div className="h-6 w-20 rounded-full bg-ink/[0.06]" />
-            </div>
+        <li key={r} className="border-b border-ink/[0.08] px-4 py-3 last:border-0">
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 w-3/5 rounded bg-ink/[0.06]" />
+            <div className="h-3 w-2/5 rounded bg-ink/[0.06]" />
           </div>
         </li>
       ))}

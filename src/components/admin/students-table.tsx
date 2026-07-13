@@ -7,6 +7,7 @@ import { Card, Pager } from "@/components/admin/ui";
 import { ActionMenu } from "@/components/admin/action-menu";
 import { EditStudentModal } from "@/components/admin/edit-student-modal";
 import {
+  ROW_BADGE,
   RowCard,
   RowCardList,
   SkeletonCells,
@@ -243,19 +244,20 @@ export function StudentsTable({
                     onOpen={() => router.push(`/admin/students/${st.id}`)}
                     action={<ActionMenu items={menuItemsFor(st)} />}
                   >
-                    <div className="truncate text-[15px] font-semibold text-ink">
-                      {st.fullName}
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
+                        {st.fullName}
+                      </span>
+                      <StatusBadge
+                        status={st.status}
+                        className={cn(ROW_BADGE, "flex-none self-center")}
+                      />
                     </div>
-                    <div className="mt-0.5 truncate text-[12.5px] text-ink/55">
-                      {st.code} · {st.phone}
-                    </div>
-                    {!trainingId && st.training ? (
-                      <div className="mt-1 truncate text-[12.5px] text-ink/55">
-                        {st.training.name}
-                      </div>
-                    ) : null}
-                    <div className="mt-2.5">
-                      <StatusBadge status={st.status} />
+                    <div className="mt-1 truncate text-[12px] text-ink/55">
+                      {st.code}
+                      {!trainingId && st.training
+                        ? ` · ${st.training.name}`
+                        : ` · ${st.phone}`}
                     </div>
                   </RowCard>
                 ))

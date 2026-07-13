@@ -192,7 +192,7 @@ export default function TeamMemberDetailPage() {
                     </span>
                   ) : null}
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <StatusBadge
                     status={user.role}
                     label={roleLabel(user.role)}
