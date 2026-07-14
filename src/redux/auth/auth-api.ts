@@ -65,6 +65,8 @@ export const authApi = apiSlice.injectEndpoints({
           firstName?: string;
           lastName?: string;
           email?: string;
+          /** Required by the backend when `email` differs from the current one. */
+          currentPassword?: string;
           phone?: string | null;
         };
         photo?: File;
@@ -147,6 +149,16 @@ export const authApi = apiSlice.injectEndpoints({
       },
     }),
 
+    /** Applies a pending login-email change from the emailed link. The backend
+     * cuts every session on success, so callers should route to /login. */
+    confirmEmailChange: builder.mutation<IMessageResponse, { token: string }>({
+      query: (body) => ({
+        url: "auth/confirm-email-change",
+        method: "POST",
+        body,
+      }),
+    }),
+
     forgotPassword: builder.mutation<IMessageResponse, IForgotPasswordInput>({
       query: (body) => ({ url: "auth/forgot-password", method: "POST", body }),
     }),
@@ -181,6 +193,7 @@ export const {
   useRequestTwoFactorSetupMutation,
   useConfirmTwoFactorSetupMutation,
   useDisableTwoFactorMutation,
+  useConfirmEmailChangeMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useLogoutMutation,

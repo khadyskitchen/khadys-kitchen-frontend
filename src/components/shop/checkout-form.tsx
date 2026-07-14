@@ -251,6 +251,13 @@ export function CheckoutForm() {
               Pay online now (card / MoMo)
             </ChoiceButton>
           </div>
+          {payNow === false ? (
+            <p className="text-[13px] leading-[1.55] text-ink/55">
+              Send your payment directly (e.g. MoMo) and quote your order code —
+              we need it within 24 hours so we can start baking; unpaid orders
+              are cancelled automatically.
+            </p>
+          ) : null}
         </div>
 
         <label className={labelClass}>

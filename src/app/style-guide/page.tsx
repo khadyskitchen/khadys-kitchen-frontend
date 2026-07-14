@@ -189,7 +189,7 @@ export default function StyleGuidePage() {
             <h3 className="mb-2 font-serif text-[22px] font-normal">Your order is in the queue</h3>
             <p className="mb-[22px] text-[14.5px] leading-[1.6] text-ink/65">
               Scheduled for <strong>Friday, 10 July</strong>. We&rsquo;ll confirm on
-              WhatsApp before we bake - pay when you collect.
+              WhatsApp before we bake - pay online or send it directly within 24 hours.
             </p>
             <div className="grid gap-2.5">
               <Button variant="dark" onClick={() => setOrderModal(false)}>

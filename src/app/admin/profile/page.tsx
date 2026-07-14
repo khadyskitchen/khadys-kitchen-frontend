@@ -17,6 +17,9 @@ const schema = z.object({
   firstName: z.string().trim().min(1, "Required").max(50),
   lastName: z.string().trim().min(1, "Required").max(50),
   email: z.email("Enter a valid email").max(255),
+  // Only required when the email actually changes — enforced in onSubmit,
+  // since the schema alone doesn't know the account's current address.
+  currentPassword: z.string(),
   phone: z
     .string()
     .trim()
@@ -60,6 +63,7 @@ export default function ProfilePage() {
     handleSubmit,
     reset,
     setError,
+    watch,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -67,9 +71,16 @@ export default function ProfilePage() {
       firstName: user?.firstName ?? "",
       lastName: user?.lastName ?? "",
       email: user?.email ?? "",
+      currentPassword: "",
       phone: user?.phone ?? "",
     },
   });
+
+  // Changing the sign-in email is a guarded operation: the backend wants the
+  // current password and then emails the CURRENT address a confirmation link —
+  // the address only switches once that link is clicked.
+  const emailChanged =
+    Boolean(user?.email) && watch("email").trim() !== user?.email;
 
   const stopEditing = () => {
     reset();
@@ -78,17 +89,38 @@ export default function ProfilePage() {
   };
 
   const onSubmit = async (values: Values) => {
+    const changingEmail = values.email.trim() !== user?.email;
+    if (changingEmail && !values.currentPassword) {
+      setError("currentPassword", {
+        message: "Enter your password to change your sign-in email",
+      });
+      return;
+    }
     try {
       await updateMe({
         body: {
           firstName: values.firstName,
           lastName: values.lastName,
-          email: values.email,
+          // Only send the email (and password) when it actually changes.
+          ...(changingEmail
+            ? {
+                email: values.email,
+                currentPassword: values.currentPassword,
+              }
+            : {}),
           phone: values.phone.trim() || null,
         },
         photo: stagedPhoto ?? undefined,
       }).unwrap();
-      notify.success("Profile updated");
+      notify.success(
+        changingEmail ? "Profile updated — one more step" : "Profile updated",
+        changingEmail
+          ? {
+              description:
+                "We've emailed a confirmation link to your CURRENT address. Your sign-in email changes once you click it.",
+            }
+          : undefined,
+      );
       clearStagedPhoto();
       setEditing(false);
     } catch (err) {
@@ -165,10 +197,24 @@ export default function ProfilePage() {
               label="Email"
               type="email"
               placeholder="name@example.com"
-              hint="This is your sign-in email."
+              hint={
+                emailChanged
+                  ? "You'll confirm this change from your current inbox before it takes effect."
+                  : "This is your sign-in email."
+              }
               error={errors.email?.message}
               {...register("email")}
             />
+            {emailChanged ? (
+              <TextField
+                label="Current password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Required to change your sign-in email"
+                error={errors.currentPassword?.message}
+                {...register("currentPassword")}
+              />
+            ) : null}
             <div className="flex flex-wrap justify-end gap-3">
               <Button type="button" variant="outline" onClick={stopEditing}>
                 Cancel
