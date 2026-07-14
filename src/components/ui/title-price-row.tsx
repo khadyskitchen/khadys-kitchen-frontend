@@ -7,6 +7,14 @@ interface TitlePriceRowProps {
   nameClassName: string;
   /** Font classes for the price. */
   priceClassName: string;
+  /**
+   * Extra classes for the row itself. Height reservations (`min-h-*`) belong
+   * HERE, not on the title: reserving lines on the title leaves a phantom
+   * empty line between a one-line title and a price that wrapped below it,
+   * while reserving on the row keeps the price snug under the title's real
+   * last line and still gives every card in a grid the same height.
+   */
+  className?: string;
 }
 
 /**
@@ -26,9 +34,18 @@ export function TitlePriceRow({
   price,
   nameClassName,
   priceClassName,
+  className,
 }: TitlePriceRowProps) {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+    // `content-start` packs the flex lines at the top when the row carries a
+    // min-height — without it, `align-content: stretch` spreads a wrapped
+    // price line away from the title to fill the reserved space.
+    <div
+      className={cn(
+        "flex flex-wrap content-start items-baseline justify-between gap-x-3 gap-y-1",
+        className,
+      )}
+    >
       <h3 title={name} className={cn(nameClassName, "max-w-full shrink-0 break-words")}>
         {name}
       </h3>
