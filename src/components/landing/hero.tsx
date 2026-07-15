@@ -6,7 +6,7 @@ import { routes } from '@/lib/routes';
 const STATS = [
   { value: 'Hands-on', label: 'Every class' },
   { value: '2 ways', label: 'In-person or online' },
-  { value: 'Certified', label: 'On completion' },
+  { value: 'Kumasi', label: 'Where we teach' },
 ];
 
 export function Hero() {
