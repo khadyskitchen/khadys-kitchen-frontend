@@ -37,12 +37,13 @@ export default async function TrainingsPage() {
               Khady&rsquo;s Kitchen Trainings
             </p>
             <h1 className="mb-5 max-w-[16ch] font-serif text-[clamp(38px,5vw,68px)] font-normal leading-[1.06]">
-              Learn to bake the way{" "}
-              <em className="not-italic text-accent">Khady</em> does.
+              Your baking <em className="not-italic text-accent">journey</em>{" "}
+              starts here.
             </h1>
             <p className="max-w-[56ch] text-[clamp(16px,1.5vw,18px)] leading-[1.65] text-ink/70">
-              Hands-on classes in Kumasi for every level - pick a class below,
-              see exactly what it covers and costs, and apply in minutes.
+              Whether you&rsquo;re starting from scratch or upgrading your
+              skills, our classes are designed to help you bake with confidence
+              and create cakes you&rsquo;ll be proud of.
             </p>
           </div>
         </section>

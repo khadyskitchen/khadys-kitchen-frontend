@@ -24,7 +24,7 @@ export function Hero() {
                 animation: 'kk-lineup 1s .1s cubic-bezier(.16,.84,.28,1) both',
               }}
             >
-              Come for a class,
+              Master the art
             </span>
           </span>
           <span className="block overflow-hidden">
@@ -34,15 +34,15 @@ export function Hero() {
                 animation: 'kk-lineup 1s .28s cubic-bezier(.16,.84,.28,1) both',
               }}
             >
-              leave a{' '}
-              <em className="font-serif not-italic text-accent">baker.</em>
+              of{' '}
+              <em className="font-serif not-italic text-accent">baking.</em>
             </span>
           </span>
         </h1>
         <p className="mb-[34px] max-w-[46ch] text-[clamp(16px,1.4vw,18px)] leading-[1.65] text-ink/75">
-          Hands-on baking classes in Khady&rsquo;s open kitchen &mdash; bread,
-          pastry and cakes, taught in person or online. Learn the craft and
-          graduate with something to show for it.
+          From perfectly baked cakes, pastries, bread, to beautiful and classic
+          decorations, we&rsquo;ll teach you the skills that turn passion into
+          expertise.
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3.5">
           <Link
