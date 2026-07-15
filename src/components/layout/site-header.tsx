@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { routes } from "@/lib/routes";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { HeaderNav } from "@/components/layout/header-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { cn } from "@/lib/utils";
@@ -72,15 +73,7 @@ export function SiteHeader({
             mobileMenu && "hidden min-[900px]:flex",
           )}
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-ink no-underline transition-colors hover:text-accent"
-            >
-              {link.label}
-            </Link>
-          ))}
+          <HeaderNav navLinks={navLinks} />
         </nav>
 
         {mobileMenu ? (

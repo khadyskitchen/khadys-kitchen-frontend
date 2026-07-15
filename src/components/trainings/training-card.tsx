@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { trainingDetail } from "@/lib/routes";
 import { fromPriceLabel, metaLine } from "@/components/trainings/training-price";
+import { TRAINING_CATEGORY_LABELS } from "@/validations/training-schema";
 import type { ITraining } from "@/types/training.types";
 
 /**
@@ -41,6 +42,9 @@ export function TrainingCard({ training }: { training: ITraining }) {
               </span>
             </div>
           )}
+          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-ink/75 px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-cream backdrop-blur-[2px]">
+            {TRAINING_CATEGORY_LABELS[training.category]}
+          </span>
           {training.applicationsOpen ? (
             <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#2E6B3F]/90 px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-cream">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-cream" />

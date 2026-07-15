@@ -14,7 +14,7 @@ import { pageMetadata } from "@/lib/seo";
 import type { ITraining } from "@/types/training.types";
 
 const NAV_LINKS = [
-  { label: "← All trainings", href: routes.trainings },
+  { label: "All trainings", href: routes.trainings },
   { label: "Contact", href: routes.contact },
 ];
 

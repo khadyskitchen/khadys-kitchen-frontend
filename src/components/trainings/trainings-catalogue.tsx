@@ -10,11 +10,16 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import { useGetPublicTrainingsQuery } from "@/redux/trainings/trainings-api";
-import type { ITraining } from "@/types/training.types";
+import type { ITraining, TrainingCategory } from "@/types/training.types";
+import {
+  TRAINING_CATEGORIES,
+  TRAINING_CATEGORY_LABELS,
+} from "@/validations/training-schema";
 
 const PAGE_SIZE = 9;
 
 type StatusKey = "all" | "open" | "closed";
+type CategoryKey = "all" | TrainingCategory;
 type SortKey = "featured" | "soonest" | "newest";
 
 const sortTrainings = (list: ITraining[], sort: SortKey): ITraining[] => {
@@ -56,6 +61,7 @@ export function TrainingsCatalogue({
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusKey>("all");
+  const [category, setCategory] = useState<CategoryKey>("all");
   const [startsFrom, setStartsFrom] = useState("");
   const [sort, setSort] = useState<SortKey>("featured");
   const [page, setPage] = useState(1);
@@ -67,6 +73,7 @@ export function TrainingsCatalogue({
       (t) =>
         (status === "all" ||
           (status === "open" ? t.applicationsOpen : !t.applicationsOpen)) &&
+        (category === "all" || t.category === category) &&
         // A start-date floor keeps only classes beginning on/after that day
         // (date-TBC classes stay visible — they may still be announced later).
         (!startsFrom ||
@@ -75,7 +82,7 @@ export function TrainingsCatalogue({
         (!q || `${t.name} ${t.summary}`.toLowerCase().includes(q)),
     );
     return sortTrainings(filtered, sort);
-  }, [trainings, query, status, startsFrom, sort]);
+  }, [trainings, query, status, category, startsFrom, sort]);
 
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -98,6 +105,10 @@ export function TrainingsCatalogue({
     setStatus(v as StatusKey);
     setPage(1);
   };
+  const pickCategory = (v: string) => {
+    setCategory(v as CategoryKey);
+    setPage(1);
+  };
   const pickSort = (v: string) => {
     setSort(v as SortKey);
     setPage(1);
@@ -109,6 +120,7 @@ export function TrainingsCatalogue({
 
   const activeCount = [
     status !== "all",
+    category !== "all",
     startsFrom !== "",
     sort !== "featured",
     query.trim().length > 0,
@@ -117,6 +129,7 @@ export function TrainingsCatalogue({
   const clearFilters = () => {
     setQuery("");
     setStatus("all");
+    setCategory("all");
     setStartsFrom("");
     setSort("featured");
     setPage(1);
@@ -226,6 +239,20 @@ export function TrainingsCatalogue({
             <option value="all">All classes</option>
             <option value="open">Open for applications</option>
             <option value="closed">Closed</option>
+          </LabeledSelect>
+
+          <LabeledSelect
+            label="Format"
+            value={category}
+            active={category !== "all"}
+            onChange={pickCategory}
+          >
+            <option value="all">In-person &amp; online</option>
+            {TRAINING_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {TRAINING_CATEGORY_LABELS[c]}
+              </option>
+            ))}
           </LabeledSelect>
 
           <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55">

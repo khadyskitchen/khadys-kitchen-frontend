@@ -20,7 +20,7 @@ export const metadata = pageMetadata({
 });
 
 const NAV_LINKS = [
-  { label: "← Home", href: routes.home },
+  { label: "Home", href: routes.home },
   { label: "Contact", href: routes.contact },
 ];
 

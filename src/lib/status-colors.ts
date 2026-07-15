@@ -44,6 +44,9 @@ const STATUS_COLORS: Record<string, StatusColor> = {
   COMPLETED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   PUBLISHED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   UNPUBLISHED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
+  // Training category (in-person vs online)
+  IN_PERSON: { bg: "rgba(92,107,69,0.15)", color: "#4A5838" },
+  ONLINE: { bg: "rgba(47,92,134,0.14)", color: "#2F5C86" },
   // Students / generic
   ACTIVE: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
   SUSPENDED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },

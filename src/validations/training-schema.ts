@@ -15,6 +15,15 @@ export const FEE_KINDS = [
   "OTHER",
 ] as const;
 
+/** On-site vs online delivery (matches the backend `TrainingCategory` enum). */
+export const TRAINING_CATEGORIES = ["IN_PERSON", "ONLINE"] as const;
+export type TrainingCategoryValue = (typeof TRAINING_CATEGORIES)[number];
+
+export const TRAINING_CATEGORY_LABELS: Record<TrainingCategoryValue, string> = {
+  IN_PERSON: "In-person",
+  ONLINE: "Online",
+};
+
 /**
  * How a fee item is charged. Maps to the backend's `required` + `choiceGroup`
  * pair on submit:
@@ -63,6 +72,7 @@ export const trainingSchema = z.object({
   schedule: z.string().trim().max(200).optional(),
   duration: z.string().trim().max(100).optional(),
   mode: z.string().trim().max(150).optional(),
+  category: z.enum(TRAINING_CATEGORIES),
   hasCertificate: z.boolean(),
   // Kept as a string in the form (no coerce, so form input === output types);
   // parsed + validated on submit / by the backend.

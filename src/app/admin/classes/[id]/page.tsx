@@ -17,6 +17,7 @@ import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { formatDate } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
+import { TRAINING_CATEGORY_LABELS } from "@/validations/training-schema";
 import {
   useDeleteTrainingMutation,
   useGetTrainingByIdQuery,
@@ -95,6 +96,7 @@ export default function TrainingDetailPage() {
     : "—";
   const facts: [string, string][] = [
     ["Runs", dateRange],
+    ["Category", TRAINING_CATEGORY_LABELS[training.category]],
     ["Schedule", training.schedule ?? "—"],
     ["Duration", training.duration ?? "—"],
     ["Mode", training.mode ?? "—"],

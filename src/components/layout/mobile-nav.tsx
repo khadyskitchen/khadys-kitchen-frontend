@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { NavLink } from "@/components/layout/site-header";
+import { isNavActive } from "@/components/layout/header-nav";
+import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
   navLinks: NavLink[];
@@ -17,6 +20,7 @@ interface MobileNavProps {
  */
 export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   // Lock body scroll while the overlay is open, and close on Escape.
   useEffect(() => {
@@ -75,23 +79,30 @@ export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
           </div>
 
           <nav className="flex flex-1 flex-col justify-center gap-1 px-[clamp(24px,8vw,56px)] py-7">
-            {navLinks.map((link, i) => (
-              <div key={link.label} className="overflow-hidden">
-                <Link
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="inline-flex items-baseline gap-4 py-1 font-serif text-[clamp(32px,8.5vw,44px)] leading-[1.25] text-cream no-underline"
-                  style={{
-                    animation: `kk-lineup .7s ${0.12 + i * 0.08}s cubic-bezier(.16,.84,.28,1) both`,
-                  }}
-                >
-                  <span className="font-sans text-[13px] tracking-[0.15em] text-accent-2">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {link.label}
-                </Link>
-              </div>
-            ))}
+            {navLinks.map((link, i) => {
+              const active = isNavActive(pathname, link.href);
+              return (
+                <div key={link.label} className="overflow-hidden">
+                  <Link
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "inline-flex items-baseline gap-4 py-1 font-serif text-[clamp(32px,8.5vw,44px)] leading-[1.25] no-underline",
+                      active ? "text-accent-2" : "text-cream",
+                    )}
+                    style={{
+                      animation: `kk-lineup .7s ${0.12 + i * 0.08}s cubic-bezier(.16,.84,.28,1) both`,
+                    }}
+                  >
+                    <span className="font-sans text-[13px] tracking-[0.15em] text-accent-2">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {link.label}
+                  </Link>
+                </div>
+              );
+            })}
           </nav>
 
           <div

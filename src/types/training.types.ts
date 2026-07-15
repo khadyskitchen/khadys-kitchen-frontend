@@ -3,6 +3,9 @@
  * A training stands alone — its name IS its kind ("Bakery Class", "Wedding
  * Cake Class"…).
  */
+
+/** On-site vs online delivery (matches the backend `TrainingCategory` enum). */
+export type TrainingCategory = "IN_PERSON" | "ONLINE";
 export interface IFeeItem {
   id: string;
   name: string;
@@ -46,6 +49,8 @@ export interface ITraining {
   duration: string | null;
   /** e.g. "In-person · Kumasi studio". */
   mode: string | null;
+  /** On-site vs online delivery. */
+  category: TrainingCategory;
   hasCertificate: boolean;
   currency: string;
   capacity: number | null;
@@ -105,6 +110,7 @@ export interface ITrainingInput {
   schedule?: string;
   duration?: string;
   mode?: string;
+  category?: TrainingCategory;
   hasCertificate?: boolean;
   capacity?: number;
   applicationsOpen?: boolean;
@@ -122,6 +128,8 @@ export interface ITrainingListQuery {
   applicationsOpen?: boolean;
   /** `true` = only home-page-featured classes. */
   featured?: boolean;
+  /** Restrict to in-person or online classes. */
+  category?: TrainingCategory;
   published?: boolean;
   search?: string;
 }

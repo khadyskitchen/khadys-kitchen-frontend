@@ -16,12 +16,17 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format-date";
 import { useTableQuery } from "@/hooks/use-table-query";
 import { useGetTrainingsQuery } from "@/redux/trainings/trainings-api";
-import type { ITrainingListQuery } from "@/types/training.types";
+import type { ITrainingListQuery, TrainingCategory } from "@/types/training.types";
+import {
+  TRAINING_CATEGORIES,
+  TRAINING_CATEGORY_LABELS,
+} from "@/validations/training-schema";
 
 const DEFAULTS = {
   published: "all",
   featured: "all",
   apps: "all",
+  category: "all",
   from: "",
   to: "",
 };
@@ -49,6 +54,10 @@ export default function ClassesPage() {
       filters.published === "all" ? undefined : filters.published === "yes",
     featured: filters.featured === "all" ? undefined : filters.featured === "yes",
     applicationsOpen: filters.apps === "all" ? undefined : filters.apps === "open",
+    category:
+      filters.category === "all"
+        ? undefined
+        : (filters.category as TrainingCategory),
   };
   const { data, isLoading, isFetching, isError, error, refetch } =
     useGetTrainingsQuery(query);
@@ -121,6 +130,19 @@ export default function ClassesPage() {
           <option value="open">Open</option>
           <option value="closed">Closed</option>
         </LabeledSelect>
+        <LabeledSelect
+          label="Category"
+          value={filters.category}
+          active={filters.category !== "all"}
+          onChange={(v) => setFilter("category", v)}
+        >
+          <option value="all">All</option>
+          {TRAINING_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {TRAINING_CATEGORY_LABELS[c]}
+            </option>
+          ))}
+        </LabeledSelect>
         <DateRangeFields
           from={filters.from}
           to={filters.to}
@@ -191,6 +213,10 @@ export default function ClassesPage() {
                     <StatusBadge
                       status={t.applicationsOpen ? "ACTIVE" : "WITHDRAWN"}
                       label={t.applicationsOpen ? "Apps open" : "Apps closed"}
+                    />
+                    <StatusBadge
+                      status={t.category}
+                      label={TRAINING_CATEGORY_LABELS[t.category]}
                     />
                     {t.isFeatured ? (
                       <StatusBadge status="UPCOMING" label="Featured" />

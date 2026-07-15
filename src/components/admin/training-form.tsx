@@ -28,6 +28,8 @@ import {
   type ChargeType,
   COURSE_FEE_GROUP,
   FEE_KINDS,
+  TRAINING_CATEGORIES,
+  TRAINING_CATEGORY_LABELS,
   trainingSchema,
   type TrainingFormValues,
 } from "@/validations/training-schema";
@@ -45,6 +47,7 @@ const DEFAULTS: TrainingFormValues = {
   schedule: "",
   duration: "",
   mode: "",
+  category: "IN_PERSON",
   hasCertificate: false,
   capacity: "",
   applicationsOpen: false,
@@ -71,6 +74,7 @@ function toInput(v: TrainingFormValues): ITrainingInput {
     schedule: s(v.schedule),
     duration: s(v.duration),
     mode: s(v.mode),
+    category: v.category,
     hasCertificate: v.hasCertificate,
     capacity: v.capacity ? Number(v.capacity) : undefined,
     applicationsOpen: v.applicationsOpen,
@@ -106,6 +110,7 @@ function toForm(t: ITraining): TrainingFormValues {
     schedule: t.schedule ?? "",
     duration: t.duration ?? "",
     mode: t.mode ?? "",
+    category: t.category,
     hasCertificate: t.hasCertificate,
     capacity: t.capacity != null ? String(t.capacity) : "",
     applicationsOpen: t.applicationsOpen,
@@ -416,6 +421,15 @@ export function TrainingForm({ training }: { training?: ITraining }) {
               error={errors.duration?.message}
               {...register("duration")}
             />
+            <Field label="Category">
+              <Select {...register("category")}>
+                {TRAINING_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {TRAINING_CATEGORY_LABELS[c]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <TextField
               label="Mode"
               placeholder="e.g. In-person · Kumasi studio"

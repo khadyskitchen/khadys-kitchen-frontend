@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format-date";
 import { routes } from "@/lib/routes";
 import { useGetPublicTrainingBySlugQuery } from "@/redux/trainings/trainings-api";
+import { TRAINING_CATEGORY_LABELS } from "@/validations/training-schema";
 import type { ITraining } from "@/types/training.types";
 
 /* ── Hero ─────────────────────────────────────────────────────────────────── */
@@ -47,6 +48,14 @@ function HeroContent({ training, dark }: { training: ITraining; dark: boolean })
             )}
           />
           {training.applicationsOpen ? "Enrolling now" : "Applications closed"}
+        </span>
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.12em]",
+            dark ? "bg-cream/15 text-cream/85" : "bg-ink/[0.07] text-ink/60",
+          )}
+        >
+          {TRAINING_CATEGORY_LABELS[training.category]}
         </span>
       </div>
 
