@@ -5,6 +5,7 @@ import { routes } from "@/lib/routes";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { HeaderNav } from "@/components/layout/header-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { PUBLIC_NAV_LINKS } from "@/lib/nav";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,8 @@ export interface NavLink {
 }
 
 interface SiteHeaderProps {
-  navLinks: NavLink[];
+  /** Defaults to the shared public nav so every page shows the same links. */
+  navLinks?: NavLink[];
   /** Right-hand call to action. Ignored when `action` is provided. */
   cta?: NavLink;
   /** Custom right-hand element (e.g. the shop cart button); overrides `cta`. */
@@ -26,7 +28,7 @@ interface SiteHeaderProps {
 }
 
 export function SiteHeader({
-  navLinks,
+  navLinks = PUBLIC_NAV_LINKS,
   cta,
   action,
   announcement,

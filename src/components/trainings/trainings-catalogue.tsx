@@ -164,7 +164,7 @@ export function TrainingsCatalogue({
 
   return (
     <>
-      <div className="mb-[clamp(22px,3vw,32px)] border-y border-ink/15 py-[18px]">
+      <div className="mb-[clamp(22px,3vw,32px)] py-[18px]">
         {/* Mobile / tablet: the toolbar collapses behind one toggle. */}
         <div className="flex items-center justify-between gap-3 lg:hidden">
           <button

@@ -12,12 +12,6 @@ import {
 } from "@/lib/public-api";
 import { routes } from "@/lib/routes";
 
-const NAV_LINKS = [
-  { label: "About", href: "#about" },
-  { label: "Gallery", href: routes.gallery },
-  { label: "Contact", href: routes.contact },
-];
-
 export default async function LandingPage() {
   // Fetched server-side with a revalidate window (see public-api.ts), so
   // these sections are cached HTML — reloads never show skeletons. Admin
@@ -29,7 +23,6 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
         announcement={

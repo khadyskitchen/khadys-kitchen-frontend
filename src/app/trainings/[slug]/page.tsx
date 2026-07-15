@@ -13,11 +13,6 @@ import { routes, trainingDetail } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
 import type { ITraining } from "@/types/training.types";
 
-const NAV_LINKS = [
-  { label: "All trainings", href: routes.trainings },
-  { label: "Contact", href: routes.contact },
-];
-
 /**
  * Application receipt codes (`KK-A` + unambiguous alphanumerics, e.g.
  * KK-A7F3K9QW2M) share this route: the confirmation email/SMS links to
@@ -86,7 +81,6 @@ export default async function TrainingPage({
   return (
     <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={
           isCode
             ? { label: "Browse trainings", href: routes.trainings }

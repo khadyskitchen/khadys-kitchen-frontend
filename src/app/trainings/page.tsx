@@ -19,11 +19,6 @@ export const metadata = pageMetadata({
   ],
 });
 
-const NAV_LINKS = [
-  { label: "Home", href: routes.home },
-  { label: "Contact", href: routes.contact },
-];
-
 export default async function TrainingsPage() {
   // Fetch the catalogue server-side so the list is real HTML for crawlers; the
   // client catalogue hydrates over it and keeps filtering/apply behaviour.
@@ -31,7 +26,6 @@ export default async function TrainingsPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={{ label: "Contact us", href: routes.contact }}
         mobileMenu
       />

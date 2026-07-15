@@ -3,12 +3,6 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Reveal } from "@/components/reveal";
 import { routes } from "@/lib/routes";
 
-const NAV_LINKS = [
-  { label: "Home", href: routes.home },
-  { label: "Trainings", href: routes.trainings },
-  { label: "Contact", href: routes.contact },
-];
-
 export interface LegalSection {
   heading: string;
   /** Each string is a paragraph. */
@@ -37,7 +31,6 @@ export function LegalPage({
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />

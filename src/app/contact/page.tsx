@@ -14,16 +14,10 @@ export const metadata = pageMetadata({
   keywords: ["contact Khady's Kitchen", "Kumasi bakery contact", "order custom cake Kumasi"],
 });
 
-const NAV_LINKS = [
-  { label: "Home", href: routes.home },
-  { label: "Trainings", href: routes.trainings },
-];
-
 export default function ContactPage() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />

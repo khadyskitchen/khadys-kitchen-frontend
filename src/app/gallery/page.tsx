@@ -18,12 +18,6 @@ export const metadata = pageMetadata({
   ],
 });
 
-const NAV_LINKS = [
-  { label: "Home", href: routes.home },
-  { label: "Trainings", href: routes.trainings },
-  { label: "Contact", href: routes.contact },
-];
-
 export default async function GalleryPage() {
   // Fetch the photos server-side so the page is real HTML for crawlers; the
   // client showcase hydrates over it and adds the slideshow behaviour.
@@ -31,7 +25,6 @@ export default async function GalleryPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-cream text-ink">
       <SiteHeader
-        navLinks={NAV_LINKS}
         cta={{ label: "Trainings", href: routes.trainings }}
         mobileMenu
       />

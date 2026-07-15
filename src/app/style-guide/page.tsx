@@ -100,10 +100,10 @@ export default function StyleGuidePage() {
             <div>
               <EmptyState
                 title="Nothing here yet."
-                description="Pick something - we'll bake it fresh for your date."
-                action={{ label: "Browse the bakes", href: routes.shop }}
+                description="New classes are announced here first — check back soon."
+                action={{ label: "Browse all trainings", href: routes.trainings }}
               />
-              <div className="mt-2"><Caption>Site · empty cart</Caption></div>
+              <div className="mt-2"><Caption>Site · empty state</Caption></div>
             </div>
             <div>
               <EmptyState
