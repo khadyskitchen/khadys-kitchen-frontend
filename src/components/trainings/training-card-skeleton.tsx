@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 
-/** Placeholder mirroring a TrainingCard: cover image, title, summary lines,
- * schedule eyebrow and the price row. */
+/** Placeholder mirroring a TrainingCard: cover image, schedule eyebrow,
+ * title, summary lines, and the hairline price row. */
 export function TrainingCardSkeleton() {
   return (
     <div
@@ -10,11 +10,11 @@ export function TrainingCardSkeleton() {
     >
       <Skeleton className="h-[240px] rounded-none" />
       <div className="grid gap-3 px-6 pb-[26px] pt-[22px]">
+        <Skeleton className="h-3 w-[45%]" />
         <Skeleton className="h-[22px] w-[75%]" />
         <Skeleton className="h-3 w-[95%]" />
         <Skeleton className="h-3 w-[62%]" />
-        <Skeleton className="h-3 w-[45%]" />
-        <div className="mt-1.5 flex items-center justify-between gap-4 pt-1.5">
+        <div className="mt-1.5 flex items-center justify-between gap-4 border-t border-ink/10 pt-3.5">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-16" />
         </div>
