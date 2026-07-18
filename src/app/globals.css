@@ -13,6 +13,10 @@
 
   --font-serif: var(--font-marcellus), serif;
   --font-sans: var(--font-karla), sans-serif;
+
+  /* Hover color changes were snapping at Tailwind's 150ms default - every
+     transition-* utility without an explicit duration now eases over 300ms. */
+  --default-transition-duration: 300ms;
 }
 
 /* Smooth in-page anchor scrolling (nav → #about, hero → #apply…). Scoped to

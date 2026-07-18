@@ -54,7 +54,7 @@ function ChannelCard({
   desc: string;
 }) {
   return (
-    <div className="flex h-full flex-col rounded-[22px] border border-ink/10 bg-card p-[clamp(24px,3.5vw,36px)] transition-[transform,border-color] hover:-translate-y-[3px] hover:border-accent/40">
+    <div className="flex h-full flex-col rounded-[22px] border border-ink/10 bg-card p-[clamp(24px,3.5vw,36px)] transition-colors duration-300 hover:border-accent/40">
       <span className="mb-2 text-[12.5px] font-semibold uppercase tracking-[0.18em] text-accent">
         {label}
       </span>
