@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { SystemMessage } from "@/components/ui/SystemMessage";
 import { routes } from "@/lib/routes";
+import { devError } from "@/lib/log";
 
 /**
  * Route-segment error boundary. Wraps every page below the root layout, so a
@@ -17,8 +18,8 @@ export default function Error({
   unstable_retry: () => void;
 }) {
   useEffect(() => {
-    // Surface the error for local debugging / an error reporter.
-    console.error(error);
+    // Surface the error for local debugging; production stays silent.
+    devError(error);
   }, [error]);
 
   return (

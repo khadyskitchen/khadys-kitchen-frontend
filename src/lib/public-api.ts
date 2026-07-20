@@ -3,6 +3,7 @@
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
 // breaks a sitemap or a page render.
+import { devError } from "@/lib/log";
 import { CACHE_TAGS, type CacheTag } from "@/lib/cache-tags";
 import type { IAboutContent } from "@/types/about.types";
 import type { IGalleryImage } from "@/types/gallery.types";
@@ -54,7 +55,7 @@ async function lookupJson<T>(
     });
     if (response.status === 404) return { kind: "not-found" };
     if (!response.ok) {
-      console.error(`Public API: ${path} responded ${String(response.status)}`);
+      devError(`Public API: ${path} responded ${String(response.status)}`);
       return { kind: "error" };
     }
     const json = (await response.json()) as { data?: T };
@@ -62,7 +63,7 @@ async function lookupJson<T>(
       ? { kind: "found", data: json.data }
       : { kind: "error" };
   } catch (error) {
-    console.error(`Public API: error fetching ${path}:`, error);
+    devError(`Public API: error fetching ${path}:`, error);
     return { kind: "error" };
   }
 }
@@ -75,12 +76,12 @@ async function fetchJson<T>(path: string, tag: CacheTag): Promise<T | null> {
       next: { revalidate: REVALIDATE_SECONDS, tags: [tag] },
     });
     if (!response.ok) {
-      console.error(`Public API: ${path} responded ${String(response.status)}`);
+      devError(`Public API: ${path} responded ${String(response.status)}`);
       return null;
     }
     return (await response.json()) as T;
   } catch (error) {
-    console.error(`Public API: error fetching ${path}:`, error);
+    devError(`Public API: error fetching ${path}:`, error);
     return null;
   }
 }
