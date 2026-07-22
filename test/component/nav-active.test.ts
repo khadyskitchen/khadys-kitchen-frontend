@@ -19,6 +19,12 @@ describe("isNavActive", () => {
     expect(isNavActive("/about", "#about")).toBe(false);
   });
 
+  it("marks nothing active while the pathname is unknown (pre-mount)", () => {
+    // useActivePathname returns null on the server and first client render.
+    expect(isNavActive(null, "/")).toBe(false);
+    expect(isNavActive(null, "/trainings")).toBe(false);
+  });
+
   it("does not treat a prefix collision as a sub-path", () => {
     // "/training" is not a sub-path of "/trainings".
     expect(isNavActive("/training", "/trainings")).toBe(false);

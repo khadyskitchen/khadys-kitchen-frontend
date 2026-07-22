@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { NavLink } from "@/components/layout/site-header";
-import { isNavActive } from "@/components/layout/header-nav";
+import { isNavActive, useActivePathname } from "@/components/layout/header-nav";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -20,7 +19,7 @@ interface MobileNavProps {
  */
 export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
+  const pathname = useActivePathname();
 
   // Lock body scroll while the overlay is open, and close on Escape.
   useEffect(() => {

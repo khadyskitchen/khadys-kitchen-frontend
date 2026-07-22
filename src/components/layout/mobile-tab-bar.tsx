@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useActivePathname } from "@/components/layout/header-nav";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ const TABS = [
  * apply bar) can ride along instead of floating over a gap.
  */
 export function MobileTabBar() {
-  const pathname = usePathname();
+  const pathname = useActivePathname();
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -76,9 +76,11 @@ export function MobileTabBar() {
       )}
     >
       {TABS.map((tab) => {
-        const active = tab.exact
-          ? pathname === tab.href
-          : pathname.startsWith(tab.href);
+        const active = pathname
+          ? tab.exact
+            ? pathname === tab.href
+            : pathname.startsWith(tab.href)
+          : false;
         return (
           <Link
             key={tab.href}
