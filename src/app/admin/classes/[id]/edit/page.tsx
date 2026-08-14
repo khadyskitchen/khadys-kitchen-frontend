@@ -9,8 +9,9 @@ import { useGetTrainingByIdQuery } from "@/redux/trainings/trainings-api";
 
 export default function EditTrainingPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: training, isLoading, isError, error, refetch } =
+  const { data, isLoading, isError, error, refetch } =
     useGetTrainingByIdQuery(id);
+  const training = data?.data;
 
   if (isLoading) {
     return (

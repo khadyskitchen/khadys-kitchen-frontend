@@ -56,7 +56,7 @@ export function ProductDetail({
   }
 
   if (!product) {
-    // A 404 means the bake was retired or the link is stale — not an error.
+    // A 404 means the bake was retired or the link is stale - not an error.
     const notFound =
       typeof error === "object" &&
       error !== null &&

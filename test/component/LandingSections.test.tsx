@@ -8,7 +8,7 @@ import { Story } from "@/components/landing/story";
 import type { IAboutContent } from "@/types/about.types";
 import type { ITraining } from "@/types/training.types";
 
-// The card is the trainings catalogue's concern — the section test only cares
+// The card is the trainings catalogue's concern - the section test only cares
 // that one renders per class.
 vi.mock("@/components/trainings/training-card", () => ({
   TrainingCard: ({ training }: { training: ITraining }) => (

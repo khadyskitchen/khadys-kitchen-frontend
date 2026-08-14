@@ -1,5 +1,3 @@
-import type { PublicApplication } from "@/lib/public-api";
-
 /**
  * Bake School applications + the pay-now/pay-later flow, mirroring the backend
  * `apply` / payment contracts.
@@ -15,7 +13,7 @@ export interface IApplyInput {
    * Mirrors the backend `applySchema.selectedFeeItemIds`. */
   selectedFeeItemIds?: string[];
   message?: string;
-  /** Minor units paid at registration — part or full of the bill. Required
+  /** Minor units paid at registration - part or full of the bill. Required
    * whenever the application owes anything; the backend returns the Paystack
    * URL for it. Mirrors `applySchema.payAmount`. */
   payAmount?: number;
@@ -23,7 +21,7 @@ export interface IApplyInput {
   turnstileToken?: string;
 }
 
-/** Bake School application lifecycle — mirrors the backend `ApplicationStatus`
+/** Bake School application lifecycle - mirrors the backend `ApplicationStatus`
  * enum (schema.prisma). */
 export type ApplicationStatus =
   | "PENDING"
@@ -31,6 +29,27 @@ export type ApplicationStatus =
   | "RECRUITED"
   | "REJECTED"
   | "WITHDRAWN";
+
+/** Mirrors the backend `ApplicationPaymentStatus` enum (schema.prisma). */
+export type ApplicationPaymentStatus = "PAID" | "PARTIAL" | "UNPAID";
+
+/** The public application DTO (`GET /applications/:code`) - enough for the
+ * status panel a receipt-code link renders. Lives here (not in lib/) so the
+ * types layer never imports from lib and the status unions have exactly one
+ * definition. */
+export interface PublicApplication {
+  code: string;
+  fullName: string;
+  email: string | null;
+  status: ApplicationStatus;
+  paymentStatus: ApplicationPaymentStatus;
+  amountDue: number;
+  amountPaid: number;
+  balance: number;
+  currency: string;
+  createdAt: string;
+  training?: { id: string; name: string; slug: string };
+}
 
 export interface IFeeLine {
   id: string;
@@ -52,7 +71,7 @@ export interface IApplication {
   amountPaid: number;
   balance: number;
   currency: string;
-  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  paymentStatus: ApplicationPaymentStatus;
   status: ApplicationStatus;
   source?: string;
   reviewedAt?: string | null;
@@ -68,7 +87,7 @@ export interface IApplication {
 export interface IApplicationListResponse {
   message: string;
   data: IApplication[];
-  meta: import("./training.types").IPaginationMeta;
+  meta: import("./api").IPaginationMeta;
 }
 
 export interface IApplicationResponse {
@@ -83,12 +102,12 @@ export interface IApplicationListQuery {
   page?: number;
   limit?: number;
   trainingId?: string;
-  status?: string;
-  paymentStatus?: string;
+  status?: ApplicationStatus;
+  paymentStatus?: ApplicationPaymentStatus;
   search?: string;
 }
 
-/** `POST /applications` — application created; `authorizationUrl` present when paying now. */
+/** `POST /applications` - application created; `authorizationUrl` present when paying now. */
 export interface IApplyResponse {
   message: string;
   data: {
@@ -98,12 +117,15 @@ export interface IApplyResponse {
   };
 }
 
+/** Mirrors the backend `PaymentStatus` enum (schema.prisma). */
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REVERSED";
+
 export interface IPayment {
   id: string;
   amount: number;
   currency: string;
   method: string;
-  status: "PENDING" | "SUCCESS" | "FAILED" | "REVERSED";
+  status: PaymentStatus;
   reference: string;
   paidAt: string | null;
   /** Set when a SUCCESS payment was later refunded/reversed. */
@@ -118,7 +140,7 @@ export interface IVerifyResponse {
   data: IPayment;
 }
 
-/** `POST /applications/lookup` — public status lookup. The receipt code alone
+/** `POST /applications/lookup` - public status lookup. The receipt code alone
  * is not enough: the contact (email or phone) must match the registration.
  * Mirrors the backend `lookupApplicationSchema`. */
 export interface ILookupApplicationInput {

@@ -24,7 +24,7 @@ const rowTrainings = (trainings: ITraining[], category: TrainingCategory) =>
 /**
  * Home page teaser for the Bake School: the featured classes (admin picks
  * them with the "Featured on the home page" toggle), one row per delivery
- * category — on-site classes first, then online — up to three cards each,
+ * category - on-site classes first, then online - up to three cards each,
  * rendered with the catalogue's TrainingCard. Rendered on the server from
  * the page's cached fetch so a reload never shows skeletons; an empty row
  * disappears, and when nothing is featured (or the API couldn't be reached
@@ -65,7 +65,7 @@ export function FeaturedTrainings({ trainings }: { trainings: ITraining[] }) {
             <div className={GRID_CLASS}>
               {row.trainings.map((training, i) => (
                 // In the tablet range the grid is two columns, so a third
-                // card would wrap into a lonely 2+1 row — hide it there and
+                // card would wrap into a lonely 2+1 row - hide it there and
                 // show all three again once the row is three-up (lg) or
                 // stacked (phones).
                 <div

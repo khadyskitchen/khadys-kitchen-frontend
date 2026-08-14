@@ -26,7 +26,7 @@ export function StatusPicker<T extends string>({
   onSelect,
   className,
 }: {
-  /** Current status — colours the trigger via the shared status palette. */
+  /** Current status - colours the trigger via the shared status palette. */
   status: string;
   /** Display text for the current status; defaults to the status itself. */
   label?: string;

@@ -15,7 +15,7 @@ export function Spinner({
       className={cn(
         "inline-block h-4 w-4 rounded-full border-2",
         onAccent
-          ? "border-[#FDFAF3]/40 border-t-[#FDFAF3]"
+          ? "border-card/40 border-t-card"
           : "border-ink/25 border-t-ink",
         className,
       )}

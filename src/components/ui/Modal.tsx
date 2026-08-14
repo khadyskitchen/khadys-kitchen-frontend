@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { useModalFocus } from "@/hooks/use-modal-focus";
 
 export interface ModalProps {
   open: boolean;
@@ -17,6 +18,10 @@ export interface ModalProps {
    * sheet; "card" stays a centred floating card at every size (photo zooms,
    * small confirmations that shouldn't span the screen). */
   variant?: "sheet" | "card";
+  /** When false, Escape and scrim clicks are ignored - use while a submit is
+   * in flight so an accidental tap can't dismiss a working form. The close
+   * button/Cancel action stays the caller's responsibility. */
+  dismissible?: boolean;
 }
 
 /**
@@ -32,56 +37,27 @@ export function Modal({
   centered = false,
   labelledBy,
   variant = "sheet",
+  dismissible = true,
 }: ModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const restoreRef = useRef<HTMLElement | null>(null);
-  // Keep the latest onClose without making it an effect dependency - otherwise
-  // an inline `onClose` prop would re-run the effect on every render and steal
-  // focus back to the dialog mid-typing. Updated in an effect (never during
-  // render) so the ref stays a render-free value.
+  // Keep the latest onClose/dismissible without re-running the focus effect -
+  // an inline `onClose` prop would otherwise steal focus back mid-typing.
   const onCloseRef = useRef(onClose);
+  const dismissibleRef = useRef(dismissible);
   useEffect(() => {
     onCloseRef.current = onClose;
+    dismissibleRef.current = dismissible;
   });
 
-  useEffect(() => {
-    if (!open) return;
-    restoreRef.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    cardRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onCloseRef.current();
-        return;
-      }
-      if (e.key !== "Tab" || !cardRef.current) return;
-      const focusables = cardRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
-      restoreRef.current?.focus?.();
-    };
-  }, [open]);
+  useModalFocus(open, cardRef, {
+    onEscape: () => {
+      if (dismissibleRef.current) onCloseRef.current();
+    },
+  });
 
   if (!open) return null;
 
-  // Phones get a bottom sheet (full width, slides up, safe-area padding) —
+  // Phones get a bottom sheet (full width, slides up, safe-area padding) -
   // or a centred floating card for variant="card". Larger screens always get
   // the centered card. justify-items stays centred in every posture so a
   // narrower card never pins to the sheet's end edge.
@@ -93,7 +69,7 @@ export function Modal({
       )}
       style={{ background: "rgba(24,16,10,0.55)", animation: "kk-fadein .2s both" }}
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (dismissible && e.target === e.currentTarget) onClose();
       }}
     >
       <div

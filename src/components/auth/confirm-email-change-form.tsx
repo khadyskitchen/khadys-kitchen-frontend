@@ -11,7 +11,7 @@ import { userLoggedOut } from "@/redux/auth/auth-slice";
 
 /**
  * Deliberately a button, not an on-load effect: link scanners and prefetchers
- * must never consume the single-use token — only a real click applies the
+ * must never consume the single-use token - only a real click applies the
  * change. On success every session is dead (the backend bumps the session
  * epoch), so the client state is cleared and the user lands on /login.
  */
@@ -39,7 +39,7 @@ export function ConfirmEmailChangeForm({ token }: { token: string }) {
     <div className="grid gap-5">
       <p className="text-[14.5px] leading-[1.6] text-ink/70">
         Confirming applies the new sign-in email and signs you out of every
-        device — you&rsquo;ll sign in again with the new address.
+        device - you&rsquo;ll sign in again with the new address.
       </p>
       <Button
         size="lg"

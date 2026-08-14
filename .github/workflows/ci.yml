@@ -13,7 +13,7 @@ jobs:
     env:
       # Required by the fail-fast env module. Build-time fetches against the
       # placeholder fail gracefully (pages fall back to empty data).
-      NEXT_PUBLIC_SERVER_URI: http://localhost:8000
+      NEXT_PUBLIC_SERVER_URI: http://localhost:4050
 
     steps:
       - uses: actions/checkout@v4

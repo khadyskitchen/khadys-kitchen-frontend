@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import { toMultipart } from "@/lib/to-multipart";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IMessageResponse } from "@/types/auth.types";
 import type {
@@ -8,16 +9,7 @@ import type {
   IProductResponse,
 } from "@/types/product.types";
 
-/** Wraps a JSON body + image file into the multipart shape the backend's
- * `parseJsonPayload` + upload middleware expect. */
-const toMultipart = (body: unknown, photo: File): FormData => {
-  const form = new FormData();
-  form.append("payload", JSON.stringify(body));
-  form.append("image", photo);
-  return form;
-};
-
-/** The shop catalogue — public browse (available items only) and admin CRUD
+/** The shop catalogue - public browse (available items only) and admin CRUD
  * with the availability toggle. Prices are pesewas. */
 export const productsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -37,7 +29,7 @@ export const productsApi = apiSlice.injectEndpoints({
       query: (slug) => ({ url: `products/${slug}`, method: "GET" }),
       // The slug key ({ Product, id: slug }) is never invalidated by admin
       // mutations (they key by DB id), so also provide the "Products" list tag
-      // — which every product mutation invalidates — to keep this cache fresh.
+      // - which every product mutation invalidates - to keep this cache fresh.
       providesTags: (_r, _e, slug) => [{ type: "Product", id: slug }, "Products"],
     }),
 
@@ -61,7 +53,7 @@ export const productsApi = apiSlice.injectEndpoints({
       providesTags: (_r, _e, id) => [{ type: "Product", id }],
     }),
 
-    // A new photo travels WITH the save as multipart (payload JSON + file) —
+    // A new photo travels WITH the save as multipart (payload JSON + file) -
     // the backend uploads it inside the same request, cleans up on failure,
     // and reclaims a replaced image, so nothing is pre-uploaded or orphaned.
     createProduct: builder.mutation<
@@ -71,7 +63,7 @@ export const productsApi = apiSlice.injectEndpoints({
       query: ({ body, photo }) => ({
         url: "admin/products",
         method: "POST",
-        body: photo ? toMultipart(body, photo) : body,
+        body: photo ? toMultipart(body, { image: photo }) : body,
       }),
       invalidatesTags: ["Products"],
     }),
@@ -83,7 +75,7 @@ export const productsApi = apiSlice.injectEndpoints({
       query: ({ id, body, photo }) => ({
         url: `admin/products/${id}`,
         method: "PATCH",
-        body: photo ? toMultipart(body, photo) : body,
+        body: photo ? toMultipart(body, { image: photo }) : body,
       }),
       invalidatesTags: (_r, _e, { id }) => [{ type: "Product", id }, "Products"],
     }),

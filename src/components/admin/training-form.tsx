@@ -193,7 +193,7 @@ function BulletListField({
       </div>
       {list.fields.length === 0 ? (
         <p className="text-[13.5px] text-ink/50">
-          No items yet — this section stays hidden on the class page.
+          No items yet - this section stays hidden on the class page.
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -410,7 +410,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
           <BulletListField
             name="forWho"
             title="Who it's for"
-            placeholder="e.g. Beginners — no experience needed"
+            placeholder="e.g. Beginners - no experience needed"
             control={control}
             register={register}
             errors={errors}
@@ -562,7 +562,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
               </div>
               <TextField
                 label="Price label"
-                placeholder="e.g. Free or —"
+                placeholder="e.g. Free or -"
                 {...register(`feeItems.${i}.priceLabel`)}
               />
               <Field label="How it's charged">
@@ -590,7 +590,7 @@ export function TrainingForm({ training }: { training?: ITraining }) {
 
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
+        <Button type="button" variant="ghost" onClick={() => router.push("/admin/classes")}>
           Cancel
         </Button>
         <Button

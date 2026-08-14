@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Admin product form schema — mirrors the backend `createProductSchema`
+ * Admin product form schema - mirrors the backend `createProductSchema`
  * (product-validation.ts). Numeric fields are kept as strings in the form
  * (the training form's idiom) and converted in the submit mapper: price is
  * entered in GHS → pesewas (×100); stock left empty means "made to order".

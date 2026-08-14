@@ -33,7 +33,7 @@ export function ProductCard({ product }: { product: IProduct }) {
         <div className="flex flex-1 flex-col gap-[9px] px-6 pb-[26px] pt-[22px]">
           {/* The title clamps at two lines and the ROW reserves that height
               (22px × 1.2 × 2), so every card in the grid shares one height
-              while a wrapped price still sits snug under a one-line title —
+              while a wrapped price still sits snug under a one-line title -
               the detail page carries the full name. */}
           <TitlePriceRow
             name={product.name}

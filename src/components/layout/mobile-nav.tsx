@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { NavLink } from "@/components/layout/site-header";
 import { isNavActive, useActivePathname } from "@/components/layout/header-nav";
+import { useModalFocus } from "@/hooks/use-modal-focus";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -20,21 +21,12 @@ interface MobileNavProps {
 export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = useActivePathname();
+  const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll while the overlay is open, and close on Escape.
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  // The overlay claims aria-modal, so it must behave modally: focus moves in,
+  // Tab is trapped, Escape closes, focus restores to the hamburger, and body
+  // scroll locks - all via the shared hook the Modal uses.
+  useModalFocus(open, overlayRef, { onEscape: () => setOpen(false) });
 
   return (
     <div className={className}>
@@ -54,7 +46,9 @@ export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
       {open
         ? createPortal(
             <div
-              className="fixed inset-0 z-[100] flex flex-col bg-ink text-cream"
+              ref={overlayRef}
+              tabIndex={-1}
+              className="fixed inset-0 z-[100] flex flex-col bg-ink text-cream outline-none"
               style={{ animation: "kk-fadein .35s both" }}
               role="dialog"
               aria-modal="true"
@@ -112,7 +106,7 @@ export function MobileNav({ navLinks, cta, className }: MobileNavProps) {
               <Link
                 href={cta.href}
                 onClick={() => setOpen(false)}
-                className="rounded-full bg-accent px-[34px] py-[17px] text-center text-[15px] font-semibold tracking-[0.06em] text-[#FDFAF3] no-underline transition-colors hover:bg-cream hover:text-ink"
+                className="rounded-full bg-accent px-[34px] py-[17px] text-center text-[15px] font-semibold tracking-[0.06em] text-card no-underline transition-colors hover:bg-cream hover:text-ink"
               >
                 {cta.label}
               </Link>

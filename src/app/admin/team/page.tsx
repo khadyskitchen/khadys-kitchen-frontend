@@ -86,7 +86,7 @@ export default function TeamPage() {
   ).length;
   const hasActiveFilters =
     Boolean(search.trim()) || activeCount > 0 || page > 1;
-  // Truly empty (no rows, nothing filtered): show only the empty state — a
+  // Truly empty (no rows, nothing filtered): show only the empty state - a
   // search box and filters over nothing is noise.
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
@@ -99,7 +99,7 @@ export default function TeamPage() {
     (isSuperAdmin || ROLE_RANK[me.role] > ROLE_RANK[target.role]);
 
   // Mirrors the backend's canAssignRole: a super admin grants up to their own
-  // rank; everyone else only strictly below — an admin can make staff, and
+  // rank; everyone else only strictly below - an admin can make staff, and
   // only a super admin can mint admins or super admins.
   const assignableRoles = isSuperAdmin
     ? [UserRole.STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN]
@@ -116,7 +116,7 @@ export default function TeamPage() {
     }
   };
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (u: ITeamUser) => [
     {
@@ -125,7 +125,7 @@ export default function TeamPage() {
     },
     ...(canManage(u)
       ? [
-          // Editing (photo, name, contact) lives on the profile detail page —
+          // Editing (photo, name, contact) lives on the profile detail page -
           // reached via "View details". Everything else stays here.
           {
             label: "Change role",
@@ -173,7 +173,7 @@ export default function TeamPage() {
       <div style={{ animation: "kk-rise .5s both" }}>
         <EmptyState
           title="No team members yet"
-          description="Add the people who run the bakery with you — assign roles and manage their access from here."
+          description="Add the people who run the bakery with you - assign roles and manage their access from here."
           action={{
             label: "+ Add your first member",
             onClick: () => setAddOpen(true),
@@ -247,7 +247,7 @@ export default function TeamPage() {
           }
           description={
             hasActiveFilters
-              ? "Nothing matches your current search or filters — try clearing them."
+              ? "Nothing matches your current search or filters - try clearing them."
               : "Add your first team member to share the console."
           }
         />
@@ -259,7 +259,7 @@ export default function TeamPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />
@@ -360,7 +360,7 @@ export default function TeamPage() {
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[14px] text-ink/70">
-                          {u.phone ?? "—"}
+                          {u.phone ?? "-"}
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge

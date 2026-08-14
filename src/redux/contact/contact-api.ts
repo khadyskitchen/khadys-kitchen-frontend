@@ -1,12 +1,12 @@
 import { apiSlice } from "../api-slice";
 
-/** Public contact message. Fire-and-forget POST — no cache tags to invalidate. */
+/** Public contact message. Fire-and-forget POST - no cache tags to invalidate. */
 export interface ISendContactMessageInput {
   name: string;
   contact: string;
   message: string;
   topic?: string;
-  /** Honeypot — must stay empty. */
+  /** Honeypot - must stay empty. */
   website?: string;
   /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
   turnstileToken?: string;

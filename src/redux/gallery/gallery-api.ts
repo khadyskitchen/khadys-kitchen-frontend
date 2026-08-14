@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import { toMultipart } from "@/lib/to-multipart";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IMessageResponse } from "@/types/auth.types";
 import type {
@@ -9,16 +10,7 @@ import type {
   IGalleryListQuery,
 } from "@/types/gallery.types";
 
-/** Wraps a JSON body + image file into the multipart shape the backend's
- * `parseJsonPayload` + upload middleware expect. */
-const toMultipart = (body: unknown, photo: File): FormData => {
-  const form = new FormData();
-  form.append("payload", JSON.stringify(body));
-  form.append("image", photo);
-  return form;
-};
-
-/** The kitchen photo gallery — public browse (published photos only, newest
+/** The kitchen photo gallery - public browse (published photos only, newest
  * first) and admin CRUD with the publish toggle. */
 export const galleryApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -55,7 +47,7 @@ export const galleryApi = apiSlice.injectEndpoints({
           : ["GalleryImages"],
     }),
 
-    // The photo travels WITH the save as multipart (payload JSON + file) — the
+    // The photo travels WITH the save as multipart (payload JSON + file) - the
     // backend uploads it inside the same request and cleans up on failure, so
     // nothing is pre-uploaded or orphaned. A photo is required: it IS the record.
     createGalleryImage: builder.mutation<
@@ -65,7 +57,7 @@ export const galleryApi = apiSlice.injectEndpoints({
       query: ({ body, photo }) => ({
         url: "admin/gallery",
         method: "POST",
-        body: toMultipart(body, photo),
+        body: toMultipart(body, { image: photo }),
       }),
       invalidatesTags: ["GalleryImages"],
     }),
@@ -77,7 +69,7 @@ export const galleryApi = apiSlice.injectEndpoints({
       query: ({ id, body, photo }) => ({
         url: `admin/gallery/${id}`,
         method: "PATCH",
-        body: photo ? toMultipart(body, photo) : body,
+        body: photo ? toMultipart(body, { image: photo }) : body,
       }),
       invalidatesTags: (_r, _e, { id }) => [
         { type: "GalleryImage", id },

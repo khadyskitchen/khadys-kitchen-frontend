@@ -1,4 +1,4 @@
-// Server-side fetchers for the public API — used by the file-convention SEO
+// Server-side fetchers for the public API - used by the file-convention SEO
 // surfaces (sitemap, generateMetadata) where the RTK Query client isn't
 // available. Mirrors dms-frontend's sitemap fetcher: responses are cached with
 // a revalidate window and failures are swallowed so a backend hiccup never
@@ -6,9 +6,14 @@
 import { devError } from "@/lib/log";
 import { CACHE_TAGS, type CacheTag } from "@/lib/cache-tags";
 import type { IAboutContent } from "@/types/about.types";
+import type { PublicApplication } from "@/types/application.types";
 import type { IGalleryImage } from "@/types/gallery.types";
 import type { IProduct } from "@/types/product.types";
 import type { ITraining } from "@/types/training.types";
+
+// PublicApplication moved to types/application.types.ts; re-exported so lib
+// consumers keep their import path.
+export type { PublicApplication } from "@/types/application.types";
 
 const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;
 
@@ -28,7 +33,7 @@ export interface PublicProduct {
 
 /**
  * A server-side lookup that keeps "the backend said 404" distinct from "the
- * backend was unreachable" — page shells need the difference to choose between
+ * backend was unreachable" - page shells need the difference to choose between
  * `notFound()` and degrading to the client island's retry UX.
  */
 export type PublicLookup<T> =
@@ -45,7 +50,7 @@ async function lookupJson<T>(
   try {
     const response = await fetch(`${serverUri}/api/v1${path}`, {
       headers: { "Content-Type": "application/json" },
-      // An explicit cache mode (e.g. no-store) replaces the revalidate window —
+      // An explicit cache mode (e.g. no-store) replaces the revalidate window -
       // Next rejects a request that specifies both. Tagged entries are purged
       // on-demand by the backend after content writes.
       ...(init?.cache || !tag
@@ -86,7 +91,7 @@ async function fetchJson<T>(path: string, tag: CacheTag): Promise<T | null> {
   }
 }
 
-/** The whole public catalogue (one generous page — a small bakery's worth).
+/** The whole public catalogue (one generous page - a small bakery's worth).
  * The backend caps `limit` at 100 (paginationQuery in common-validation.ts);
  * asking for more is a 400 that `fetchJson` would swallow into an empty
  * sitemap, so we request exactly the cap. */
@@ -155,7 +160,7 @@ export async function fetchPublicTrainingList(): Promise<ITraining[]> {
 }
 
 /** The home page's featured shop items (admin's "Featured" toggle, max 3).
- * Fetched server-side so the section is real cached HTML — /api/revalidate
+ * Fetched server-side so the section is real cached HTML - /api/revalidate
  * refreshes it the moment an admin changes what's featured. */
 export async function fetchFeaturedProducts(): Promise<IProduct[]> {
   const json = await fetchJson<{ data?: IProduct[] }>(
@@ -175,7 +180,7 @@ export async function fetchFeaturedTrainings(): Promise<ITraining[]> {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-/** The editable "Our Story" content (null when never saved — the section's
+/** The editable "Our Story" content (null when never saved - the section's
  * static defaults apply). Server-side so the band renders without a flash. */
 export async function fetchPublicAbout(): Promise<IAboutContent | null> {
   const json = await fetchJson<{ data?: IAboutContent | null }>("/about", CACHE_TAGS.ABOUT);
@@ -195,7 +200,7 @@ export async function fetchPublicGalleryList(): Promise<IGalleryImage[]> {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-/** A single full training by slug — the `/trainings/[slug]` shell needs 404 vs
+/** A single full training by slug - the `/trainings/[slug]` shell needs 404 vs
  * unreachable kept apart (real 404 → `notFound()`, hiccup → client island). The
  * returned `ITraining` is passed into the detail render as initial data. */
 export async function lookupPublicTraining(
@@ -205,27 +210,6 @@ export async function lookupPublicTraining(
     `/trainings/${encodeURIComponent(slug)}`,
     CACHE_TAGS.TRAININGS,
   );
-}
-
-/** The public application DTO (`GET /applications/:code`) — enough for the
- * status panel a receipt-code link renders. */
-export interface PublicApplication {
-  code: string;
-  fullName: string;
-  email: string | null;
-  status:
-    | "PENDING"
-    | "WAITLISTED"
-    | "RECRUITED"
-    | "REJECTED"
-    | "WITHDRAWN";
-  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
-  amountDue: number;
-  amountPaid: number;
-  balance: number;
-  currency: string;
-  createdAt: string;
-  training?: { id: string; name: string; slug: string };
 }
 
 /** An application by receipt code. Payment state must be fresh (the applicant

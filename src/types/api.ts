@@ -5,8 +5,7 @@
  * union is inferred by `createApi`.
  *
  * Auth carries no tags (session state lives in the auth slice + `resetApiState`);
- * the resource tags below are ready for the admin feature slices when the
- * backend endpoints land.
+ * the resource tags below are consumed by the admin feature slices.
  */
 export const apiSliceTags = [
   "User",
@@ -32,3 +31,19 @@ export const apiSliceTags = [
 ] as const;
 
 export type ApiTag = (typeof apiSliceTags)[number];
+
+/** Standard success envelope every backend response uses (`{ message, data }`).
+ * Mirrors the backend's `sendSuccess` (utils/http-response.ts). */
+export interface ApiEnvelope<T> {
+  message: string;
+  data: T;
+}
+
+/** Pagination meta on every list response - mirrors the backend's
+ * `sendPaginated` (utils/http-response.ts). */
+export interface IPaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

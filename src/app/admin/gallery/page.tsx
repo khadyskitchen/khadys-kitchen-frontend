@@ -107,7 +107,7 @@ export default function GalleryPage() {
     confirm({
       title: "Delete this photo?",
       description: photo.isPublished
-        ? "This photo is still published — hide it first, then delete."
+        ? "This photo is still published - hide it first, then delete."
         : "It's removed from the gallery admin. This can't be undone from here.",
       confirmText: "Delete photo",
       isDestructive: true,
@@ -128,7 +128,7 @@ export default function GalleryPage() {
       <div style={{ animation: "kk-rise .5s both" }}>
         <EmptyState
           title="No photos yet"
-          description="Share what's happening in the kitchen — add your first photo and publish it to the website."
+          description="Share what's happening in the kitchen - add your first photo and publish it to the website."
           action={{ label: "+ Add photo", onClick: () => setAdding(true) }}
         />
         <GalleryPhotoModal open={adding} onClose={() => setAdding(false)} />
@@ -177,14 +177,14 @@ export default function GalleryPage() {
       ) : !isLoading && photos.length === 0 ? (
         <EmptyState
           title="No matching photos"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
           <div
             aria-busy={isLoading}
             className={cn(
-              // Single column on narrow phones — 2-up at <420px leaves no room
+              // Single column on narrow phones - 2-up at <420px leaves no room
               // for the caption/badge footer.
               "grid grid-cols-1 gap-[clamp(12px,2vw,20px)] transition-opacity min-[420px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4",
               isFetching && !isLoading && "opacity-60",
@@ -280,7 +280,7 @@ export default function GalleryPage() {
         onClose={() => setEditing(null)}
       />
 
-      {/* Full-size viewer — the photo at its natural aspect, caption below. */}
+      {/* Full-size viewer - the photo at its natural aspect, caption below. */}
       <Modal
         open={Boolean(viewing)}
         onClose={() => setViewing(null)}

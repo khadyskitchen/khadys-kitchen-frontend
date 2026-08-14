@@ -34,7 +34,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 /** The full record behind a ledger row: what it paid for, amounts, method,
- * and the paid/reversed dates — with the reverse action for admins. */
+ * and the paid/reversed dates - with the reverse action for admins. */
 export default function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError, error, refetch } =
@@ -144,7 +144,7 @@ export default function PaymentDetailPage() {
                 {payment.application.trainingName}
               </Link>
             ) : (
-              "—"
+              "-"
             )}
           </Row>
           <Row label="Method">{titleCase(payment.method)}</Row>

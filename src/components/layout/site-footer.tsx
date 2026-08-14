@@ -38,7 +38,7 @@ export function SiteFooter({ cta }: SiteFooterProps) {
           </p>
           <Link
             href={cta.href}
-            className="inline-block rounded-full bg-accent px-[34px] py-4 text-[15px] font-semibold tracking-[0.06em] text-[#FDFAF3] no-underline transition-colors hover:bg-cream hover:text-ink"
+            className="inline-block rounded-full bg-accent px-[34px] py-4 text-[15px] font-semibold tracking-[0.06em] text-card no-underline transition-colors hover:bg-cream hover:text-ink"
           >
             {cta.label}
           </Link>

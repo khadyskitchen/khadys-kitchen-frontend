@@ -17,7 +17,7 @@ const STATUS_COPY: Record<
 };
 
 const TONE_CLASS = {
-  open: "bg-[#2E6B3F]/10 text-[#2E6B3F]",
+  open: "bg-success/10 text-success",
   muted: "bg-accent/10 text-accent",
   closed: "bg-ink/[0.07] text-ink/55",
 };
@@ -25,7 +25,7 @@ const TONE_CLASS = {
 /**
  * The application-status panel a receipt-code link (`/trainings/KK-A…`, as sent
  * in the confirmation email/SMS) renders: status, training, the money ledger,
- * and — while a balance is owed — the online payment handoff.
+ * and - while a balance is owed - the online payment handoff.
  */
 export function ApplicationStatus({
   application,
@@ -116,8 +116,8 @@ export function ApplicationStatus({
               hasEmail={Boolean(application.email)}
             />
           ) : application.balance === 0 ? (
-            <p className="text-[15px] font-semibold text-[#2E6B3F]">
-              ✓ Fully paid — nothing left to settle.
+            <p className="text-[15px] font-semibold text-success">
+              ✓ Fully paid - nothing left to settle.
             </p>
           ) : (
             <p className="text-[14.5px] leading-[1.6] text-ink/60">

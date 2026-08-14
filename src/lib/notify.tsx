@@ -16,8 +16,8 @@ const TYPE_STYLES: Record<
   ToastType,
   { glyph: string; iconBg: string; siteBorder: string }
 > = {
-  success: { glyph: '✓', iconBg: '#2E6B3F', siteBorder: 'rgba(36,26,18,0.15)' },
-  error: { glyph: '!', iconBg: '#A32036', siteBorder: 'rgba(163,32,54,0.35)' },
+  success: { glyph: '✓', iconBg: 'var(--color-success)', siteBorder: 'rgba(36,26,18,0.15)' },
+  error: { glyph: '!', iconBg: 'var(--color-danger)', siteBorder: 'color-mix(in srgb, var(--color-danger) 35%, transparent)' },
   info: {
     glyph: '✦',
     iconBg: 'var(--color-accent)',
@@ -48,13 +48,14 @@ export function ToastCard({
 
   return (
     <div
-      role="status"
+      // Errors interrupt (role=alert); the rest stay polite announcements.
+      role={type === 'error' ? 'alert' : 'status'}
       className={cn(
         'relative flex w-[min(360px,92vw)] items-start gap-3.5 overflow-hidden rounded-[16px] border px-[18px] py-4',
         admin ? 'text-cream' : 'text-ink',
       )}
       style={{
-        background: admin ? '#241A12' : '#FDFAF3',
+        background: admin ? 'var(--color-ink)' : 'var(--color-card)',
         borderColor: admin ? 'rgba(246,239,228,0.15)' : style.siteBorder,
         animation: t.visible
           ? 'kk-toastin .4s both'
@@ -62,7 +63,7 @@ export function ToastCard({
       }}
     >
       <span
-        className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full text-[15px] text-[#FDFAF3]"
+        className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full text-[15px] text-card"
         style={{ background: style.iconBg }}
         aria-hidden="true"
       >

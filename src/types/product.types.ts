@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./training.types";
+import type { IPaginationMeta } from "./api";
 
 /** A shop product, mirroring the backend `toProductDTO`. Prices are minor
  * units (pesewas); `stock` null = made to order (no cap). */
@@ -41,7 +41,7 @@ export interface IProductListQuery {
   to?: string;
   page?: number;
   limit?: number;
-  category?: string;
+  category?: ProductCategory;
   isAvailable?: boolean;
   /** `true` = only home-page-featured items. */
   featured?: boolean;
@@ -58,7 +58,7 @@ export interface IProductInput {
   leadTimeDays?: number;
   /**
    * Clears the existing photo on update. The backend never accepts an image
-   * URL from the client — a new photo travels only as the multipart file.
+   * URL from the client - a new photo travels only as the multipart file.
    */
   removeImage?: boolean;
   isAvailable?: boolean;

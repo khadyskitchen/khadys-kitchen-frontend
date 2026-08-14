@@ -16,7 +16,7 @@ interface VerifyOutcome {
 }
 
 /**
- * Shared Paystack return-page logic for both checkouts — the shop and the bake
+ * Shared Paystack return-page logic for both checkouts - the shop and the bake
  * school stash a receipt code in sessionStorage before redirecting out, and
  * `POST /payments/verify` serves both ledgers. Wrappers supply the copy and any
  * success side effect (e.g. clearing the cart).
@@ -51,7 +51,7 @@ export function PaymentVerifyClient({
   const ran = useRef(false);
 
   // Fires the verify. Reusable so the auto-attempt and the manual "Try again"
-  // share one path — transient errors right after a mobile redirect shouldn't
+  // share one path - transient errors right after a mobile redirect shouldn't
   // dead-end on a link.
   const runVerify = useCallback(() => {
     if (!reference) return;

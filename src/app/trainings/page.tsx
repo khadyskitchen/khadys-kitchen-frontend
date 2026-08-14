@@ -31,7 +31,7 @@ export default async function TrainingsPage() {
         mobileMenu
       />
       <main>
-        {/* Compact hero — the catalogue below is the point of the page. */}
+        {/* Compact hero - the catalogue below is the point of the page. */}
         <section className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,48px)] pb-[clamp(28px,4vw,48px)] pt-[clamp(40px,6vw,72px)]">
           <div style={{ animation: "kk-rise 0.8s ease both" }}>
             <p className="mb-[18px] text-[13px] font-semibold uppercase tracking-[0.24em] text-accent">

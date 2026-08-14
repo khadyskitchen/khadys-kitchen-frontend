@@ -1,6 +1,7 @@
+import type { IPaginationMeta } from "./api";
 /**
  * Trainings (classes students enrol in), mirroring the backend `toTrainingDTO`.
- * A training stands alone — its name IS its kind ("Bakery Class", "Wedding
+ * A training stands alone - its name IS its kind ("Bakery Class", "Wedding
  * Cake Class"…).
  */
 
@@ -13,13 +14,13 @@ export interface IFeeItem {
   amount: number;
   kind: string;
   required: boolean;
-  /** Items sharing a choiceGroup are mutually exclusive price variants —
+  /** Items sharing a choiceGroup are mutually exclusive price variants -
    * the applicant picks exactly one, never the sum. Null = standalone. */
   choiceGroup: string | null;
   note: string | null;
   /** Unit label after the price, e.g. "for 2 months". */
   suffix: string | null;
-  /** Overrides the formatted price, e.g. "Free", "—". */
+  /** Overrides the formatted price, e.g. "Free", "-". */
   priceLabel: string | null;
   position: number;
 }
@@ -57,9 +58,9 @@ export interface ITraining {
   applicationsOpen: boolean;
   isPublished: boolean;
   /** Shows in the home page's featured trainings section (up to 3 per
-   * category — an on-site row and an online row). */
+   * category - an on-site row and an online row). */
   isFeatured: boolean;
-  /** When the class was featured — orders the home-page featured rows and
+  /** When the class was featured - orders the home-page featured rows and
    * decides which class an override replaces. Null while not featured. */
   featuredAt: string | null;
   feeItems?: IFeeItem[];
@@ -68,14 +69,11 @@ export interface ITraining {
   updatedAt: string;
 }
 
-export interface IPaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+// Moved to types/api.ts (its natural home, next to the tag registry);
+// re-exported so existing imports keep working.
+export type { IPaginationMeta } from "./api";
 
-/** `GET /trainings` — published classes, newest first. */
+/** `GET /trainings` - published classes, newest first. */
 export interface ITrainingListResponse {
   message: string;
   data: ITraining[];

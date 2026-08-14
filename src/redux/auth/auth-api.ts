@@ -28,6 +28,15 @@ export const authApi = apiSlice.injectEndpoints({
           // A 2FA challenge is not a session - only store a real user.
           if (!isTwoFactorChallenge(data.data)) {
             dispatch(userLoggedIn({ user: data.data.user }));
+            // Seed the getMe cache so the admin guard starts from a resolved
+            // session instead of a possibly-cached rejection from the previous
+            // one (the RTK cached-error remount gotcha).
+            dispatch(
+              authApi.util.upsertQueryData("getMe", undefined, {
+                message: data.message,
+                data: { user: data.data.user },
+              }),
+            );
           }
         } catch {
           // Surfaced to the caller via `unwrap()`.
@@ -48,14 +57,20 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(userLoggedIn({ user: data.data.user }));
-        } catch {
-          dispatch(userLoggedOut());
+        } catch (err) {
+          // Fail closed only when the server rejected the session (401/403).
+          // A network blip is not evidence the session is dead - keeping the
+          // persisted user lets RequireAuth stay optimistic instead of tearing
+          // down a live session.
+          const status = (err as { error?: { status?: unknown } } | undefined)
+            ?.error?.status;
+          if (status === 401 || status === 403) dispatch(userLoggedOut());
         }
       },
     }),
 
     /** Update the signed-in user's profile; refreshes the stored user. A new
-     * photo travels WITH the save as multipart (payload JSON + file) — the
+     * photo travels WITH the save as multipart (payload JSON + file) - the
      * backend uploads it to Cloudinary inside the same request and cleans up
      * on failure, so nothing is ever pre-uploaded or orphaned. */
     updateMe: builder.mutation<
@@ -106,6 +121,9 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(userLoggedIn({ user: data.data.user }));
+          // Same cache seed as login: the new session must not inherit a
+          // cached getMe rejection from the previous one.
+          dispatch(authApi.util.upsertQueryData("getMe", undefined, data));
         } catch {
           // Surfaced to the caller via `unwrap()`.
         }

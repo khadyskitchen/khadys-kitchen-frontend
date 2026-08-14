@@ -16,7 +16,7 @@ export function TrackOrderEntry() {
     e.preventDefault();
     const cleaned = code.trim().toUpperCase();
     if (cleaned.length < 4) {
-      setError("Enter the order code from your text or email — it starts with KK-O.");
+      setError("Enter the order code from your text or email - it starts with KK-O.");
       return;
     }
     router.push(shopOrder(cleaned));
@@ -32,7 +32,7 @@ export function TrackOrderEntry() {
       </h1>
       <p className="mb-7 max-w-[52ch] text-[15.5px] leading-[1.7] text-ink/70">
         Enter the order code we texted you when you placed your order. You can
-        check its status any time — and pay any outstanding balance online.
+        check its status any time - and pay any outstanding balance online.
       </p>
       <form onSubmit={submit} noValidate className="flex flex-wrap items-start gap-3">
         <div className="min-w-[220px] flex-[1_1_260px]">
@@ -57,7 +57,7 @@ export function TrackOrderEntry() {
       </form>
       <p className="mt-6 text-[13.5px] text-ink/55">
         Can&rsquo;t find your code? It was sent by SMS
-        {" "}(and email, if you gave one) the moment you ordered — search for
+        {" "}(and email, if you gave one) the moment you ordered - search for
         &ldquo;Khady&rsquo;s Kitchen&rdquo;.
       </p>
     </div>

@@ -16,7 +16,7 @@ import { formatMoney } from "@/lib/format-money";
 import { useGetProductsQuery } from "@/redux/products/products-api";
 import { useCreateOrderMutation } from "@/redux/orders/orders-api";
 
-// Mirrors the backend walk-in order contract — items are priced/snapshotted
+// Mirrors the backend walk-in order contract - items are priced/snapshotted
 // server-side; here we only validate the customer + line selections.
 const schema = z.object({
   fullName: z.string().trim().min(1, "Enter the customer's name").max(150),
@@ -62,7 +62,7 @@ export function WalkInOrderModal({
   });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
-  // Start each session fresh — reopening should never show a stale draft.
+  // Start each session fresh - reopening should never show a stale draft.
   useEffect(() => {
     if (!open) reset(DEFAULTS);
   }, [open, reset]);
@@ -83,7 +83,7 @@ export function WalkInOrderModal({
         note: values.note?.trim() || undefined,
         items: values.items,
       }).unwrap();
-      notify.success(`Order recorded — ${res.data.code}`);
+      notify.success(`Order recorded - ${res.data.code}`);
       reset(DEFAULTS);
       onClose();
       router.push(`/admin/orders/${res.data.id}`);
@@ -95,7 +95,7 @@ export function WalkInOrderModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} labelledBy={titleId}>
+    <Modal open={open} onClose={onClose} labelledBy={titleId} dismissible={!isLoading}>
       <h2 id={titleId} className="mb-4 font-serif text-[22px]">
         Record a walk-in order
       </h2>
@@ -125,13 +125,18 @@ export function WalkInOrderModal({
                 <Select
                   aria-label="Item"
                   aria-invalid={errors.items?.[i]?.productId ? true : undefined}
+                  aria-describedby={
+                    errors.items?.[i]?.productId
+                      ? `${titleId}-item-${i}`
+                      : undefined
+                  }
                   wrapperClassName="flex-1"
                   {...register(`items.${i}.productId`)}
                 >
                   <option value="">Choose an item…</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} — {formatMoney(p.price, p.currency)}
+                      {p.name} - {formatMoney(p.price, p.currency)}
                     </option>
                   ))}
                 </Select>
@@ -142,6 +147,11 @@ export function WalkInOrderModal({
                   placeholder="Qty"
                   aria-label="Quantity"
                   aria-invalid={errors.items?.[i]?.quantity ? true : undefined}
+                  aria-describedby={
+                    errors.items?.[i]?.quantity
+                      ? `${titleId}-item-${i}`
+                      : undefined
+                  }
                   {...register(`items.${i}.quantity`, { valueAsNumber: true })}
                   className="w-[76px] rounded-[12px] border-[1.5px] border-ink/20 bg-cream px-3 py-[11px] text-center font-sans text-[15px] outline-none transition-colors focus:border-accent"
                 />

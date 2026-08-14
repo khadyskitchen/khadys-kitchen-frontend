@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import type { ApiEnvelope } from "@/types/api";
 import { toQueryString } from "@/lib/to-query-string";
 import type {
   ApplicationStatus,
@@ -16,7 +17,7 @@ import type {
 } from "@/types/application.types";
 
 /**
- * Applications + payments — the public apply/pay flow and the admin console
+ * Applications + payments - the public apply/pay flow and the admin console
  * (list, detail, status transitions, payment ledger, reminders). Admitting an
  * applicant creates a Student server-side, so status changes also invalidate
  * Students + Trainings (counts).
@@ -31,6 +32,18 @@ export const applicationsApi = apiSlice.injectEndpoints({
 
     verifyPayment: builder.mutation<IVerifyResponse, { reference: string }>({
       query: (body) => ({ url: "payments/verify", method: "POST", body }),
+      // A confirmed payment changes balances everywhere the owner shows up:
+      // the public tracking page's cached order (type-level "Order" reaches
+      // the code-keyed entries), the admin lists, and money views. Without
+      // this, returning from Paystack within the cache window shows the old
+      // UNPAID state.
+      invalidatesTags: [
+        "Order",
+        "Orders",
+        "Applications",
+        "Payments",
+        "DashboardStats",
+      ],
     }),
 
     // A mutation rather than a query: it's a guarded lookup (code + contact)
@@ -109,13 +122,16 @@ export const applicationsApi = apiSlice.injectEndpoints({
     }),
 
     recordPayment: builder.mutation<
-      { message: string; data: IPayment },
-      { id: string; body: IRecordPaymentInput }
+      ApiEnvelope<IPayment>,
+      { id: string; body: IRecordPaymentInput; idempotencyKey?: string }
     >({
-      query: ({ id, body }) => ({
+      query: ({ id, body, idempotencyKey }) => ({
         url: `admin/applications/${id}/payments`,
         method: "POST",
         body,
+        headers: idempotencyKey
+          ? { "Idempotency-Key": idempotencyKey }
+          : undefined,
       }),
       // Matches recordOrderPayment: money received feeds dashboard revenue.
       invalidatesTags: (_r, _e, { id }) => [
@@ -127,7 +143,7 @@ export const applicationsApi = apiSlice.injectEndpoints({
     }),
 
     remindApplicant: builder.mutation<
-      { message: string; data: { balance: number; code: string } },
+      ApiEnvelope<{ balance: number; code: string }>,
       string
     >({
       query: (id) => ({ url: `admin/applications/${id}/remind`, method: "POST" }),
@@ -148,7 +164,7 @@ export const applicationsApi = apiSlice.injectEndpoints({
   }),
 });
 
-// Refunds/reversals live in the payments slice (`useRefundPaymentMutation`) —
+// Refunds/reversals live in the payments slice (`useRefundPaymentMutation`) -
 // one mutation serves both ledgers.
 export const {
   useCreateApplicationMutation,

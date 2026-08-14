@@ -21,20 +21,20 @@ function WhatsAppButton() {
       href={WHATSAPP_HREF}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex max-w-full items-center gap-3.5 rounded-full bg-accent py-3 pl-3 pr-7 text-[#FDFAF3] no-underline transition-colors hover:bg-ink max-[400px]:gap-3 max-[400px]:pr-5"
+      className="inline-flex max-w-full items-center gap-3.5 rounded-full bg-accent py-3 pl-3 pr-7 text-card no-underline transition-colors hover:bg-ink max-[400px]:gap-3 max-[400px]:pr-5"
     >
-      <span className="grid h-[46px] w-[46px] flex-none place-items-center rounded-full bg-[#FDFAF3]/15 max-[440px]:h-10 max-[440px]:w-10">
+      <span className="grid h-[46px] w-[46px] flex-none place-items-center rounded-full bg-card/15 max-[440px]:h-10 max-[440px]:w-10">
         <WhatsAppIcon className="h-[26px] w-[26px] max-[440px]:h-[22px] max-[440px]:w-[22px]" />
       </span>
       <span className="min-w-0 text-left">
-        <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#FDFAF3]/75">
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-card/75">
           Call or WhatsApp
         </span>
         {/* Always one row: the type scales with the viewport so both numbers
             fit even on a Galaxy Fold cover screen (~280px). */}
         <span className="block whitespace-nowrap font-serif text-[clamp(12px,4.5vw,19px)] leading-tight">
           {PHONE_PRIMARY}
-          <span className="mx-1 text-[#FDFAF3]/60">·</span>
+          <span className="mx-1 text-card/60">·</span>
           {PHONE_SECONDARY}
         </span>
       </span>

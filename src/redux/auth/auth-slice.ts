@@ -28,7 +28,7 @@ const initialState: AuthState = {
 
 // First-party "probably signed in" hint for the Next.js proxy. The real session
 // cookies are httpOnly on the *API's* origin, which the proxy can't see when
-// the API lives on another domain (production) — so the /admin gate reads this
+// the API lives on another domain (production) - so the /admin gate reads this
 // hint instead. It's presence-only: RequireAuth still does the real check.
 const HINT_COOKIE = "kk.auth.hint";
 

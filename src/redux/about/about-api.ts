@@ -1,4 +1,6 @@
 import { apiSlice } from "../api-slice";
+import type { ApiEnvelope } from "@/types/api";
+import { toMultipart } from "@/lib/to-multipart";
 import type {
   IAboutContent,
   IAboutResponse,
@@ -7,14 +9,7 @@ import type {
 
 /** A new image travels WITH the save as multipart (a `payload` JSON part +
  * the `storyImage` file the backend expects); without one we send plain JSON. */
-const toMultipart = (body: IAboutUpdateInput, image: File): FormData => {
-  const form = new FormData();
-  form.append("payload", JSON.stringify(body));
-  form.append("storyImage", image);
-  return form;
-};
-
-/** The home page's About (Our Story) content — public read, admin write. */
+/** The home page's About (Our Story) content - public read, admin write. */
 export const aboutApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPublicAbout: builder.query<IAboutResponse, void>({
@@ -28,13 +23,13 @@ export const aboutApi = apiSlice.injectEndpoints({
     }),
 
     updateAbout: builder.mutation<
-      { message: string; data: IAboutContent },
+      ApiEnvelope<IAboutContent>,
       { body: IAboutUpdateInput; image?: File }
     >({
       query: ({ body, image }) => ({
         url: "admin/about",
         method: "PATCH",
-        body: image ? toMultipart(body, image) : body,
+        body: image ? toMultipart(body, { storyImage: image }) : body,
       }),
       invalidatesTags: ["About"],
     }),

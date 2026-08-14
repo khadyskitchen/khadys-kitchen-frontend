@@ -34,7 +34,7 @@ describe("FileUploadField", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
 
     expect(onChange).toHaveBeenCalledWith({ cleared: true, file: null });
-    // The saved image must no longer show — the pending state is "no asset".
+    // The saved image must no longer show - the pending state is "no asset".
     expect(screen.queryByRole("img", { name: "Photo" })).not.toBeInTheDocument();
     expect(screen.getByText("None yet")).toBeInTheDocument();
     expect(

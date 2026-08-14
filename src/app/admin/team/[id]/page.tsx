@@ -42,7 +42,7 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 /**
- * A teammate's profile — the same layout an admin sees for their OWN profile,
+ * A teammate's profile - the same layout an admin sees for their OWN profile,
  * just for someone else and read-only until Edit. Role changes, deactivation
  * and deletion live in the team table's row menu; this page is purely
  * "view/edit this person's profile" so the two never duplicate each other.
@@ -149,7 +149,7 @@ export default function TeamMemberDetailPage() {
 
   const info: [string, string][] = [
     ["Email", user.email],
-    ["Phone", user.phone ?? "—"],
+    ["Phone", user.phone ?? "-"],
     ["Two-factor", user.twoFactorEnabled ? "Enabled" : "Off"],
     ["Joined", formatDateTime(user.createdAt)],
     ["Last updated", formatDateTime(user.updatedAt)],
@@ -270,7 +270,7 @@ export default function TeamMemberDetailPage() {
 
         {isMe ? (
           <p className="mt-4 border-t border-ink/10 pt-4 text-[13.5px] text-ink/55">
-            This is your account — manage it from{" "}
+            This is your account - manage it from{" "}
             <Link href="/admin/profile" className="font-semibold text-accent">
               your profile
             </Link>

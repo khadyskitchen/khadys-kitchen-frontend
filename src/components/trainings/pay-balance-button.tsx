@@ -13,7 +13,7 @@ import { notify } from "@/lib/notify";
  * greet the applicant on the return trip.
  *
  * This is a plain fetch by exception: the public applications slice is final
- * and has no pay-by-code hook, and this is a one-shot redirect handoff — the
+ * and has no pay-by-code hook, and this is a one-shot redirect handoff - the
  * response is never cached or shared, so RTK Query buys nothing here.
  */
 export function PayBalanceButton({

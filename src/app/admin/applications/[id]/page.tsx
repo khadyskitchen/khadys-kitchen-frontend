@@ -118,8 +118,8 @@ export default function ApplicationDetailPage() {
 
   const info: [string, string][] = [
     ["Phone", app.phone],
-    ["Email", app.email ?? "—"],
-    ["Location", app.location ?? "—"],
+    ["Email", app.email ?? "-"],
+    ["Location", app.location ?? "-"],
     ["Needs hostel", app.needsHostel ? "Yes" : "No"],
     ["Applied", formatDateTime(app.createdAt)],
   ];
@@ -176,7 +176,7 @@ export default function ApplicationDetailPage() {
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Applicant</h2>
-            {/* Current status doubles as the transition picker — the same
+            {/* Current status doubles as the transition picker - the same
                 confirmations (and staff can't reject) as the old buttons. */}
             <StatusPicker
               status={app.status}

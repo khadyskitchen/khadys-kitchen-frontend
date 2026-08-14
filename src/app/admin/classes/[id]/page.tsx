@@ -41,8 +41,9 @@ export default function TrainingDetailPage() {
   const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
 
-  const { data: training, isLoading, isError, error, refetch } =
+  const { data, isLoading, isError, error, refetch } =
     useGetTrainingByIdQuery(id);
+  const training = data?.data;
   const [publish, { isLoading: publishing }] = usePublishTrainingMutation();
   const [unpublish, { isLoading: unpublishing }] = useUnpublishTrainingMutation();
   const [deleteTraining] = useDeleteTrainingMutation();
@@ -90,15 +91,15 @@ export default function TrainingDetailPage() {
 
   const dateRange = training.startDate
     ? `${formatDate(training.startDate)}${training.endDate ? ` – ${formatDate(training.endDate)}` : ""}`
-    : "—";
+    : "-";
   const facts: [string, string][] = [
     ["Runs", dateRange],
     ["Category", TRAINING_CATEGORY_LABELS[training.category]],
-    ["Schedule", training.schedule ?? "—"],
-    ["Duration", training.duration ?? "—"],
-    ["Mode", training.mode ?? "—"],
+    ["Schedule", training.schedule ?? "-"],
+    ["Duration", training.duration ?? "-"],
+    ["Mode", training.mode ?? "-"],
     ["Certificate", training.hasCertificate ? "Yes" : "No"],
-    ["Capacity", training.capacity != null ? `${String(training.capacity)} seats` : "—"],
+    ["Capacity", training.capacity != null ? `${String(training.capacity)} seats` : "-"],
     ["Applicants", String(training.counts?.applications ?? 0)],
     ["Students", String(training.counts?.students ?? 0)],
     ["Currency", training.currency],
@@ -162,7 +163,7 @@ export default function TrainingDetailPage() {
       </div>
 
       <div className="grid gap-[18px]">
-        {/* Overview — summary, key facts, cover + prospectus */}
+        {/* Overview - summary, key facts, cover + prospectus */}
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Overview</h2>

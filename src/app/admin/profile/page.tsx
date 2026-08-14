@@ -17,7 +17,7 @@ const schema = z.object({
   firstName: z.string().trim().min(1, "Required").max(50),
   lastName: z.string().trim().min(1, "Required").max(50),
   email: z.email("Enter a valid email").max(255),
-  // Only required when the email actually changes — enforced in onSubmit,
+  // Only required when the email actually changes - enforced in onSubmit,
   // since the schema alone doesn't know the account's current address.
   currentPassword: z.string(),
   phone: z
@@ -34,7 +34,7 @@ const roleLabel = (role: string) =>
     ? "Super admin"
     : role.charAt(0) + role.slice(1).toLowerCase();
 
-/** Profile — read-only until "Edit" activates the inputs. */
+/** Profile - read-only until "Edit" activates the inputs. */
 export default function ProfilePage() {
   const user = useCurrentUser();
   const [editing, setEditing] = useState(false);
@@ -77,7 +77,7 @@ export default function ProfilePage() {
   });
 
   // Changing the sign-in email is a guarded operation: the backend wants the
-  // current password and then emails the CURRENT address a confirmation link —
+  // current password and then emails the CURRENT address a confirmation link -
   // the address only switches once that link is clicked.
   const emailChanged =
     Boolean(user?.email) && watch("email").trim() !== user?.email;
@@ -113,7 +113,7 @@ export default function ProfilePage() {
         photo: stagedPhoto ?? undefined,
       }).unwrap();
       notify.success(
-        changingEmail ? "Profile updated — one more step" : "Profile updated",
+        changingEmail ? "Profile updated - one more step" : "Profile updated",
         changingEmail
           ? {
               description:
@@ -134,11 +134,11 @@ export default function ProfilePage() {
     }
   };
 
-  // No "Name" row — the profile header beside the photo already shows it.
+  // No "Name" row - the profile header beside the photo already shows it.
   const info: [string, string][] = [
-    ["Email", user?.email ?? "—"],
-    ["Phone", user?.phone ?? "—"],
-    ["Role", user ? roleLabel(user.role) : "—"],
+    ["Email", user?.email ?? "-"],
+    ["Phone", user?.phone ?? "-"],
+    ["Role", user ? roleLabel(user.role) : "-"],
     ["Two-factor", user?.twoFactorEnabled ? "Enabled" : "Off"],
   ];
 

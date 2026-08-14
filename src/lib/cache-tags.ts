@@ -2,7 +2,7 @@
 //
 // Cache-tag vocabulary shared with the backend. Every public server fetch
 // labels its Data Cache entry with one of these tags, and the backend purges
-// by tag via POST /api/revalidate after a successful content write — so admin
+// by tag via POST /api/revalidate after a successful content write - so admin
 // changes go live immediately instead of waiting out the ISR window.
 //
 // The names form a cross-repo contract with

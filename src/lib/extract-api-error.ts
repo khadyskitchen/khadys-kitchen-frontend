@@ -2,7 +2,8 @@
  * Normalizes any thrown/returned error into a predictable shape for toasts and
  * inline form errors. Handles plain strings, `Error`, `{ message }` objects, and
  * RTK-Query-style errors (`FETCH_ERROR`/`TIMEOUT_ERROR`, `{ status, data }`
- * envelopes with field errors). Ready for when the backend is connected.
+ * envelopes with field errors) using the backend's error envelope
+ * (error-handler.ts: message, code, errorId, details.errors).
  */
 export interface NormalizedError {
   message: string;
@@ -53,7 +54,7 @@ export function extractApiError(error: unknown): NormalizedError {
 
   if (isRecord(error)) {
     // RTK aborts (e.g. a state reset or unmount cancelled the request) aren't
-    // a user-facing failure mode — never surface a bare "Aborted".
+    // a user-facing failure mode - never surface a bare "Aborted".
     const name = typeof error.name === "string" ? error.name : undefined;
     const msg = typeof error.message === "string" ? error.message : undefined;
     if (

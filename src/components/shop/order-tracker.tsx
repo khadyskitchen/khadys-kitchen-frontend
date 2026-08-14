@@ -69,18 +69,32 @@ function PayBalance({ order }: { order: IOrder }) {
   const [payOrder, { isLoading }] = usePayOrderByCodeMutation();
   const [needEmail, setNeedEmail] = useState(false);
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const start = async () => {
-    if (!order.email && !email.trim()) {
-      setNeedEmail(true);
-      return;
+    if (!order.email) {
+      const trimmed = email.trim();
+      if (!needEmail) {
+        // First click reveals the email field; nothing to validate yet.
+        setNeedEmail(true);
+        return;
+      }
+      if (!trimmed) {
+        setEmailError("Add an email so we can send your receipt.");
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        setEmailError("That doesn't look like an email - double-check it.");
+        return;
+      }
+      setEmailError("");
     }
     try {
       const res = await payOrder({
         code: order.code,
         email: order.email ? undefined : email.trim(),
       }).unwrap();
-      // Stash the code so /shop/verify can link back to this order on return —
+      // Stash the code so /shop/verify can link back to this order on return -
       // every other Paystack handoff stashes before redirecting out.
       sessionStorage.setItem(ORDER_CODE_KEY, order.code);
       window.location.assign(res.data.authorizationUrl);
@@ -99,10 +113,24 @@ function PayBalance({ order }: { order: IOrder }) {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError("");
+            }}
             placeholder="you@example.com"
+            aria-invalid={emailError ? true : undefined}
+            aria-describedby={emailError ? "pay-balance-email-error" : undefined}
             className="w-full rounded-[12px] border border-ink/20 bg-cream px-4 py-3.5 font-sans text-[16px] normal-case tracking-normal text-ink outline-none transition-colors focus:border-accent"
           />
+          {emailError ? (
+            <span
+              id="pay-balance-email-error"
+              role="alert"
+              className="text-[13px] font-medium normal-case tracking-normal text-danger"
+            >
+              {emailError}
+            </span>
+          ) : null}
         </label>
       ) : null}
       <Button
@@ -115,7 +143,7 @@ function PayBalance({ order }: { order: IOrder }) {
         Pay {formatMoney(order.balance, order.currency)} online
       </Button>
       <p className="text-center text-[13px] text-ink/50">
-        Secure card / MoMo payment via Paystack — or call us to pay offline;
+        Secure card / MoMo payment via Paystack - or call us to pay offline;
         baking starts once payment is received.
       </p>
     </div>
@@ -161,8 +189,8 @@ export function OrderTracker({ code }: { code: string }) {
   return (
     <div style={{ animation: "kk-rise .5s both" }}>
       {justPlaced && !cancelled ? (
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[14px] border border-[#2E6B3F]/25 bg-[#2E6B3F]/10 px-5 py-4 text-[15px] text-[#2E6B3F]">
-          <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-[#2E6B3F] text-[15px] text-white">
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-[14px] border border-success/25 bg-success/10 px-5 py-4 text-[15px] text-success">
+          <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-success text-[15px] text-white">
             ✓
           </span>
           Order received - we&rsquo;ve texted your code to {order.phone}. Keep it
@@ -196,7 +224,7 @@ export function OrderTracker({ code }: { code: string }) {
               : ""}
           </div>
         ) : (
-          // Five steps only fit side-by-side from md up — below that the
+          // Five steps only fit side-by-side from md up - below that the
           // timeline stays vertical, and the horizontal layout gets a real
           // column gap so labels/hints can never run into each other.
           <ol className="grid gap-0 md:grid-cols-5 md:gap-x-4">
@@ -220,7 +248,7 @@ export function OrderTracker({ code }: { code: string }) {
                     className={cn(
                       "relative z-10 grid h-7 w-7 flex-none place-items-center rounded-full border-[2px] text-[12px] font-bold",
                       done
-                        ? "border-accent bg-accent text-[#FDFAF3]"
+                        ? "border-accent bg-accent text-card"
                         : "border-ink/25 bg-card text-ink/40",
                     )}
                   >

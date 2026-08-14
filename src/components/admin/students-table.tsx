@@ -34,7 +34,7 @@ const STATUS_FILTERS = ["all", "ACTIVE", "SUSPENDED", "GRADUATED", "WITHDRAWN"];
 const DEFAULTS = { status: "all", from: "", to: "" };
 const PAGE_SIZE = 10;
 
-/** Students table — standalone or scoped to a training via `trainingId`. */
+/** Students table - standalone or scoped to a training via `trainingId`. */
 export function StudentsTable({
   trainingId,
   prefix,
@@ -61,7 +61,11 @@ export function StudentsTable({
       limit: PAGE_SIZE,
       trainingId,
       search: (queryParams.search as string | undefined) ?? undefined,
-      status: filters.status !== "all" ? filters.status : undefined,
+      // Select options are the StudentStatus literals; "all" means unset.
+      status:
+        filters.status !== "all"
+          ? (filters.status as import("@/types/student.types").StudentStatus)
+          : undefined,
       from: filters.from || undefined,
       to: filters.to || undefined,
     });
@@ -138,7 +142,7 @@ export function StudentsTable({
   const rows = data?.data ?? [];
   const meta = data?.meta;
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (st: IStudent) => [
     {
@@ -223,7 +227,7 @@ export function StudentsTable({
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching students"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
@@ -233,7 +237,7 @@ export function StudentsTable({
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />
@@ -315,7 +319,7 @@ export function StudentsTable({
                       {!trainingId ? (
                         <td className="whitespace-nowrap px-4 py-3 text-[14px] text-ink/70">
                           <span title={st.training?.name} className="max-w-[170px] truncate sm:max-w-[260px] block">
-                            {st.training?.name ?? "—"}
+                            {st.training?.name ?? "-"}
                           </span>
                         </td>
                       ) : null}

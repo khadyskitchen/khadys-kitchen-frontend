@@ -3,13 +3,13 @@ import { Reveal } from '@/components/reveal';
 import type { IAboutContent } from '@/types/about.types';
 
 // Static copy used until an admin saves their own version (and for any field
-// they leave blank) — the section never renders half-empty.
+// they leave blank) - the section never renders half-empty.
 const DEFAULTS = {
   eyebrow: 'Our story',
   heading: 'Nine years of cake artistry in Kumasi.',
   body: "For over 9 years, Khady's Kitchen has been at the forefront of cake artistry in Kumasi, building a reputation for excellence, creativity, and unforgettable taste. Today, we are proudly recognized as one of the city's leading cake brands, trusted by thousands of families, businesses, and institutions for life's most important celebrations.\n\nOur impact goes beyond cakes. We have trained thousands of aspiring bakers, many of whom have gone on to build successful baking businesses of their own. Through innovation, consistency, and an uncompromising commitment to quality, Khady's Kitchen continues to raise the standard in the baking industry.\n\nWhether it's a simple birthday cake or an extraordinary custom masterpiece, every creation reflects our passion, craftsmanship, and pursuit of perfection.",
   pullQuote:
-    "We don't just bake cakes — we create memories, celebrate milestones, and inspire excellence.",
+    "We don't just bake cakes - we create memories, celebrate milestones, and inspire excellence.",
   founder: "Khady's Kitchen",
   image: '/story-graduation-class.jpg',
 };

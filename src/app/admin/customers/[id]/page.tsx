@@ -109,7 +109,7 @@ export default function CustomerDetailPage() {
           <p className="px-6 py-5 text-[14px] text-ink/50">No orders yet.</p>
         ) : (
           <>
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {orders.map((o) => (
                 <RowCard

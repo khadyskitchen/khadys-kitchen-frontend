@@ -8,8 +8,8 @@ import { ImageResponse } from "next/og";
  * contact, legal): cream field, accent top rule, the real logo from public/,
  * page-specific text, and a call-to-action pill so shares invite a click.
  *
- * Satori (behind `ImageResponse`) supports only flexbox + a CSS subset — no
- * grid — so the layout stays flex-based. OG file conventions run on the Node
+ * Satori (behind `ImageResponse`) supports only flexbox + a CSS subset - no
+ * grid - so the layout stays flex-based. OG file conventions run on the Node
  * runtime, so the logo is read from disk and embedded as a data URI.
  */
 export const OG_SIZE = { width: 1200, height: 630 } as const;
@@ -31,7 +31,7 @@ export async function brandOgImage({
   eyebrow: string;
   title: string;
   subtitle: string;
-  /** The conversion line on the card — tailor it per page. */
+  /** The conversion line on the card - tailor it per page. */
   cta?: string;
 }) {
   const logo = await readFile(path.join(process.cwd(), "public", "logo.png"));

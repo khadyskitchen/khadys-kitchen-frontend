@@ -27,3 +27,13 @@ export const env = {
    */
   TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
 } as const;
+
+// Deliberate fail-open, but never a SILENT one: a production build without a
+// Turnstile site key ships every public form bot-unprotected (the backend
+// mirrors this when its secret is unset). Loud in the build/server logs so a
+// forgotten env var is caught at deploy, not discovered via spam.
+if (process.env.NODE_ENV === "production" && !env.TURNSTILE_SITE_KEY) {
+  console.error(
+    "[env] NEXT_PUBLIC_TURNSTILE_SITE_KEY is unset - public forms will submit without bot protection.",
+  );
+}

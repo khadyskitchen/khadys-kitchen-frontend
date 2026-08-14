@@ -7,7 +7,7 @@ import {
 import type { IFeeItem, ITraining } from "@/types/training.types";
 
 /**
- * The class's fee breakdown. Every price stands on its own — there is no
+ * The class's fee breakdown. Every price stands on its own - there is no
  * summed total, because fee items are independent: variants sharing a
  * choiceGroup are alternatives ("pick one", shown joined by an OR divider) and
  * optional items are added only if the applicant chooses them when applying.
@@ -49,8 +49,8 @@ function FeeRow({
   currency: string;
 }) {
   // Phones stack text above the price. From sm, flex-wrap keeps the two on
-  // one row when the text fits a single line and drops the price below —
-  // text spreading the full row — only when it can't. The text block keeps
+  // one row when the text fits a single line and drops the price below -
+  // text spreading the full row - only when it can't. The text block keeps
   // its natural (auto) basis so the wrap decision follows the actual words,
   // not a fixed column width.
   return (
@@ -117,7 +117,7 @@ export function FeesTable({ training }: { training: ITraining }) {
           {blocks.map((block, blockIndex) => {
             const divider =
               blockIndex < blocks.length - 1 ? "border-b border-ink/[0.09]" : "";
-            // A choice group shares one number — it is one decision, not many fees.
+            // A choice group shares one number - it is one decision, not many fees.
             const row = blockIndex + 1;
             if (block.type === "item") {
               return (
@@ -162,7 +162,7 @@ export function FeesTable({ training }: { training: ITraining }) {
 
         {hasChoices ? (
           <p className="mx-auto mt-5 max-w-[56ch] text-center text-[14px] leading-[1.6] text-ink/55">
-            Each price stands on its own — options joined by &ldquo;or&rdquo;
+            Each price stands on its own - options joined by &ldquo;or&rdquo;
             are alternatives, and optional items are added only if you choose
             them when applying.
           </p>

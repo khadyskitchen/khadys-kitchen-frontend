@@ -25,7 +25,7 @@ export default async function ResetPasswordPage({
     </Link>
   );
 
-  // A link with no token is unusable — send the user back to request a fresh one
+  // A link with no token is unusable - send the user back to request a fresh one
   // rather than rendering a form that can only fail.
   if (!token) {
     return (

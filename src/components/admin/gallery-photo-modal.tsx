@@ -16,9 +16,9 @@ const MAX_CAPTION = 300; // matches the backend createGalleryImageSchema cap
 
 /**
  * Add / edit dialog for a gallery photo. Uploads are deliberately one photo
- * per save — the file travels WITH the request as multipart, so there is no
+ * per save - the file travels WITH the request as multipart, so there is no
  * background job to queue and a cancelled dialog never orphans an upload.
- * Editing changes the caption and/or replaces the photo (never clears it —
+ * Editing changes the caption and/or replaces the photo (never clears it -
  * the photo IS the record).
  */
 export function GalleryPhotoModal({
@@ -141,7 +141,7 @@ export function GalleryPhotoModal({
               type="checkbox"
               checked={publishNow}
               onChange={(e) => setPublishNow(e.target.checked)}
-              className="h-4 w-4 accent-[--color-accent]"
+              className="h-4 w-4 accent-accent"
             />
             Publish to the site right away
           </label>

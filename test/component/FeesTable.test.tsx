@@ -52,7 +52,7 @@ const VARIANTS = [
 afterEach(() => cleanup());
 
 describe("FeesTable", () => {
-  it("never sums the prices — no total row", () => {
+  it("never sums the prices - no total row", () => {
     render(<FeesTable training={training(VARIANTS)} />);
     expect(screen.queryByText(/total/i)).not.toBeInTheDocument();
     // 2,000 + 2,900 must never appear combined.

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Reveal } from "@/components/reveal";
-import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { Button } from "@/components/ui/Button";
+import { ChoiceButton, ChoiceGroup } from "@/components/ui/ChoiceButton";
+import { FieldError } from "@/components/ui/FieldError";
 import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
@@ -32,6 +34,7 @@ const NEXT_STEPS = [
 ];
 
 export function ContactForm() {
+  const fieldId = useId();
   const [sent, setSent] = useState(false);
   const [senderName, setSenderName] = useState("friend");
   // Cloudflare Turnstile: the token gates submit only when a site key is set.
@@ -59,13 +62,6 @@ export function ContactForm() {
   });
 
   const topic = useWatch({ control, name: "topic" });
-  const errorMessage =
-    errors.name?.message ??
-    errors.contact?.message ??
-    errors.message?.message ??
-    (turnstileError
-      ? "Please complete the verification to send your message."
-      : undefined);
 
   const onSubmit = async (data: ContactValues) => {
     if (TURNSTILE_ENABLED && !turnstileToken) {
@@ -87,7 +83,7 @@ export function ContactForm() {
       notify.error("Couldn't send your message", {
         description: extractApiError(err).message,
       });
-      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      // A Turnstile token is single-use - reset so a retry gets a fresh one.
       setTurnstileReset((n) => n + 1);
     }
   };
@@ -105,7 +101,7 @@ export function ContactForm() {
         </Reveal>
 
         <div className="grid gap-[clamp(28px,4vw,56px)] lg:grid-cols-[1fr_minmax(0,420px)] lg:items-start">
-          {/* Form (min-w-0 so no child — e.g. the Turnstile iframe — can force
+          {/* Form (min-w-0 so no child - e.g. the Turnstile iframe - can force
               the shared grid column wider than the viewport) */}
           <div className="min-w-0">
             {sent ? (
@@ -113,7 +109,7 @@ export function ContactForm() {
                 className="rounded-[22px] border border-ink/10 bg-card p-[clamp(36px,5vw,52px)] text-center"
                 style={{ animation: "kk-fadein .7s both" }}
               >
-                <div className="mx-auto mb-5 grid h-[60px] w-[60px] place-items-center rounded-full bg-accent text-[26px] text-[#FDFAF3]">
+                <div className="mx-auto mb-5 grid h-[60px] w-[60px] place-items-center rounded-full bg-accent text-[26px] text-card">
                   ✓
                 </div>
                 <h3 className="mb-2.5 font-serif text-[26px] font-normal">
@@ -136,7 +132,15 @@ export function ContactForm() {
                       <input
                         {...register("name")}
                         placeholder="e.g. Kofi Owusu"
+                        aria-invalid={errors.name ? true : undefined}
+                        aria-describedby={
+                          errors.name ? `${fieldId}-name` : undefined
+                        }
                         className={inputClass}
+                      />
+                      <FieldError
+                        id={`${fieldId}-name`}
+                        message={errors.name?.message}
                       />
                     </label>
                     <label className={labelClass}>
@@ -144,7 +148,15 @@ export function ContactForm() {
                       <input
                         {...register("contact")}
                         placeholder="How do we reach you?"
+                        aria-invalid={errors.contact ? true : undefined}
+                        aria-describedby={
+                          errors.contact ? `${fieldId}-contact` : undefined
+                        }
                         className={inputClass}
+                      />
+                      <FieldError
+                        id={`${fieldId}-contact`}
+                        message={errors.contact?.message}
                       />
                     </label>
                   </div>
@@ -153,7 +165,10 @@ export function ContactForm() {
                     <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
                       What&rsquo;s it about?
                     </span>
-                    <div className="flex flex-wrap gap-2.5">
+                    <ChoiceGroup
+                      label="What's it about?"
+                      className="flex flex-wrap gap-2.5"
+                    >
                       {CONTACT_TOPICS.map((t) => (
                         <ChoiceButton
                           key={t}
@@ -165,7 +180,7 @@ export function ContactForm() {
                           {t}
                         </ChoiceButton>
                       ))}
-                    </div>
+                    </ChoiceGroup>
                   </div>
 
                   <label className={labelClass}>
@@ -174,7 +189,15 @@ export function ContactForm() {
                       {...register("message")}
                       rows={5}
                       placeholder="Tell us about your order, event, or question…"
+                      aria-invalid={errors.message ? true : undefined}
+                      aria-describedby={
+                        errors.message ? `${fieldId}-message` : undefined
+                      }
                       className={cn(inputClass, "resize-y")}
+                    />
+                    <FieldError
+                      id={`${fieldId}-message`}
+                      message={errors.message?.message}
                     />
                   </label>
 
@@ -196,19 +219,23 @@ export function ContactForm() {
                     resetSignal={turnstileReset}
                   />
 
-                  {errorMessage ? (
-                    <div className="rounded-[12px] border border-danger/25 bg-danger/[0.08] px-4 py-3 text-[14.5px] text-danger">
-                      {errorMessage}
+                  {turnstileError ? (
+                    <div
+                      role="alert"
+                      className="rounded-[12px] border border-danger/25 bg-danger/[0.08] px-4 py-3 text-[14.5px] text-danger"
+                    >
+                      Please complete the verification to send your message.
                     </div>
                   ) : null}
 
-                  <button
+                  <Button
                     type="submit"
-                    disabled={sending}
-                    className="cursor-pointer justify-self-start rounded-full border-none bg-accent px-[34px] py-[17px] font-sans text-[15.5px] font-semibold tracking-[0.06em] text-[#FDFAF3] transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
+                    isLoading={sending}
+                    loadingText="Sending…"
+                    className="justify-self-start"
                   >
-                    {sending ? "Sending…" : "Send message"}
-                  </button>
+                    Send message
+                  </Button>
                 </form>
               </Reveal>
             )}

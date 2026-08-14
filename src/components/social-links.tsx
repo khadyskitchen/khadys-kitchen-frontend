@@ -8,7 +8,7 @@ interface Social {
   icon: ReactNode;
 }
 
-/** One list of social profiles for the whole site (footer, contact page…) —
+/** One list of social profiles for the whole site (footer, contact page…) -
  * the URLs live in `siteConfig.socials`, so every surface follows an edit there. */
 export const SOCIALS: Social[] = [
   {
@@ -67,8 +67,8 @@ export function SocialLinks({
             "grid place-items-center rounded-full border-[1.5px] transition-colors",
             size === "md" ? "h-[50px] w-[50px]" : "h-[42px] w-[42px]",
             tone === "light"
-              ? "border-ink/15 text-ink hover:border-accent hover:bg-accent hover:text-[#FDFAF3]"
-              : "border-cream/25 text-cream/85 hover:border-accent hover:bg-accent hover:text-[#FDFAF3]",
+              ? "border-ink/15 text-ink hover:border-accent hover:bg-accent hover:text-card"
+              : "border-cream/25 text-cream/85 hover:border-accent hover:bg-accent hover:text-card",
           )}
         >
           {s.icon}

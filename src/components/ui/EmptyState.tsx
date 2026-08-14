@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 export interface EmptyStateAction {
   label: string;
@@ -18,31 +18,21 @@ export interface EmptyStateProps {
   className?: string;
 }
 
-const ACTION_VARIANT = {
-  primary: "bg-accent text-[#FDFAF3] hover:bg-ink",
-  dark: "bg-ink text-cream hover:bg-accent",
-  outline:
-    "border-[1.5px] border-ink/25 bg-transparent text-ink hover:border-ink/50",
-};
-
 function Action({ action }: { action: EmptyStateAction }) {
-  const className = cn(
-    "cursor-pointer rounded-full px-7 py-3 text-[14px] font-semibold no-underline transition-colors",
-    ACTION_VARIANT[action.variant ?? "primary"],
-  );
+  const variant = action.variant ?? "primary";
   return action.href ? (
-    <Link href={action.href} className={className}>
+    <ButtonLink href={action.href} variant={variant}>
       {action.label}
-    </Link>
+    </ButtonLink>
   ) : (
-    <button type="button" onClick={action.onClick} className={className}>
+    <Button onClick={action.onClick} variant={variant}>
       {action.label}
-    </button>
+    </Button>
   );
 }
 
 /**
- * Centered empty/idle state — an optional accent eyebrow, a serif headline, a
+ * Centered empty/idle state - an optional accent eyebrow, a serif headline, a
  * hint, and up to two actions. Icon-less and box-less by design (just centered
  * content); the caller controls the surrounding space. Use whenever a list,
  * search, page, or queue has nothing to show, public site or admin console.

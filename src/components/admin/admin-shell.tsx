@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import {
   type AdminNavEntry,
 } from "@/lib/admin/nav";
 import { useTrackNavHistory } from "@/components/admin/back-link";
+import { useModalFocus } from "@/hooks/use-modal-focus";
 import { useLogoutMutation } from "@/redux/auth/auth-api";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -131,7 +132,7 @@ function NavGroup({
   const active = entryIsActive(entry, pathname);
   const [open, setOpen] = useState(active);
 
-  // Navigating into a child (e.g. via a cross-link) re-opens the group —
+  // Navigating into a child (e.g. via a cross-link) re-opens the group -
   // adjusted during render (React's derive-from-props pattern), not an effect.
   const [prevActive, setPrevActive] = useState(active);
   if (active !== prevActive) {
@@ -193,7 +194,7 @@ function NavGroup({
 
 /**
  * Sidebar footer: the signed-in account row is a button that opens a small
- * menu (upward, since it sits at the bottom) with Back to site and Sign out —
+ * menu (upward, since it sits at the bottom) with Back to site and Sign out -
  * the footer itself stays a single tidy row.
  */
 function AccountMenu({
@@ -270,7 +271,7 @@ function AccountMenu({
             className="h-[38px] w-[38px] flex-none rounded-full object-cover"
           />
         ) : (
-          <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-full bg-accent font-serif text-[15px] text-[#FDFAF3]">
+          <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-full bg-accent font-serif text-[15px] text-card">
             {account.initials}
           </span>
         )}
@@ -315,23 +316,18 @@ function MobileMenu({
   onLogout: () => void;
   loggingOut: boolean;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open, onClose]);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  // aria-modal demands modal behavior: shared focus trap + restore + scroll
+  // lock + Escape, same as the ui Modal.
+  useModalFocus(open, overlayRef, { onEscape: onClose });
 
   if (!open) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-ink text-cream"
+      ref={overlayRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[100] flex flex-col bg-ink text-cream outline-none"
       style={{ animation: "kk-fadein .3s both" }}
       role="dialog"
       aria-modal="true"
@@ -485,7 +481,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <div className="text-[11.5px] font-semibold uppercase tracking-[0.18em] text-accent">
                   {crumb}
                 </div>
-                {/* Phones: clamp to two lines instead of truncating — titles
+                {/* Phones: clamp to two lines instead of truncating - titles
                     like "Student applications" stay readable at 280px. */}
                 <h1 className="mt-0.5 line-clamp-2 font-serif text-[clamp(19px,2.4vw,26px)] font-normal leading-snug min-[1000px]:truncate">
                   {title}

@@ -35,7 +35,7 @@ import {
   useGetOrdersQuery,
   useSetOrderStatusMutation,
 } from "@/redux/orders/orders-api";
-import type { IOrder } from "@/types/order.types";
+import type { IOrder, IOrderListQuery } from "@/types/order.types";
 
 const STATUS_FILTERS = [
   "all",
@@ -48,6 +48,8 @@ const STATUS_FILTERS = [
 ];
 const PAYMENT_FILTERS = ["all", "UNPAID", "PARTIAL", "PAID"];
 const DEFAULTS = { status: "all", payment: "all", from: "", to: "" };
+// Local filter name -> API param name (the hook renames in queryParams).
+const FILTER_KEYS = { payment: "paymentStatus" } as const;
 const PAGE_SIZE = 12;
 
 const titleCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
@@ -69,7 +71,7 @@ export default function OrdersPage() {
     }
   };
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (o: IOrder) => [
     {
@@ -102,7 +104,7 @@ export default function OrdersPage() {
         ]
       : []),
   ];
-  // Deep-linked from an item's "View orders" — narrows the list to orders
+  // Deep-linked from an item's "View orders" - narrows the list to orders
   // containing that product; cleared with its chip.
   const productId = useSearchParams().get("productId") ?? undefined;
   const {
@@ -114,20 +116,16 @@ export default function OrdersPage() {
     setFilter,
     setPage,
     queryParams,
-  } =
-    useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
+  } = useTableQuery<typeof DEFAULTS, IOrderListQuery>({
+    defaults: DEFAULTS,
+    pageSize: PAGE_SIZE,
+    filterKeys: FILTER_KEYS,
+  });
 
+  // `queryParams` already carries page/limit/search plus the active filters
+  // under their API names ("all"/empty defaults omitted).
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetOrdersQuery({
-      page,
-      limit: PAGE_SIZE,
-      productId,
-      search: (queryParams.search as string | undefined) ?? undefined,
-      status: filters.status !== "all" ? filters.status : undefined,
-      paymentStatus: filters.payment !== "all" ? filters.payment : undefined,
-      from: filters.from || undefined,
-      to: filters.to || undefined,
-    });
+    useGetOrdersQuery({ ...queryParams, productId }, { refetchOnFocus: true });
 
   const rows = data?.data ?? [];
   const meta = data?.meta;
@@ -145,7 +143,7 @@ export default function OrdersPage() {
       <div style={{ animation: "kk-rise .5s both" }}>
         <EmptyState
           title="No orders yet"
-          description="Shop orders land here the moment a customer checks out — or record a walk-in from the counter."
+          description="Shop orders land here the moment a customer checks out - or record a walk-in from the counter."
           action={{ label: "+ Walk-in order", onClick: () => setRecording(true) }}
         />
         <WalkInOrderModal open={recording} onClose={() => setRecording(false)} />
@@ -211,7 +209,7 @@ export default function OrdersPage() {
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching orders"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
@@ -221,7 +219,7 @@ export default function OrdersPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />
@@ -234,7 +232,7 @@ export default function OrdersPage() {
                       onOpen={() => router.push(`/admin/orders/${o.id}`)}
                       action={<ActionMenu items={menuItemsFor(o)} />}
                     >
-                      {/* The money never truncates — the name and meta give way. */}
+                      {/* The money never truncates - the name and meta give way. */}
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="min-w-0 truncate text-[14.5px] font-semibold text-ink">
                           {o.fullName}

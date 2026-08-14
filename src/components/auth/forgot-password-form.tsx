@@ -49,7 +49,7 @@ export function ForgotPasswordForm() {
         <p className="text-[14.5px] leading-[1.6] text-ink/70">
           If an account exists for{" "}
           <span className="font-semibold text-ink">{sentTo}</span>, a
-          password-reset link is on its way. Check your inbox (and spam) — the
+          password-reset link is on its way. Check your inbox (and spam) - the
           link expires in 30 minutes.
         </p>
         <Link

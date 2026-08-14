@@ -13,7 +13,7 @@ export interface ActionItem {
 }
 
 /**
- * Compact dropdown for row/detail actions — the dms-style "⋯" menu. Keeps
+ * Compact dropdown for row/detail actions - the dms-style "⋯" menu. Keeps
  * tables tidy when a row has many actions and collapses gracefully on small
  * screens. Closes on outside click, Escape, and after an action runs; clicks
  * never bubble to the row (rows navigate on click).
@@ -33,7 +33,7 @@ export function ActionMenu({
   label?: string;
   align?: "left" | "right";
   className?: string;
-  /** Fully custom trigger content (wins over `label`) — rendered inside the
+  /** Fully custom trigger content (wins over `label`) - rendered inside the
    * menu button so the portal/flip/keyboard logic stays shared. Receives the
    * open state (e.g. to rotate a chevron). */
   trigger?: (open: boolean) => React.ReactNode;
@@ -52,7 +52,7 @@ export function ActionMenu({
     left: number;
     /** Set when opening downward. */
     top?: number;
-    /** Set when flipped upward (distance from the viewport bottom) — anchoring
+    /** Set when flipped upward (distance from the viewport bottom) - anchoring
      * by `bottom` keeps the flip exact whatever the menu's real height. */
     bottom?: number;
     maxHeight?: number;
@@ -60,7 +60,7 @@ export function ActionMenu({
 
   const closeAndRestore = () => {
     setOpen(false);
-    // Return focus to the trigger — it's the element the menu belongs to.
+    // Return focus to the trigger - it's the element the menu belongs to.
     rootRef.current?.querySelector<HTMLButtonElement>(":scope > button")?.focus();
   };
 
@@ -118,7 +118,7 @@ export function ActionMenu({
         : Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
 
     // Flip above the trigger when the menu wouldn't fit below (a row near the
-    // viewport bottom) — a fixed-position menu can't be scrolled into view.
+    // viewport bottom) - a fixed-position menu can't be scrolled into view.
     // Measure the real menu when it's mounted; estimate from the item count on
     // first open (~41px per item + container padding).
     const menuHeight =
@@ -286,7 +286,7 @@ export function ActionMenu({
                   className={cn(
                     "block w-full cursor-pointer rounded-[10px] px-3.5 py-2.5 text-left text-[13.5px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45",
                     item.variant === "danger"
-                      ? "text-[#A32036] hover:bg-[rgba(163,32,54,0.08)]"
+                      ? "text-danger hover:bg-danger/[0.08]"
                       : "text-ink hover:bg-accent/[0.07]",
                   )}
                 >

@@ -52,7 +52,7 @@ export function PageActions({ actions }: { actions: PageAction[] }) {
       <div className="hidden flex-wrap items-center gap-2.5 md:flex">
         {actions.map(asButton)}
       </div>
-      {/* Small screens: primary action(s) + everything else behind "More" —
+      {/* Small screens: primary action(s) + everything else behind "More" -
           unless only ONE action would end up there, in which case a "More"
           holding a single item is worse than just showing the button. */}
       <div className="flex flex-wrap items-center gap-2.5 md:hidden">

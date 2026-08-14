@@ -38,6 +38,11 @@ export function ShopBrowser({
   // One fetch for the whole catalogue; filtering/sorting stays client-side so
   // the toolbar feels instant (the bakery's range is small). Fall back to the
   // server-fetched list until RTK Query's own data lands.
+  // Deliberate double-fetch trade-off: every visitor refetches the catalogue
+  // over the ISR-rendered HTML so stock/availability are live (the ISR page
+  // can be up to 6h old between tag purges). Cost: one extra backend hit per
+  // visit and a possible post-hydration content swap - accepted for a
+  // catalogue where "sold out" must be current.
   const { data, isLoading, isError, error, refetch } =
     useGetPublicProductsQuery({ limit: 100 });
   const products = useMemo(
@@ -127,7 +132,7 @@ export function ShopBrowser({
     setPage(1);
   };
 
-  // Only surface error/loading when there's no server-rendered list to show —
+  // Only surface error/loading when there's no server-rendered list to show -
   // if we already have products, a background refetch shouldn't blank the page.
   if (isError && products.length === 0) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
@@ -197,7 +202,7 @@ export function ShopBrowser({
             </svg>
             Search &amp; filters
             {activeCount > 0 ? (
-              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-[#FDFAF3]">
+              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-card">
                 {activeCount}
               </span>
             ) : null}
@@ -365,7 +370,7 @@ export function ShopBrowser({
                     className={cn(
                       "grid h-[46px] w-[46px] cursor-pointer place-items-center rounded-full border-[1.5px] text-[15px] font-semibold transition-colors",
                       n === currentPage
-                        ? "border-accent bg-accent text-[#FDFAF3]"
+                        ? "border-accent bg-accent text-card"
                         : "border-ink/20 text-ink hover:border-accent hover:text-accent",
                     )}
                   >

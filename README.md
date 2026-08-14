@@ -1,14 +1,14 @@
-# Khady's Kitchen — Frontend
+# Khady's Kitchen - Frontend
 
-The web client for **Khady's Kitchen**, a Kumasi patisserie and bake school. It serves the public storefront (shop, trainings, gallery, contact), guest checkout with Paystack, order and application tracking, and a complete admin console for running the business — all against the Khady's Kitchen backend API.
+The web client for **Khady's Kitchen**, a Kumasi patisserie and bake school. It serves the public storefront (shop, trainings, gallery, contact), guest checkout with Paystack, order and application tracking, and a complete admin console for running the business - all against the Khady's Kitchen backend API.
 
 ## Stack
 
 | Concern | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router), React 19, TypeScript (strict) |
-| Client data | RTK Query — one `createApi`, feature endpoints via `injectEndpoints` |
-| Server data | Plain `fetch` helpers with 1h ISR + on-demand revalidation |
+| Client data | RTK Query - one `createApi`, feature endpoints via `injectEndpoints` |
+| Server data | Plain `fetch` helpers with 6h ISR + on-demand tag revalidation |
 | Forms | react-hook-form + Zod v4 |
 | Styling | Tailwind CSS v4 (`@theme` tokens), hand-rolled UI kit in `src/components/ui/` |
 | Payments | Paystack (redirect flow) |
@@ -18,11 +18,11 @@ The web client for **Khady's Kitchen**, a Kumasi patisserie and bake school. It 
 ## Features
 
 ### Public site
-- **Landing** — hero, featured bakes and classes, editable "Our Story"; server-rendered with 1-hour ISR, revalidated on demand when admins edit content.
-- **Shop** — server-rendered catalogue and product pages, localStorage cart with cross-tab sync, guest checkout keyed by phone number, pay online (Paystack) or on pickup, order tracking by `KK-O` code with balance payment.
-- **Bake School** — class catalogue and detail pages, application form with pay-now/pay-later, application status lookup by `KK-A` receipt code.
-- **Gallery, contact, legal** — photo gallery with slideshow/grid views, contact form, privacy and terms pages.
-- **SEO** — per-page metadata with canonicals, branded Open Graph cards generated in code (`src/lib/og-template.tsx`), dynamic sitemap fed by live product/class slugs, robots rules, PWA manifest.
+- **Landing** - hero, featured bakes and classes, editable "Our Story"; server-rendered with 6-hour ISR, revalidated on demand when admins edit content.
+- **Shop** - server-rendered catalogue and product pages, localStorage cart with cross-tab sync, guest checkout keyed by phone number, pay online (Paystack) or on pickup, order tracking by `KK-O` code with balance payment.
+- **Bake School** - class catalogue and detail pages, application form with full or part payment at registration, application status lookup by `KK-A` receipt code.
+- **Gallery, contact, legal** - photo gallery with slideshow/grid views, contact form, privacy and terms pages.
+- **SEO** - per-page metadata with canonicals, branded Open Graph cards generated in code (`src/lib/og-template.tsx`), dynamic sitemap fed by live product/class slugs, robots rules, PWA manifest.
 
 ### Admin console (`/admin`)
 - Dashboard with revenue chart, best sellers, and stats over a selectable range.
@@ -36,7 +36,7 @@ The web client for **Khady's Kitchen**, a Kumasi patisserie and bake school. It 
 - **Server rendering.** Public pages fetch through `src/lib/public-api.ts`, which returns a `found | not-found | error` result so pages can distinguish a real 404 (`notFound()`) from a backend hiccup (retry island).
 - **Payments.** The backend owns pricing and initializes Paystack; the client stashes the order/receipt code in sessionStorage, redirects, and verifies on `/shop/verify` or `/trainings/verify`. Amounts are integer pesewas end-to-end.
 - **Images.** Uploads are downscaled client-side (`src/lib/optimize-image.ts`) before the backend stores them in Cloudinary.
-- **Revalidation.** `POST /api/revalidate` accepts an allowlist of public paths (`/`, `/shop`, `/trainings`, `/gallery`) and is called fire-and-forget after every admin mutation that changes public content.
+- **Revalidation.** `POST /api/revalidate` accepts `{ "tags": [...] }` against the cache-tag allowlist in `src/lib/cache-tags.ts` (`about`, `gallery`, `products`, `trainings`), authenticated by the `x-revalidate-secret` header (must equal `REVALIDATE_SECRET`, compared timing-safe; the route fails closed when the secret is unset). The backend calls it fire-and-forget after every admin mutation that changes public content, purging the matching Data Cache tags; unknown tags are reported back as `skipped`.
 
 ## Getting started
 
@@ -54,7 +54,9 @@ npm run dev            # http://localhost:3000
 |---|---|---|
 | `NEXT_PUBLIC_SERVER_URI` | Yes | Backend origin, no trailing slash (`/api/v1` is appended). The app fails fast at boot if missing. |
 | `NEXT_PUBLIC_BASE_URL` | No | Canonical site URL for metadata, OG cards, and the sitemap. Falls back to the production domain. |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile site key for public forms. Unset → forms submit without the challenge. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | No | Cloudflare Turnstile site key for public forms. Unset: forms submit without the challenge (an error is logged in production builds). |
+| `REVALIDATE_SECRET` | Yes (prod) | Shared secret for `POST /api/revalidate`; must match the backend's `REVALIDATE_SECRET`. Without it the route rejects every purge and admin edits to public content stay stale for up to 6h (the ISR fallback window). Server-only - never `NEXT_PUBLIC_`. |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | No | Pins the image optimizer's Cloudinary remote pattern to this account's delivery path. Unset: any cloud's `/image/` path is allowed. |
 
 ### Scripts
 
@@ -62,7 +64,7 @@ npm run dev            # http://localhost:3000
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` / `npm start` | Production build and serve |
-| `npm test` / `npm run test:watch` | Vitest suite (unit, component, integration — no backend needed) |
+| `npm test` / `npm run test:watch` | Vitest suite (unit, component, integration - no backend needed) |
 | `npm run lint` | ESLint |
 
 ## Project structure

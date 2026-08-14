@@ -20,6 +20,12 @@ export interface ConfirmationDialogProps {
   /** Type-to-confirm gate: the confirm button stays disabled until this exact
    * phrase is typed (for high-risk actions). */
   requireExactMatch?: string;
+  /** Busy state while the confirmed action runs: the confirm button shows a
+   * working label, both buttons lock, and the dialog can't be dismissed. */
+  isLoading?: boolean;
+  /** Set false when the caller closes the dialog itself after the action
+   * settles (paired with `isLoading`). */
+  closeOnConfirm?: boolean;
   /** Extra content between the description and the actions (e.g. a checkbox). */
   children?: ReactNode;
 }
@@ -28,17 +34,17 @@ const TONE_STYLES: Record<ConfirmTone, { glyph: string; iconClass: string; confi
   destructive: {
     glyph: "✕",
     iconClass: "bg-danger/10 text-danger",
-    confirm: "bg-danger text-[#FDFAF3] hover:opacity-90",
+    confirm: "bg-danger text-card hover:opacity-90",
   },
   success: {
     glyph: "✓",
-    iconClass: "bg-[#2E6B3F]/[0.12] text-[#2E6B3F]",
-    confirm: "bg-accent text-[#FDFAF3] hover:bg-ink",
+    iconClass: "bg-success/[0.12] text-success",
+    confirm: "bg-accent text-card hover:bg-ink",
   },
   brand: {
     glyph: "✓",
     iconClass: "bg-accent/10 text-accent",
-    confirm: "bg-accent text-[#FDFAF3] hover:bg-ink",
+    confirm: "bg-accent text-card hover:bg-ink",
   },
 };
 
@@ -54,6 +60,8 @@ export function ConfirmationDialog({
   isDestructive = false,
   tone,
   requireExactMatch,
+  isLoading = false,
+  closeOnConfirm = true,
   children,
 }: ConfirmationDialogProps) {
   const titleId = useId();
@@ -63,7 +71,7 @@ export function ConfirmationDialog({
 
   // Reset the gate whenever the dialog toggles open/closed. Deriving from the
   // previous `open` during render (rather than an effect) avoids a cascading
-  // extra render — the React-recommended way to reset state on a prop change.
+  // extra render - the React-recommended way to reset state on a prop change.
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
@@ -73,13 +81,19 @@ export function ConfirmationDialog({
   const gated = Boolean(requireExactMatch) && typed.trim() !== requireExactMatch;
 
   const confirm = () => {
-    if (gated) return;
+    if (gated || isLoading) return;
     onConfirm();
-    onOpenChange(false);
+    if (closeOnConfirm) onOpenChange(false);
   };
 
   return (
-    <Modal open={open} onClose={() => onOpenChange(false)} labelledBy={titleId} centered>
+    <Modal
+      open={open}
+      onClose={() => onOpenChange(false)}
+      labelledBy={titleId}
+      dismissible={!isLoading}
+      centered
+    >
       <span
         className={cn("mx-auto mb-4 grid h-[52px] w-[52px] place-items-center rounded-full text-[20px]", styles.iconClass)}
         aria-hidden="true"
@@ -110,18 +124,20 @@ export function ConfirmationDialog({
         <button
           type="button"
           onClick={confirm}
-          disabled={gated}
+          disabled={gated || isLoading}
+          aria-busy={isLoading || undefined}
           className={cn(
             "cursor-pointer rounded-full border-none px-5 py-2.5 text-[13.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 md:text-[14px]",
             styles.confirm,
           )}
         >
-          {confirmText}
+          {isLoading ? "Working…" : confirmText}
         </button>
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="cursor-pointer rounded-full border-[1.5px] border-ink/25 bg-transparent px-5 py-[9px] text-[13.5px] font-semibold text-ink transition-colors hover:border-ink md:text-[14px]"
+          disabled={isLoading}
+          className="cursor-pointer rounded-full border-[1.5px] border-ink/25 bg-transparent px-5 py-[9px] text-[13.5px] font-semibold text-ink transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-40 md:text-[14px]"
         >
           {cancelText}
         </button>

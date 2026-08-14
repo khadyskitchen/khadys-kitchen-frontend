@@ -5,7 +5,7 @@ import type { IFeeItem, ITraining } from "@/types/training.types";
  * How a fee item is charged (mirrors the backend `computeApplicableFees`):
  * - standalone + required (non-hostel): always part of the bill;
  * - standalone + optional (or HOSTEL kind): an add-on the applicant ticks;
- * - items sharing a `choiceGroup`: mutually exclusive price variants — the
+ * - items sharing a `choiceGroup`: mutually exclusive price variants - the
  *   applicant picks exactly one, the amounts are NEVER summed.
  */
 export interface FeeChoiceGroup {
@@ -52,13 +52,13 @@ export function splitFeeItems(training: ITraining): SplitFees {
   return { choiceGroups, optionalItems, requiredItems };
 }
 
-/** The formatted price of one item — priceLabel wins over the amount. */
+/** The formatted price of one item - priceLabel wins over the amount. */
 export function itemPriceLabel(item: IFeeItem, currency: string): string {
   return item.priceLabel ?? formatMoney(item.amount, currency);
 }
 
 /**
- * "From GHS X" entry price for a class — the smallest possible bill: every
+ * "From GHS X" entry price for a class - the smallest possible bill: every
  * always-charged item plus the cheapest variant of each mandatory choice
  * group (add-ons are the applicant's call). A fee-less class (e.g. a free
  * taster) has no price to show. Cards, the detail hero, and the sticky apply

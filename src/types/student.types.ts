@@ -1,9 +1,12 @@
-import type { IPaginationMeta } from "./training.types";
+import type { IPaginationMeta } from "./api";
+
+/** Mirrors the backend `StudentStatus` enum (schema.prisma). */
+export type StudentStatus = "ACTIVE" | "SUSPENDED" | "GRADUATED" | "WITHDRAWN";
 
 /** A Bake School student (an admitted applicant), mirroring the backend toStudentDTO. */
 export interface IStudent {
   id: string;
-  /** The backing application (every student has one) — its page, its ledger. */
+  /** The backing application (every student has one) - its page, its ledger. */
   application?: { id: string; code: string };
   code: string;
   fullName: string;
@@ -11,7 +14,7 @@ export interface IStudent {
   email: string | null;
   location: string | null;
   notes: string | null;
-  status: "ACTIVE" | "SUSPENDED" | "GRADUATED" | "WITHDRAWN";
+  status: StudentStatus;
   enrolledAt: string;
   graduatedAt: string | null;
   suspendedAt: string | null;
@@ -36,7 +39,7 @@ export interface IStudentPaymentSummary {
   amountPaid: number;
   balance: number;
   currency: string;
-  paymentStatus: "PAID" | "PARTIAL" | "UNPAID";
+  paymentStatus: import("./application.types").ApplicationPaymentStatus;
 }
 
 export interface IStudentPaymentsResponse {
@@ -54,6 +57,6 @@ export interface IStudentListQuery {
   page?: number;
   limit?: number;
   trainingId?: string;
-  status?: string;
+  status?: StudentStatus;
   search?: string;
 }

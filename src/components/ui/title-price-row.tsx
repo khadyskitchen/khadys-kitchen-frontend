@@ -19,7 +19,7 @@ interface TitlePriceRowProps {
 
 /**
  * Title + price on one row when they fit, with the price dropping onto its own
- * line beneath the title when they don't — without ever forcing a title that
+ * line beneath the title when they don't - without ever forcing a title that
  * would otherwise fit on one line to wrap just to keep the price beside it.
  *
  * Pure CSS (no measuring, so it's immune to web-font load timing):
@@ -38,7 +38,7 @@ export function TitlePriceRow({
 }: TitlePriceRowProps) {
   return (
     // `content-start` packs the flex lines at the top when the row carries a
-    // min-height — without it, `align-content: stretch` spreads a wrapped
+    // min-height - without it, `align-content: stretch` spreads a wrapped
     // price line away from the title to fill the reserved space.
     <div
       className={cn(

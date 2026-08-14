@@ -53,7 +53,7 @@ export const ORDER_CONFIRM_COPY: Record<
 > = {
   confirm: {
     title: "Confirm this order?",
-    description: "This accepts the order — baking starts on schedule.",
+    description: "This accepts the order - baking starts on schedule.",
   },
   process: {
     title: "Mark this order as processing?",

@@ -12,7 +12,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 /**
  * Profile picture. In edit mode a chosen photo is only STAGED (the caller gets
- * the File and we show a local preview) — nothing reaches Cloudinary until the
+ * the File and we show a local preview) - nothing reaches Cloudinary until the
  * profile form is submitted, so cancelling never orphans an upload. The
  * magnifier zooms the current photo in any mode.
  */
@@ -51,7 +51,7 @@ export function ProfileAvatar({
       notify.error("Please choose an image file");
       return;
     }
-    // Avatars render at 92px — shrink big phone shots before staging so the
+    // Avatars render at 92px - shrink big phone shots before staging so the
     // size cap applies to what actually uploads.
     const staged = await optimizeImage(file, 1024);
     if (staged.size > MAX_BYTES) {
@@ -63,7 +63,7 @@ export function ProfileAvatar({
   };
 
   return (
-    // Phones: a stacked, centred profile header — long names wrap under the
+    // Phones: a stacked, centred profile header - long names wrap under the
     // photo instead of squeezing into a narrow column beside it. From sm the
     // classic photo-beside-text row returns.
     <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left">
@@ -137,7 +137,7 @@ export function ProfileAvatar({
         ) : (
           <>
             <div className="break-words text-[15px] font-semibold text-ink">
-              {user ? `${user.firstName} ${user.lastName}` : "—"}
+              {user ? `${user.firstName} ${user.lastName}` : "-"}
             </div>
             {editable ? (
               <>

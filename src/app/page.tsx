@@ -14,7 +14,7 @@ import { routes } from "@/lib/routes";
 
 export default async function LandingPage() {
   // Fetched server-side with a revalidate window (see public-api.ts), so
-  // these sections are cached HTML — reloads never show skeletons. Admin
+  // these sections are cached HTML - reloads never show skeletons. Admin
   // saves call /api/revalidate to refresh the cache immediately.
   const [featuredTrainings, about] = await Promise.all([
     fetchFeaturedTrainings(),

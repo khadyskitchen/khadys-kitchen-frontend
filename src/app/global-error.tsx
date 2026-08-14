@@ -6,7 +6,7 @@ import { devError } from "@/lib/log";
 /**
  * Last-resort boundary for errors thrown in the root layout itself. It replaces
  * the whole document, so it must render its own <html>/<body> and can't rely on
- * the app's global stylesheet — everything here is inline-styled and
+ * the app's global stylesheet - everything here is inline-styled and
  * self-contained. Branded to match the warm bakery palette (globals.css).
  */
 export default function GlobalError({

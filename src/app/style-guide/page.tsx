@@ -100,7 +100,7 @@ export default function StyleGuidePage() {
             <div>
               <EmptyState
                 title="Nothing here yet."
-                description="New classes are announced here first — check back soon."
+                description="New classes are announced here first - check back soon."
                 action={{ label: "Browse all trainings", href: routes.trainings }}
               />
               <div className="mt-2"><Caption>Site · empty state</Caption></div>
@@ -183,7 +183,7 @@ export default function StyleGuidePage() {
           </ConfirmationDialog>
 
           <Modal open={orderModal} onClose={() => setOrderModal(false)} centered>
-            <span className="mx-auto mb-4 grid h-[58px] w-[58px] place-items-center rounded-full bg-accent text-[24px] text-[#FDFAF3]" aria-hidden="true">
+            <span className="mx-auto mb-4 grid h-[58px] w-[58px] place-items-center rounded-full bg-accent text-[24px] text-card" aria-hidden="true">
               ✓
             </span>
             <h3 className="mb-2 font-serif text-[22px] font-normal">Your order is in the queue</h3>

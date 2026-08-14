@@ -31,7 +31,7 @@ import {
 import { useRefundPaymentMutation } from "@/redux/payments/payments-api";
 
 /** Which lifecycle buttons each status offers (mirrors the backend's
- * transition table — collection additionally requires a settled balance). */
+ * transition table - collection additionally requires a settled balance). */
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError, error, refetch } = useGetOrderByIdQuery(id);
@@ -92,8 +92,8 @@ export default function OrderDetailPage() {
 
   const info: [string, React.ReactNode][] = [
     ["Phone", order.phone],
-    ["Email", order.email ?? "—"],
-    ["Pickup", order.pickupDate ? formatDate(order.pickupDate) : "—"],
+    ["Email", order.email ?? "-"],
+    ["Pickup", order.pickupDate ? formatDate(order.pickupDate) : "-"],
     ["Placed", formatDateTime(order.createdAt)],
     ["Source", order.source === "ADMIN" ? "Walk-in (admin)" : "Online shop"],
   ];
@@ -135,7 +135,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Order details on the left; Bill + Payments stack in the right column
-          so both sides carry weight — no tall card beside a short, empty one. */}
+          so both sides carry weight - no tall card beside a short, empty one. */}
       <div className="grid items-start gap-[18px] lg:grid-cols-2">
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex items-center justify-between gap-3">

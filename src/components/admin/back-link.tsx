@@ -25,7 +25,7 @@ export function useTrackNavHistory() {
 
 /**
  * "← All orders"-style back link. When the user arrived from inside the app
- * it goes BACK in history — returning to the list exactly as they left it
+ * it goes BACK in history - returning to the list exactly as they left it
  * (page 2, active filters, scroll). Opened as a deep link, it simply navigates
  * to `href`, so it never dumps the user out of the site.
  */

@@ -53,7 +53,7 @@ const showTick = (range: StatsRange, idx: number, len: number): boolean => {
 };
 
 /**
- * Vertical CSS bar chart of receipts (pesewas) for the selected range —
+ * Vertical CSS bar chart of receipts (pesewas) for the selected range -
  * hours for today, days for week/month, months for year, years for all time.
  * The peak bucket renders in accent. Handles 7–30+ bars: dense series drop
  * the per-bar value labels and tighten the gaps so nothing overlaps.

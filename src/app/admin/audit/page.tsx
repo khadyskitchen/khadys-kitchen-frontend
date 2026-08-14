@@ -128,14 +128,14 @@ export default function AuditPage() {
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching events"
-          description="Nothing matches these filters — try clearing them."
+          description="Nothing matches these filters - try clearing them."
         />
       ) : (
         <>
           <Card
             className={cn("overflow-hidden transition-opacity", isFetching && !isLoading && "opacity-60")}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />
@@ -224,7 +224,7 @@ export default function AuditPage() {
                               {metaStr}
                             </span>
                           ) : (
-                            <span className="text-ink/30">—</span>
+                            <span className="text-ink/30">-</span>
                           )}
                         </td>
                       </tr>

@@ -1,29 +1,5 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { Pill } from "@/lib/status-colors";
-
-/** Small status chip rendered with the computed pill palette. */
-export function StatusPill({
-  pill,
-  children,
-  className,
-}: {
-  pill: Pill;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-block whitespace-nowrap rounded-full px-3 py-[5px] text-[11.5px] font-semibold uppercase tracking-[0.06em]",
-        className,
-      )}
-      style={{ background: pill.bg, color: pill.color }}
-    >
-      {children}
-    </span>
-  );
-}
 
 /** Pill-style toggle switch (settings + security). */
 export function ToggleSwitch({
@@ -46,7 +22,7 @@ export function ToggleSwitch({
       style={{ background: on ? "var(--color-accent)" : "rgba(36,26,18,0.25)" }}
     >
       <span
-        className="absolute top-[3.5px] h-6 w-6 rounded-full bg-[#FDFAF3] transition-[left] duration-[250ms] ease"
+        className="absolute top-[3.5px] h-6 w-6 rounded-full bg-card transition-[left] duration-[250ms] ease"
         style={{ left: on ? "26px" : "3.5px" }}
       />
     </button>
@@ -117,7 +93,7 @@ export function Pager({
               className={cn(
                 "grid h-[42px] w-[42px] cursor-pointer place-items-center rounded-full border-[1.5px] text-[14px] font-semibold",
                 on
-                  ? "border-accent bg-accent text-[#FDFAF3]"
+                  ? "border-accent bg-accent text-card"
                   : "border-ink/25 bg-transparent text-ink",
               )}
             >
@@ -144,7 +120,7 @@ export function Pager({
 }
 
 /**
- * Serif display classes for a stat value, scaled to its length — a huge figure
+ * Serif display classes for a stat value, scaled to its length - a huge figure
  * like "GHS 908,383,393.90" steps down instead of overflowing or breaking
  * mid-number. Shared by StatTile and the dashboard tiles.
  */
@@ -160,7 +136,7 @@ export function statValueCls(value: string): string {
 }
 
 /**
- * Serif page-title classes scaled to the title's length — a max-length name
+ * Serif page-title classes scaled to the title's length - a max-length name
  * (150 chars) renders as a calm few lines instead of a screen-filling block
  * of display type.
  */
@@ -215,7 +191,7 @@ export function Card({
     <div
       className={cn(
         // min-w-0: a card's intrinsic content (e.g. a dense chart) must never
-        // widen the grids it sits in — grid items default to min-width:auto.
+        // widen the grids it sits in - grid items default to min-width:auto.
         "min-w-0 rounded-[18px] border border-ink/10 bg-card",
         className,
       )}

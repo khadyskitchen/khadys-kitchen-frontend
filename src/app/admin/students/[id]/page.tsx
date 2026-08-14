@@ -78,8 +78,8 @@ export default function StudentDetailPage() {
 
   const info: [string, string][] = [
     ["Phone", student.phone],
-    ["Email", student.email ?? "—"],
-    ["Location", student.location ?? "—"],
+    ["Email", student.email ?? "-"],
+    ["Location", student.location ?? "-"],
     ["Enrolled", formatDateTime(student.enrolledAt)],
     ["Graduated", formatDateTime(student.graduatedAt)],
     ["Suspended", formatDateTime(student.suspendedAt)],
@@ -145,7 +145,7 @@ export default function StudentDetailPage() {
         <Card className="p-[clamp(20px,3vw,28px)]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-serif text-[19px]">Details</h2>
-            {/* Current status doubles as the lifecycle picker — the same
+            {/* Current status doubles as the lifecycle picker - the same
                 transitions and confirmations as the old header buttons. */}
             <StatusPicker
               status={student.status}

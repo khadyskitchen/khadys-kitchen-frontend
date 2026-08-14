@@ -1,4 +1,4 @@
-/** The home page's editable "About" (Our Story) content — the only editable
+/** The home page's editable "About" (Our Story) content - the only editable
  * website content. Fields are null when an admin has cleared them; the whole
  * payload is null when nothing has ever been saved (static defaults apply). */
 export interface IAboutContent {

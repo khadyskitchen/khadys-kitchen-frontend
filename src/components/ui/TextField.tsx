@@ -35,7 +35,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     // Date fields: mobile browsers render an empty <input type="date"> as a
     // bare box, so while empty the native text is hidden and the placeholder
     // prop is overlaid instead. Emptiness is read off the DOM node after every
-    // render — react-hook-form's reset() writes values without an event.
+    // render - react-hook-form's reset() writes values without an event.
     // The deliberately dependency-less effect re-checks each render (the
     // same-value setState bails out, so this can't loop).
     const isDate = type === "date";
@@ -76,7 +76,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
                     try {
                       e.currentTarget.showPicker?.();
                     } catch {
-                      // Unsupported — the native tap behaviour still opens it.
+                      // Unsupported - the native tap behaviour still opens it.
                     }
                   }
                 : undefined
@@ -89,7 +89,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               error
                 ? "border-danger bg-danger/[0.04]"
                 : valid
-                  ? "border-[#2E6B3F] bg-[#2E6B3F]/[0.04] pr-9"
+                  ? "border-success bg-success/[0.04] pr-9"
                   : "border-ink/20 focus:border-accent",
               className,
             )}
@@ -106,7 +106,6 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           {canReveal ? (
             <button
               type="button"
-              tabIndex={-1}
               onClick={() => setRevealed((r) => !r)}
               aria-label={revealed ? "Hide password" : "Show password"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/45 transition-colors hover:text-ink"
@@ -143,7 +142,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             </button>
           ) : valid && !error ? (
             <span
-              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#2E6B3F]"
+              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-success"
               aria-hidden="true"
             >
               ✓

@@ -52,6 +52,8 @@ export function TrainingsCatalogue({
 }: {
   initialTrainings?: ITraining[];
 }) {
+  // Deliberate double-fetch trade-off (see shop-browser): the client refetch
+  // keeps open/closed application state live over the up-to-6h ISR HTML.
   const { data, isLoading, isError, error, refetch } =
     useGetPublicTrainingsQuery({ limit: 100 });
   const trainings = useMemo(
@@ -75,7 +77,7 @@ export function TrainingsCatalogue({
           (status === "open" ? t.applicationsOpen : !t.applicationsOpen)) &&
         (category === "all" || t.category === category) &&
         // A start-date floor keeps only classes beginning on/after that day
-        // (date-TBC classes stay visible — they may still be announced later).
+        // (date-TBC classes stay visible - they may still be announced later).
         (!startsFrom ||
           !t.startDate ||
           t.startDate.slice(0, 10) >= startsFrom) &&
@@ -135,7 +137,7 @@ export function TrainingsCatalogue({
     setPage(1);
   };
 
-  // Only surface error/loading when there's no server-rendered list to show —
+  // Only surface error/loading when there's no server-rendered list to show -
   // if we already have classes, a background refetch shouldn't blank the page.
   if (isError && trainings.length === 0) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
@@ -187,7 +189,7 @@ export function TrainingsCatalogue({
             </svg>
             Search &amp; filters
             {activeCount > 0 ? (
-              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-[#FDFAF3]">
+              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-card">
                 {activeCount}
               </span>
             ) : null}
@@ -328,7 +330,7 @@ export function TrainingsCatalogue({
                   className={cn(
                     "grid h-10 w-10 cursor-pointer place-items-center rounded-full border-[1.5px] font-sans text-[14px] font-semibold transition-colors",
                     n === currentPage
-                      ? "border-accent bg-accent text-[#FDFAF3]"
+                      ? "border-accent bg-accent text-card"
                       : "border-ink/20 bg-transparent text-ink hover:border-accent",
                   )}
                 >

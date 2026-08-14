@@ -70,7 +70,7 @@ export function StickyApplyBar({
         </div>
         <a
           href="#apply"
-          className="shrink-0 rounded-full bg-accent px-6 py-3 text-[14px] font-semibold tracking-[0.04em] text-[#FDFAF3] no-underline transition-colors hover:bg-ink"
+          className="shrink-0 rounded-full bg-accent px-6 py-3 text-[14px] font-semibold tracking-[0.04em] text-card no-underline transition-colors hover:bg-ink"
         >
           Apply now
         </a>

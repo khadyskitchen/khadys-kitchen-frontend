@@ -13,12 +13,12 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-[#FDFAF3] hover:bg-ink",
+  primary: "bg-accent text-card hover:bg-ink",
   dark: "bg-ink text-cream hover:bg-accent",
   outline: "border-[1.5px] border-ink/25 bg-transparent text-ink hover:border-accent hover:text-accent",
   ghost: "bg-transparent text-ink hover:bg-ink/[0.06]",
-  danger: "bg-danger text-[#FDFAF3] hover:opacity-90",
-  success: "bg-[#2E6B3F] text-[#FDFAF3]",
+  danger: "bg-danger text-card hover:opacity-90",
+  success: "bg-success text-card",
 };
 
 // Steady, shadcn-like sizing that stays consistent across breakpoints instead
@@ -81,7 +81,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 });
 
 /**
- * Link styled identically to Button — same variants/sizes — so navigation
+ * Link styled identically to Button - same variants/sizes - so navigation
  * actions ("+ New item") match click actions ("+ Add member") pixel for pixel
  * instead of each page hand-rolling its own pill.
  */

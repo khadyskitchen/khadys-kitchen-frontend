@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { notify } from "@/lib/notify";
@@ -9,20 +9,8 @@ import { cn } from "@/lib/utils";
 
 const MAX_BYTES = 10 * 1024 * 1024; // matches the backend's 10MB cap
 
-export interface FileUploadValue {
-  /** The staged File to upload on submit, or null when none is staged. */
-  file: File | null;
-  /**
-   * What the form should persist for the existing asset:
-   * - `undefined` → unchanged (keep whatever's saved)
-   * - `""`        → cleared (send null to delete it)
-   * - the current URL when a new file is staged (server overwrites it on upload)
-   */
-  clear: boolean;
-}
-
 /**
- * A reusable "select a file from your system" field — image or document. The
+ * A reusable "select a file from your system" field - image or document. The
  * chosen file is only STAGED locally (object-URL preview); nothing reaches
  * Cloudinary until the parent form submits it as multipart, so cancelling never
  * orphans an upload. Supports choose / replace / remove, and shows the existing
@@ -50,7 +38,7 @@ export function FileUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  // Once the user removes the asset, stop falling back to currentUrl — the
+  // Once the user removes the asset, stop falling back to currentUrl - the
   // preview must reflect the pending "cleared" state, not the saved one.
   const [cleared, setCleared] = useState(false);
 
@@ -60,6 +48,20 @@ export function FileUploadField({
   const revoke = () => {
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
   };
+
+  // Release the staged object URL when an abandoned form unmounts. Tracked in
+  // a ref so the unmount cleanup sees the LATEST url, not the first render's.
+  const previewUrlRef = useRef("");
+  useEffect(() => {
+    previewUrlRef.current = previewUrl;
+  }, [previewUrl]);
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   const pick = async (chosen: File | undefined) => {
     if (!chosen) return;
@@ -75,7 +77,7 @@ export function FileUploadField({
       );
       return;
     }
-    // Shrink big photos first — the size cap applies to what actually uploads,
+    // Shrink big photos first - the size cap applies to what actually uploads,
     // so a 12MB phone shot that optimizes down to a few hundred KB is fine.
     const staged = kind === "image" ? await optimizeImage(chosen) : chosen;
     if (staged.size > MAX_BYTES) {

@@ -26,7 +26,7 @@ export interface IStudentUpdateInput {
   notes?: string | null;
 }
 
-/** Students (admitted applicants) — list/detail/CRUD, lifecycle (suspend /
+/** Students (admitted applicants) - list/detail/CRUD, lifecycle (suspend /
  * activate / graduate), and payment details. */
 export const studentsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

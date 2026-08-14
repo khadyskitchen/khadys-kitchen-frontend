@@ -10,6 +10,7 @@
   --color-accent: #c2185b; /* rose accent */
   --color-accent-2: #e8a0bf; /* footer label accent */
   --color-danger: #a32036; /* form error */
+  --color-success: #2e6b3f; /* confirmations, paid states */
 
   --font-serif: var(--font-marcellus), serif;
   --font-sans: var(--font-karla), sans-serif;

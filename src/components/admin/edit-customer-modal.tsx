@@ -9,7 +9,7 @@ import { extractApiError } from "@/lib/extract-api-error";
 import { useUpdateCustomerMutation } from "@/redux/customers/customers-api";
 import type { ICustomer } from "@/types/customer.types";
 
-/** Edit a customer's contact details and notes — used from the customer
+/** Edit a customer's contact details and notes - used from the customer
  * detail page and the customers table's row menu. */
 export function EditCustomerModal({
   customer,

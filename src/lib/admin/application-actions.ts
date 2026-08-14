@@ -19,7 +19,7 @@ export const APPLICATION_STATUS_ACTIONS: ApplicationStatusAction[] = [
 
 /**
  * The transitions the current user may take. Rejecting withdraws the student
- * and is blocked until any payments are refunded — admin-and-above on the
+ * and is blocked until any payments are refunded - admin-and-above on the
  * backend, so staff never see it.
  */
 export const applicationStatusActionsFor = (isAdmin: boolean) =>

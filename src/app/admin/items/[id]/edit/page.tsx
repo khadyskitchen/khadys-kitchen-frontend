@@ -72,7 +72,7 @@ export default function EditItemPage() {
               confirm({
                 title: "Delete this product?",
                 description:
-                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted - take it off sale first.",
                 confirmText: "Delete product",
                 isDestructive: true,
                 onConfirm: onDelete,

@@ -70,7 +70,7 @@ const labelClass =
   "text-[12.5px] font-semibold uppercase tracking-[0.06em] text-ink/60";
 
 /** Create/edit form for a shop product. Price entered in GHS; empty stock
- * means made to order. A chosen photo is only staged locally — it travels with
+ * means made to order. A chosen photo is only staged locally - it travels with
  * the save as multipart, and the backend uploads it (cleaning up on failure),
  * so cancelling never leaves an orphaned image in Cloudinary. */
 export function ProductForm({ product }: { product?: IProduct }) {
@@ -228,7 +228,7 @@ export function ProductForm({ product }: { product?: IProduct }) {
             <input
               type="checkbox"
               {...register("isAvailable")}
-              className="h-[18px] w-[18px] accent-[--color-accent]"
+              className="h-[18px] w-[18px] accent-accent"
             />
             Available in the shop
           </label>
@@ -236,7 +236,7 @@ export function ProductForm({ product }: { product?: IProduct }) {
             <input
               type="checkbox"
               {...register("isFeatured")}
-              className="h-[18px] w-[18px] accent-[--color-accent]"
+              className="h-[18px] w-[18px] accent-accent"
             />
             Featured on the home page
           </label>

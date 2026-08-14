@@ -9,7 +9,7 @@ import type {
  * surfaces it. It's tag-invalidated ("AuditLogs") like the rest of the cache;
  * to refetch on tab focus/reconnect, pass `refetchOnFocus`/`refetchOnReconnect`
  * at the `useGetAuditLogsQuery` call site (setupListeners is wired in the
- * store) — RTK Query has no per-endpoint switch for it. */
+ * store) - RTK Query has no per-endpoint switch for it. */
 export const auditApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAuditLogs: builder.query<IAuditListResponse, IAuditListQuery | void>({

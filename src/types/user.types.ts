@@ -32,7 +32,7 @@ export interface IUserResponse {
 }
 
 /** A console account as the admin/users endpoints return it (backend
- * `toPublicUser`) — the signed-in shape plus account-management fields. */
+ * `toPublicUser`) - the signed-in shape plus account-management fields. */
 export interface ITeamUser extends IUser {
   isActive: boolean;
   createdAt: string;
@@ -48,7 +48,7 @@ export interface ITeamUserResponse {
 export interface ITeamUserListResponse {
   message: string;
   data: ITeamUser[];
-  meta: import("./training.types").IPaginationMeta;
+  meta: import("./api").IPaginationMeta;
 }
 
 export interface ITeamUserListQuery {

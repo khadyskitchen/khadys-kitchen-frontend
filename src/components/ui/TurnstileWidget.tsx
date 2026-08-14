@@ -6,7 +6,7 @@ import { env } from "@/lib/env";
 
 /**
  * Whether Turnstile is configured. Forms use this to decide whether a token is
- * required before submit — when false (no site key, e.g. local dev), the widget
+ * required before submit - when false (no site key, e.g. local dev), the widget
  * renders nothing and submission proceeds unblocked, matching the backend which
  * skips verification when `TURNSTILE_SECRET_KEY` is unset.
  */
@@ -87,7 +87,7 @@ function TurnstileInner({
   }, [onVerify]);
 
   // Track the wrapper's real width (it is overflow-hidden, so the 300px iframe
-  // can never inflate it or its grid column) and derive the scale from it —
+  // can never inflate it or its grid column) and derive the scale from it -
   // measured continuously, not once, so late layout or fold/rotate can't
   // leave the widget overflowing.
   useEffect(() => {

@@ -28,7 +28,7 @@ interface PageMetaInput {
 }
 
 // Search results truncate titles around 60 characters and social previews cut
-// descriptions near 125 — clamp centrally so DB-driven pages (a long training
+// descriptions near 125 - clamp centrally so DB-driven pages (a long training
 // name or product blurb) can never overflow either.
 const MAX_TITLE = 60;
 const MAX_DESCRIPTION = 125;

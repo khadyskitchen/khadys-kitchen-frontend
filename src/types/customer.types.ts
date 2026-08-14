@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./training.types";
+import type { IPaginationMeta } from "./api";
 
 /** A shop customer (guest checkout, keyed by phone), mirroring `toCustomerDTO`.
  * `totalSpent` is money actually received (pesewas), cancelled orders excluded. */

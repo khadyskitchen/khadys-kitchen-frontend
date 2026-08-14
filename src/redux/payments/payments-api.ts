@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import type { ApiEnvelope } from "@/types/api";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IPayment } from "@/types/application.types";
 import type {
@@ -7,7 +8,7 @@ import type {
   ILedgerPayment,
 } from "@/types/payment.types";
 
-/** The unified admin payments ledger — every payment across shop orders and
+/** The unified admin payments ledger - every payment across shop orders and
  * bake-school applications, with owner references. */
 export const paymentsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -20,7 +21,7 @@ export const paymentsApi = apiSlice.injectEndpoints({
     }),
 
     getPaymentById: builder.query<
-      { message: string; data: ILedgerPayment },
+      ApiEnvelope<ILedgerPayment>,
       string
     >({
       query: (id) => ({ url: `admin/payments/${id}`, method: "GET" }),
@@ -32,11 +33,11 @@ export const paymentsApi = apiSlice.injectEndpoints({
     /**
      * The one refund/reverse mutation for both ledgers (`POST
      * admin/payments/:id/refund`). Pass the owning `orderId`/`applicationId`
-     * when you know it — detail pages provide only per-id tags, so without it
+     * when you know it - detail pages provide only per-id tags, so without it
      * an open order/application detail would keep showing the stale balance.
      */
     refundPayment: builder.mutation<
-      { message: string; data: IPayment },
+      ApiEnvelope<IPayment>,
       {
         paymentId: string;
         orderId?: string;
@@ -49,11 +50,13 @@ export const paymentsApi = apiSlice.injectEndpoints({
         method: "POST",
         body: { reason },
       }),
+      // "Customers": a reversal moves the owning customer's totalSpent.
       invalidatesTags: (_r, _e, { orderId, applicationId }) => [
         "Payments",
         "Orders",
         "Applications",
         "DashboardStats",
+        "Customers",
         ...(orderId ? [{ type: "Order" as const, id: orderId }] : []),
         ...(applicationId
           ? [{ type: "Application" as const, id: applicationId }]

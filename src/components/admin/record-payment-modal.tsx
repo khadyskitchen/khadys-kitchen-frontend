@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,7 +24,14 @@ const METHODS: IRecordPaymentInput["method"][] = [
 const schema = z.object({
   // Kept as a string (matching the raw input) and validated by refine, so the
   // field starts blank and empty/zero/NaN all surface the same friendly error.
-  amount: z.string().refine((v) => Number(v) > 0, "Enter a valid amount"),
+  // The GHS 1,000,000 cap mirrors the backend's 100,000,000-pesewa max
+  // (payment-validation.ts).
+  amount: z
+    .string()
+    .refine(
+      (v) => Number(v) > 0 && Number(v) <= 1_000_000,
+      "Enter an amount between 0.01 and 1,000,000",
+    ),
   method: z.enum(["CASH", "MOMO", "BANK_TRANSFER", "OTHER"]),
   note: z.string().trim().max(300).optional(),
 });
@@ -32,7 +39,7 @@ type Values = z.infer<typeof schema>;
 
 const BLANK: Values = { amount: "", method: "CASH", note: "" };
 
-/** Which ledger the payment lands in — a bake-school application (pay-later
+/** Which ledger the payment lands in - a bake-school application (pay-later
  * applicants) or a shop order (pay-later customers). */
 export type PaymentOwner =
   | { kind: "application"; id: string }
@@ -50,6 +57,16 @@ export function RecordPaymentModal({
   onClose: () => void;
 }) {
   const titleId = useId();
+  // One idempotency key per modal open: a double-submitted "Record" can only
+  // create one payment row server-side. Re-minted on the open transition via
+  // render-time state derivation (the React-recommended reset-on-prop-change
+  // pattern - no effect, no cascading render).
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setIdempotencyKey(crypto.randomUUID());
+  }
   const [recordApplication, applicationState] = useRecordPaymentMutation();
   const [recordOrder, orderState] = useRecordOrderPaymentMutation();
   const record = owner.kind === "application" ? recordApplication : recordOrder;
@@ -78,10 +95,11 @@ export function RecordPaymentModal({
       await record({
         id: owner.id,
         body: {
-          amount: Math.round(Number(values.amount) * 100), // GHS → pesewas
+          amount: Math.round(Number(values.amount) * 100), // GHS -> pesewas
           method: values.method,
           note: values.note?.trim() || undefined,
         },
+        idempotencyKey,
       }).unwrap();
       notify.success("Payment recorded");
       reset(BLANK);
@@ -94,7 +112,7 @@ export function RecordPaymentModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} labelledBy={titleId}>
+    <Modal open={open} onClose={onClose} labelledBy={titleId} dismissible={!isLoading}>
       <h2 id={titleId} className="mb-4 font-serif text-[22px]">
         Record a payment
       </h2>

@@ -43,13 +43,16 @@ export default function CustomersPage() {
   });
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetCustomersQuery({
-      page,
-      limit: PAGE_SIZE,
-      search: (queryParams.search as string | undefined) ?? undefined,
-      from: filters.from || undefined,
-      to: filters.to || undefined,
-    });
+    useGetCustomersQuery(
+      {
+        page,
+        limit: PAGE_SIZE,
+        search: (queryParams.search as string | undefined) ?? undefined,
+        from: filters.from || undefined,
+        to: filters.to || undefined,
+      },
+      { refetchOnFocus: true },
+    );
 
   const [editing, setEditing] = useState<ICustomer | null>(null);
   const rows = data?.data ?? [];
@@ -61,7 +64,7 @@ export default function CustomersPage() {
   const noDataAtAll =
     !isLoading && !isError && (meta?.total ?? 0) === 0 && !hasActiveFilters;
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (c: ICustomer) => [
     {
@@ -108,7 +111,7 @@ export default function CustomersPage() {
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching customers"
-          description="Nothing matches your search — try clearing it."
+          description="Nothing matches your search - try clearing it."
         />
       ) : (
         <>
@@ -118,7 +121,7 @@ export default function CustomersPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />

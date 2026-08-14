@@ -35,7 +35,7 @@ export function SystemMessage({
 
   const actionClass = (variant: SystemMessageAction["variant"] = "primary") => {
     const map = {
-      primary: "bg-accent text-[#FDFAF3] hover:bg-ink",
+      primary: "bg-accent text-card hover:bg-ink",
       dark: dark ? "bg-cream text-ink hover:bg-accent hover:text-cream" : "bg-ink text-cream hover:bg-accent",
       outline: dark
         ? "border-[1.5px] border-cream/30 text-cream hover:border-cream"

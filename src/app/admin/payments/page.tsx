@@ -64,19 +64,26 @@ export default function PaymentsPage() {
     useTableQuery({ defaults: DEFAULTS, pageSize: PAGE_SIZE });
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetPaymentsQuery({
-      page,
-      limit: PAGE_SIZE,
-      search: (queryParams.search as string | undefined) ?? undefined,
-      owner:
-        filters.owner !== "all"
-          ? (filters.owner as "application" | "order")
-          : undefined,
-      status: filters.status !== "all" ? filters.status : undefined,
-      method: filters.method !== "all" ? filters.method : undefined,
-      from: filters.from || undefined,
-      to: filters.to || undefined,
-    });
+    useGetPaymentsQuery(
+      {
+        page,
+        limit: PAGE_SIZE,
+        search: (queryParams.search as string | undefined) ?? undefined,
+        owner:
+          filters.owner !== "all"
+            ? (filters.owner as "application" | "order")
+            : undefined,
+        // Select options are the PaymentStatus literals; "all" means unset.
+        status:
+          filters.status !== "all"
+            ? (filters.status as import("@/types/application.types").PaymentStatus)
+            : undefined,
+        method: filters.method !== "all" ? filters.method : undefined,
+        from: filters.from || undefined,
+        to: filters.to || undefined,
+      },
+      { refetchOnFocus: true },
+    );
   const [refund] = useRefundPaymentMutation();
   const { isAdmin } = useAuthRole();
   const { confirm, dialog } = useConfirm();
@@ -111,7 +118,7 @@ export default function PaymentsPage() {
     }
   };
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same (admin-only refund) menu.
   const menuItemsFor = (p: (typeof rows)[number]) =>
     isAdmin && p.status === "SUCCESS"
@@ -203,7 +210,7 @@ export default function PaymentsPage() {
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching payments"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
@@ -213,7 +220,7 @@ export default function PaymentsPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />
@@ -228,7 +235,7 @@ export default function PaymentsPage() {
                       ) : undefined
                     }
                   >
-                    {/* The amount never truncates — the method/date give way. */}
+                    {/* The amount never truncates - the method/date give way. */}
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="flex-none text-[14.5px] font-semibold text-ink">
                         {formatMoney(p.amount, p.currency)}
@@ -339,7 +346,7 @@ export default function PaymentsPage() {
                               </div>
                             </>
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[14px] font-medium">

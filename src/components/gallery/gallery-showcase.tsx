@@ -16,7 +16,7 @@ const PAGE_SIZE = 12;
 const altFor = (photo: IGalleryImage) =>
   photo.caption ?? "Inside Khady's Kitchen";
 
-/** Varying print proportions give the board its scrapbook rhythm — cycled by
+/** Varying print proportions give the board its scrapbook rhythm - cycled by
  * position so the layout is organic but stable across renders. */
 const PRINT_ASPECTS = [
   "aspect-[4/5]",
@@ -29,7 +29,7 @@ const arrowButton =
   "grid h-[44px] w-[44px] flex-none cursor-pointer place-items-center rounded-full border-[1.5px] border-ink/25 bg-transparent text-[16px] text-ink transition-colors hover:border-accent hover:text-accent disabled:cursor-default disabled:opacity-35 disabled:hover:border-ink/25 disabled:hover:text-ink";
 
 /**
- * The public gallery — a photo-diary board. Every photo is a framed print on
+ * The public gallery - a photo-diary board. Every photo is a framed print on
  * the counter: masonry columns with varying print proportions, a serif-italic
  * caption written beneath each like a bakery label, and the date in small
  * caps. Tapping a print opens it at full size with prev/next browsing. One
@@ -59,7 +59,7 @@ export function GalleryShowcase({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // The enlarged print — tracked by index so ‹ › can walk the whole diary.
+  // The enlarged print - tracked by index so ‹ › can walk the whole diary.
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
   const viewing = viewingIndex === null ? null : photos[viewingIndex];
   const stepViewing = (delta: number) => {
@@ -147,7 +147,7 @@ export function GalleryShowcase({
                   className="object-cover transition-transform duration-[700ms] ease-[cubic-bezier(.16,.84,.28,1)] motion-reduce:transition-none group-hover:scale-[1.045]"
                 />
               </button>
-              {/* The label under the print — serif italic, like it was
+              {/* The label under the print - serif italic, like it was
                   written on by hand; the date in quiet small caps. */}
               <figcaption className="px-3.5 pb-3 pt-2.5 min-[420px]:px-4">
                 <p
@@ -213,7 +213,7 @@ export function GalleryShowcase({
                 className="h-auto max-h-[70dvh] w-full rounded-[14px] object-contain"
                 style={{ animation: "kk-fadein .3s both" }}
               />
-              <span className="absolute right-2.5 top-2.5 rounded-full bg-black/45 px-2.5 py-1 text-[11.5px] font-semibold tracking-[0.06em] text-[#FDFAF3]">
+              <span className="absolute right-2.5 top-2.5 rounded-full bg-black/45 px-2.5 py-1 text-[11.5px] font-semibold tracking-[0.06em] text-card">
                 {(viewingIndex ?? 0) + 1} / {count}
               </span>
             </div>

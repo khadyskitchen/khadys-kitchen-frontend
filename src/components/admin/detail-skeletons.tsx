@@ -2,14 +2,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 
 /**
- * Loading skeletons for the admin detail and edit pages — each mirrors the
+ * Loading skeletons for the admin detail and edit pages - each mirrors the
  * real page's layout (same cards, grids and responsive behaviour) so the
  * swap to content is seamless. The generic RippleLoader is reserved for
  * system-level waits (auth gate); anything that loads *content* shows the
  * content's shape instead.
  */
 
-/** Key/value info rows — stacked on phones, side-by-side from 480px. */
+/** Key/value info rows - stacked on phones, side-by-side from 480px. */
 function InfoRows({ rows = 5 }: { rows?: number }) {
   return (
     <div className="grid gap-3">

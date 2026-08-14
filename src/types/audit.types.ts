@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./training.types";
+import type { IPaginationMeta } from "./api";
 
 /** An audit-log entry, mirroring the backend toAuditDTO. */
 export interface IAuditLog {

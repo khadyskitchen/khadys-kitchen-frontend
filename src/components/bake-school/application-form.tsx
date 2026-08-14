@@ -9,7 +9,7 @@ import {
   MIN_FIRST_PAYMENT_RATIO,
 } from "@/validations/application-schema";
 import { Button } from "@/components/ui/Button";
-import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { ChoiceButton, ChoiceGroup } from "@/components/ui/ChoiceButton";
 import { FieldError } from "@/components/ui/FieldError";
 import {
   TurnstileWidget,
@@ -35,13 +35,13 @@ const labelClass =
 /** Where the code is stashed before a Paystack redirect, read back on /trainings/verify. */
 export const APPLY_CODE_KEY = "kk_apply_code";
 
-/** "course-fee" → "Course fee" — a choice group's slug as a human heading. */
+/** "course-fee" → "Course fee" - a choice group's slug as a human heading. */
 const groupHeading = (key: string) => {
   const words = key.replace(/[-_]+/g, " ").trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
 };
 
-/** One selectable fee option — name + note on the left, price on the right. */
+/** One selectable fee option - name + note on the left, price on the right. */
 function FeeOption({
   currency,
   item,
@@ -132,7 +132,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
   } = useForm<ApplicationValues>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      name: "",
+      fullName: "",
       phone: "",
       email: "",
       location: "",
@@ -178,7 +178,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
     }
     const needsHostel = data.selectedFeeItemIds.some(isHostelItem);
 
-    // Payment is part of applying now — part or full, never nothing. The
+    // Payment is part of applying now - part or full, never nothing. The
     // amount bounds depend on the live fee total, so they're checked here
     // rather than in the static schema.
     let payAmount: number | undefined;
@@ -194,7 +194,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         payAmount = Math.round(part * 100);
         if (payAmount > total) {
           setError("partAmount", {
-            message: "That's more than your fee — pay in full instead.",
+            message: "That's more than your fee - pay in full instead.",
           });
           return;
         }
@@ -221,7 +221,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
     try {
       const res = await createApplication({
         trainingId: training.id,
-        fullName: data.name.trim(),
+        fullName: data.fullName.trim(),
         phone: data.phone.trim(),
         email: data.email || undefined,
         location: data.location || undefined,
@@ -240,21 +240,16 @@ export function ApplicationForm({ training }: { training: ITraining }) {
       }
 
       setReceiptCode(res.data.code);
-      setApplicantName(data.name.trim().split(" ")[0] || "friend");
+      setApplicantName(data.fullName.trim().split(" ")[0] || "friend");
       setAskedHostel(needsHostel);
       setSubmitted(true);
     } catch (err) {
       const { message, fieldErrors, hasFieldErrors } = extractApiError(err);
       if (hasFieldErrors && fieldErrors) {
         for (const [field, msg] of Object.entries(fieldErrors)) {
-          const target =
-            field === "fullName"
-              ? "name"
-              : field === "payAmount"
-                ? "partAmount"
-                : field;
+          const target = field === "payAmount" ? "partAmount" : field;
           if (
-            target === "name" ||
+            target === "fullName" ||
             target === "phone" ||
             target === "email" ||
             target === "location" ||
@@ -266,7 +261,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         }
       }
       notify.error("Couldn't submit your application", { description: message });
-      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      // A Turnstile token is single-use - reset so a retry gets a fresh one.
       setTurnstileReset((n) => n + 1);
     }
   };
@@ -289,7 +284,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
 
       {submitted ? (
         <div className="rounded-[22px] border border-ink/10 bg-card p-[clamp(36px,5vw,56px)] text-center">
-          <div className="mx-auto mb-[22px] grid h-16 w-16 place-items-center rounded-full bg-accent text-[28px] text-[#FDFAF3]">
+          <div className="mx-auto mb-[22px] grid h-16 w-16 place-items-center rounded-full bg-accent text-[28px] text-card">
             ✓
           </div>
           <h3 className="mb-3 font-serif text-[28px] font-normal">
@@ -308,7 +303,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             </div>
           </div>
           <p className="text-[14.5px] leading-[1.6] text-ink/55">
-            Keep this code safe — quote it to pay in person, or to check your
+            Keep this code safe - quote it to pay in person, or to check your
             status.
             {askedHostel
               ? " Asked for a hostel place? We'll confirm availability first."
@@ -325,13 +320,13 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             <label className={labelClass}>
               Full name
               <input
-                {...register("name")}
+                {...register("fullName")}
                 placeholder="e.g. Ama Mensah"
-                aria-invalid={errors.name ? true : undefined}
-                aria-describedby={errors.name ? `${fieldId}-name` : undefined}
+                aria-invalid={errors.fullName ? true : undefined}
+                aria-describedby={errors.fullName ? `${fieldId}-name` : undefined}
                 className={inputClass}
               />
-              <FieldError id={`${fieldId}-name`} message={errors.name?.message} />
+              <FieldError id={`${fieldId}-name`} message={errors.fullName?.message} />
             </label>
             <label className={labelClass}>
               Phone / WhatsApp
@@ -348,7 +343,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-[22px]">
             <label className={labelClass}>
-              Email {total > 0 ? "(required — payment receipt)" : "(optional)"}
+              Email {total > 0 ? "(required - payment receipt)" : "(optional)"}
               <input
                 {...register("email")}
                 type="email"
@@ -385,7 +380,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
                     {groupHeading(group.key)}
                     <span className="font-normal normal-case tracking-normal text-ink/55">
                       {" "}
-                      — pick one
+                      - pick one
                     </span>
                   </span>
                   {group.items.map((item) => (
@@ -408,7 +403,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
                     Optional extras
                     <span className="font-normal normal-case tracking-normal text-ink/55">
                       {" "}
-                      — tap to add
+                      - tap to add
                     </span>
                   </span>
                   {optionalItems.map((item) => (
@@ -457,12 +452,15 @@ export function ApplicationForm({ training }: { training: ITraining }) {
               <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
                 How much are you paying now?
               </span>
-              <div className="flex flex-wrap gap-2.5">
+              <ChoiceGroup
+                label="How much are you paying now?"
+                className="flex flex-wrap gap-2.5"
+              >
                 <ChoiceButton
                   selected={payMode === "full"}
                   onClick={() => setValue("payMode", "full")}
                 >
-                  Full — {formatMoney(total, training.currency)}
+                  Full - {formatMoney(total, training.currency)}
                 </ChoiceButton>
                 <ChoiceButton
                   selected={payMode === "part"}
@@ -470,7 +468,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
                 >
                   Part payment
                 </ChoiceButton>
-              </div>
+              </ChoiceGroup>
               {payMode === "part" ? (
                 <label className={labelClass}>
                   Amount to pay now ({training.currency})
@@ -548,7 +546,7 @@ export function ApplicationForm({ training }: { training: ITraining }) {
             By applying you agree to be contacted by Khady&rsquo;s Kitchen about
             enrolment.{" "}
             {total > 0
-              ? "You'll pay securely via Paystack — part or full, your choice."
+              ? "You'll pay securely via Paystack - part or full, your choice."
               : "We'll confirm your place on WhatsApp."}
           </p>
         </form>

@@ -179,14 +179,14 @@ export default function ClassesPage() {
       ) : trainings.length === 0 ? (
         <EmptyState
           title="No matching trainings"
-          description="Nothing matches your current search — try clearing it."
+          description="Nothing matches your current search - try clearing it."
         />
       ) : (
         <>
           <div
             className={cn(
               "grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-[18px] transition-opacity",
-              // auto-fit stretches a lone card across the whole row — pin two
+              // auto-fit stretches a lone card across the whole row - pin two
               // tracks on lg so a single card keeps its two-up width.
               trainings.length === 1 && "lg:grid-cols-2",
               isFetching && "opacity-60",
@@ -199,10 +199,10 @@ export default function ClassesPage() {
                 className="group flex min-h-[264px] flex-col gap-3.5 rounded-[20px] border border-ink/10 bg-card p-[clamp(22px,3vw,30px)] no-underline transition-[transform,border-color] hover:-translate-y-[3px] hover:border-accent/50"
               >
                 {/* Duration eyebrow on its own line, the state pills on one
-                    tidy row beneath — a clear top-down hierarchy at any width. */}
+                    tidy row beneath - a clear top-down hierarchy at any width. */}
                 <div className="grid gap-2.5">
                   <span className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent">
-                    {t.duration ?? "—"}
+                    {t.duration ?? "-"}
                     <span aria-hidden="true" className="h-px flex-1 bg-ink/10" />
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -225,7 +225,7 @@ export default function ClassesPage() {
                 </div>
                 <div>
                   {/* Clamped to two lines (with the space always reserved) so
-                      a max-length name can't balloon the card — the detail
+                      a max-length name can't balloon the card - the detail
                       page carries the full text. */}
                   <h3
                     title={t.name}
@@ -239,7 +239,7 @@ export default function ClassesPage() {
                   </div>
                 </div>
                 {/* No flex-1 here: stretching a line-clamped box repaints the
-                    hidden lines past the ellipsis — the footer's mt-auto does
+                    hidden lines past the ellipsis - the footer's mt-auto does
                     the pinning instead. */}
                 <p className="line-clamp-2 min-h-[3.2em] text-[14px] leading-[1.6] text-ink/[0.68]">
                   {t.summary}

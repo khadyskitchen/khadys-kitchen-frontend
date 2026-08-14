@@ -1,48 +1,12 @@
 "use client";
 
 import { Fragment, useState, type ReactNode } from "react";
-import { Select } from "@/components/ui/Select";
 import { DateInput } from "@/components/ui/DateInput";
 import { cn } from "@/lib/utils";
 
-/**
- * Labelled dropdown — mirrors the storefront shop filters. A dropdown keeps the
- * toolbar compact and scales to any number of options without a wall of chips.
- */
-export function LabeledSelect({
-  label,
-  value,
-  active,
-  onChange,
-  className,
-  children,
-}: {
-  label: string;
-  value: string;
-  active: boolean;
-  onChange: (value: string) => void;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <label
-      className={cn(
-        "grid gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55",
-        className,
-      )}
-    >
-      {label}
-      <Select
-        value={value}
-        active={active}
-        onChange={(e) => onChange(e.target.value)}
-        className="py-[9px] text-[14px] normal-case tracking-normal"
-      >
-        {children}
-      </Select>
-    </label>
-  );
-}
+// One source of truth for the labelled dropdown - re-exported here so the
+// admin pages keep their import path.
+export { LabeledSelect } from "@/components/ui/LabeledSelect";
 
 /** Shared pill styling for the Filters / Actions disclosure toggles. */
 function TogglePill({
@@ -68,7 +32,7 @@ function TogglePill({
     >
       {children}
       {badge ? (
-        <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-[#FDFAF3]">
+        <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1 text-[11px] font-bold text-card">
           {badge}
         </span>
       ) : null}
@@ -114,10 +78,10 @@ export function FilterBar({
   resultLabel?: string;
   /** Single persistent action (e.g. a "New" button). */
   action?: ReactNode;
-  /** Several persistent actions — more than two collapse behind an "Actions"
+  /** Several persistent actions - more than two collapse behind an "Actions"
    * toggle on phones. Wins over `action` when both are given. */
   actions?: ReactNode[];
-  /** Keep the filters behind the toggle on desktop too — for toolbars with
+  /** Keep the filters behind the toggle on desktop too - for toolbars with
    * four or more filters that would otherwise crowd the row. */
   collapseFilters?: boolean;
   /** Resets every filter to its default; renders "Clear filters" when any
@@ -259,7 +223,7 @@ export function FilterBar({
         ) : null}
 
         {/* The filters. Phones: a 2-col panel behind the toggle. Desktop:
-            inline in the toolbar row (`lg:contents`) — or the same panel
+            inline in the toolbar row (`lg:contents`) - or the same panel
             behind the toggle when `collapseFilters` is set. */}
         <div
           id="admin-filters"
@@ -292,7 +256,7 @@ export function FilterBar({
 /**
  * From/To created-date window, sent to the API as YYYY-MM-DD. Same labelled
  * styling as the dropdowns; either side may be empty. DateInput overlays an
- * "Any date" hint while empty — mobile browsers otherwise render an empty
+ * "Any date" hint while empty - mobile browsers otherwise render an empty
  * date input as a bare box.
  */
 export function DateRangeFields({

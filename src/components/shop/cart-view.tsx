@@ -97,7 +97,13 @@ export function CartView() {
                     type="button"
                     aria-label={`Increase ${line.name} quantity`}
                     onClick={() => changeQty(line.id, 1)}
-                    className="h-[42px] w-[42px] cursor-pointer border-none bg-transparent text-[18px] text-ink transition-colors hover:bg-ink/[0.07]"
+                    disabled={line.stock !== null && line.qty >= line.stock}
+                    title={
+                      line.stock !== null && line.qty >= line.stock
+                        ? `Only ${line.stock} available`
+                        : undefined
+                    }
+                    className="h-[42px] w-[42px] cursor-pointer border-none bg-transparent text-[18px] text-ink transition-colors hover:bg-ink/[0.07] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     +
                   </button>
@@ -131,7 +137,7 @@ export function CartView() {
               </div>
               <Link
                 href={routes.shopCheckout}
-                className="cursor-pointer rounded-full border-none bg-accent px-9 py-[17px] font-sans text-[15.5px] font-semibold tracking-[0.06em] text-[#FDFAF3] no-underline transition-colors hover:bg-ink"
+                className="cursor-pointer rounded-full border-none bg-accent px-9 py-[17px] font-sans text-[15.5px] font-semibold tracking-[0.06em] text-card no-underline transition-colors hover:bg-ink"
               >
                 Checkout →
               </Link>

@@ -14,7 +14,7 @@ import type { IProduct } from "@/types/product.types";
 /**
  * A cart line carries a display snapshot of the product (name/price/image…)
  * so the cart and checkout render instantly without refetching. Prices are
- * pesewas and display-only — the server reprices everything at checkout.
+ * pesewas and display-only - the server reprices everything at checkout.
  */
 export interface CartLine {
   id: string;
@@ -26,6 +26,10 @@ export interface CartLine {
   image: string | null;
   leadTimeDays: number;
   qty: number;
+  /** Stock snapshot when added (null = untracked). Caps the qty steppers so a
+   * customer can't carry more than the shop had; the server is still the
+   * final authority at checkout. */
+  stock: number | null;
 }
 
 interface CartApi {
@@ -33,7 +37,7 @@ interface CartApi {
   count: number;
   /** Display subtotal in pesewas (server reprices at checkout). */
   subtotal: number;
-  /** The longest lead time in the cart — earliest possible pickup. */
+  /** The longest lead time in the cart - earliest possible pickup. */
   maxLeadDays: number;
   /** False until localStorage has been read on the client. */
   hydrated: boolean;
@@ -55,16 +59,19 @@ function readCart(): CartLine[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (l): l is CartLine =>
-        typeof l === "object" &&
-        l !== null &&
-        typeof (l as CartLine).id === "string" &&
-        typeof (l as CartLine).name === "string" &&
-        typeof (l as CartLine).price === "number" &&
-        typeof (l as CartLine).qty === "number" &&
-        (l as CartLine).qty > 0,
-    );
+    return parsed
+      .filter(
+        (l): l is CartLine =>
+          typeof l === "object" &&
+          l !== null &&
+          typeof (l as CartLine).id === "string" &&
+          typeof (l as CartLine).name === "string" &&
+          typeof (l as CartLine).price === "number" &&
+          typeof (l as CartLine).qty === "number" &&
+          (l as CartLine).qty > 0,
+      )
+      // Carts saved before the stock snapshot existed: treat as untracked.
+      .map((l) => ({ ...l, stock: typeof l.stock === "number" ? l.stock : null }));
   } catch {
     return [];
   }
@@ -92,6 +99,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [lines, hydrated]);
 
   const add = useCallback((product: IProduct, qty: number) => {
+    const cap = (n: number) =>
+      product.stock === null ? n : Math.min(n, Math.max(product.stock, 0));
     setLines((prev) => {
       const existing = prev.find((l) => l.id === product.id);
       if (existing) {
@@ -99,18 +108,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
           l.id === product.id
             ? {
                 ...l,
-                // Refresh the snapshot — the price/image may have changed.
+                // Refresh the snapshot - the price/image/stock may have changed.
                 image: product.image,
                 leadTimeDays: product.leadTimeDays,
                 name: product.name,
                 price: product.price,
-                qty: l.qty + qty,
+                qty: cap(l.qty + qty),
                 slug: product.slug,
+                stock: product.stock,
                 unit: product.unit,
               }
             : l,
         );
       }
+      const first = cap(qty);
+      if (first <= 0) return prev;
       return [
         ...prev,
         {
@@ -119,8 +131,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           leadTimeDays: product.leadTimeDays,
           name: product.name,
           price: product.price,
-          qty,
+          qty: first,
           slug: product.slug,
+          stock: product.stock,
           unit: product.unit,
         },
       ];
@@ -130,7 +143,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const changeQty = useCallback((id: string, delta: number) => {
     setLines((prev) =>
       prev
-        .map((l) => (l.id === id ? { ...l, qty: l.qty + delta } : l))
+        .map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                qty:
+                  l.stock === null
+                    ? l.qty + delta
+                    : Math.min(l.qty + delta, l.stock),
+              }
+            : l,
+        )
         .filter((l) => l.qty > 0),
     );
   }, []);

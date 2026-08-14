@@ -90,7 +90,7 @@ export function Hero() {
           />
         </Reveal>
         <div
-          className="absolute bottom-0 left-[-14px] grid h-[clamp(96px,12vw,124px)] w-[clamp(96px,12vw,124px)] place-items-center rounded-full bg-accent text-[#FDFAF3]"
+          className="absolute bottom-0 left-[-14px] grid h-[clamp(96px,12vw,124px)] w-[clamp(96px,12vw,124px)] place-items-center rounded-full bg-accent text-card"
           aria-hidden="true"
         >
           {/* Only the text ring spins; the monogram stays upright. */}
@@ -105,7 +105,7 @@ export function Hero() {
                 d="M 50,50 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"
               />
             </defs>
-            <text className="fill-[#FDFAF3] font-sans text-[10.5px] font-semibold tracking-[0.24em]">
+            <text className="fill-card font-sans text-[10.5px] font-semibold tracking-[0.24em]">
               <textPath href="#kk-circ">
                 LEARN BY DOING · TAUGHT BY KHADY ·{' '}
               </textPath>

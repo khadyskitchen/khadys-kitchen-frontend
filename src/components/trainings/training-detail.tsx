@@ -30,7 +30,7 @@ function HeroContent({ training, dark }: { training: ITraining; dark: boolean })
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.12em]",
             training.applicationsOpen
-              ? "bg-[#2E6B3F]/90 text-cream"
+              ? "bg-success/90 text-cream"
               : dark
                 ? "bg-cream/15 text-cream/80"
                 : "bg-ink/[0.07] text-ink/55",
@@ -87,7 +87,7 @@ function HeroContent({ training, dark }: { training: ITraining; dark: boolean })
         {training.applicationsOpen ? (
           <a
             href="#apply"
-            className="rounded-full bg-accent px-[34px] py-4 text-[15px] font-semibold tracking-[0.06em] text-[#FDFAF3] no-underline transition-colors hover:bg-ink"
+            className="rounded-full bg-accent px-[34px] py-4 text-[15px] font-semibold tracking-[0.06em] text-card no-underline transition-colors hover:bg-ink"
           >
             Apply now{price ? ` · ${price}` : ""}
           </a>
@@ -258,7 +258,7 @@ function ContentSections({ training }: { training: ITraining }) {
 /* ── Page island ──────────────────────────────────────────────────────────── */
 
 /**
- * The class detail page body — hero, quick facts, curriculum, fees, and the
+ * The class detail page body - hero, quick facts, curriculum, fees, and the
  * application section. The `/trainings/[slug]` page fetches the record
  * server-side and passes it as `initialTraining`, so the primary content is
  * real HTML on first paint; RTK Query hydrates over it so seats/fees/enrolment
@@ -273,7 +273,7 @@ export function TrainingDetail({
 }) {
   const { data, isLoading, error, refetch } =
     useGetPublicTrainingBySlugQuery(slug);
-  const training = data ?? initialTraining;
+  const training = data?.data ?? initialTraining;
   const heroRef = useRef<HTMLElement>(null);
 
   // Only block on the skeleton when there's no server-rendered class to show.
@@ -291,7 +291,7 @@ export function TrainingDetail({
   }
 
   if (!training) {
-    // A 404 here means the class was unpublished after the shell rendered —
+    // A 404 here means the class was unpublished after the shell rendered -
     // a stale link, not a failure.
     const notFound =
       typeof error === "object" &&
@@ -338,7 +338,7 @@ export function TrainingDetail({
           </div>
         </section>
       ) : (
-        // No cover yet — a warm oat hero keeps the page composed.
+        // No cover yet - a warm oat hero keeps the page composed.
         <section ref={heroRef} className="border-b border-ink/10 bg-oat">
           <div className="mx-auto max-w-[1280px] px-[clamp(20px,5vw,48px)] py-[clamp(48px,7vw,96px)]">
             <HeroContent training={training} dark={false} />

@@ -7,7 +7,7 @@
 // can't read it) or a result that isn't actually smaller falls back to the
 // original file, so this can never make an upload worse.
 
-// Photos below this size are staged untouched — fast to upload anyway, and it
+// Photos below this size are staged untouched - fast to upload anyway, and it
 // keeps small transparent PNGs (logos) intact rather than flattening to JPEG.
 const OPTIMIZE_THRESHOLD_BYTES = 1024 * 1024;
 const DEFAULT_MAX_EDGE_PX = 2048;

@@ -25,7 +25,7 @@ export default async function ConfirmEmailChangePage({
     </Link>
   );
 
-  // A link with no token is unusable — the change must be requested again
+  // A link with no token is unusable - the change must be requested again
   // from the profile page.
   if (!token) {
     return (

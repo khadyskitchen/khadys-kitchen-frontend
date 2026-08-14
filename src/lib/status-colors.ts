@@ -7,52 +7,49 @@ export interface StatusColor {
   color: string;
 }
 
-/** Back-compat alias — pill palette consumed by StatusPill. */
-export type Pill = StatusColor;
-
-const DEFAULT: StatusColor = { bg: "rgba(194,24,91,0.12)", color: "#C2185B" };
+const DEFAULT: StatusColor = { bg: "color-mix(in srgb, var(--color-accent) 12%, transparent)", color: "var(--color-accent)" };
 
 const STATUS_COLORS: Record<string, StatusColor> = {
   // Applications
-  NEW: { bg: "rgba(194,24,91,0.12)", color: "#C2185B" },
-  APPROVED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  NEW: { bg: "color-mix(in srgb, var(--color-accent) 12%, transparent)", color: "var(--color-accent)" },
+  APPROVED: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   WAITLIST: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
-  REJECTED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
+  REJECTED: { bg: "color-mix(in srgb, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" },
   // Orders
   PENDING: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
   CONFIRMED: { bg: "rgba(92,107,69,0.15)", color: "#4A5838" },
   PROCESSING: { bg: "rgba(47,92,134,0.14)", color: "#2F5C86" },
-  READY: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  READY: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   COLLECTED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Payments
-  PAID: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  PAID: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   PARTIAL: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
-  UNPAID: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
-  SUCCESS: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
-  FAILED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
+  UNPAID: { bg: "color-mix(in srgb, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" },
+  SUCCESS: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
+  FAILED: { bg: "color-mix(in srgb, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" },
   REVERSED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Application (backend enum)
-  RECRUITED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  RECRUITED: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   WAITLISTED: { bg: "rgba(176,124,32,0.15)", color: "#8A5F14" },
   WITHDRAWN: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Shop orders
-  CANCELLED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
+  CANCELLED: { bg: "color-mix(in srgb, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" },
   // Training lifecycle
   DRAFT: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
-  UPCOMING: { bg: "rgba(194,24,91,0.12)", color: "#C2185B" },
-  ONGOING: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  UPCOMING: { bg: "color-mix(in srgb, var(--color-accent) 12%, transparent)", color: "var(--color-accent)" },
+  ONGOING: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   COMPLETED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
-  PUBLISHED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  PUBLISHED: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
   UNPUBLISHED: { bg: "rgba(36,26,18,0.08)", color: "rgba(36,26,18,0.55)" },
   // Training category (in-person vs online)
   IN_PERSON: { bg: "rgba(92,107,69,0.15)", color: "#4A5838" },
   ONLINE: { bg: "rgba(47,92,134,0.14)", color: "#2F5C86" },
   // Students / generic
-  ACTIVE: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
-  SUSPENDED: { bg: "rgba(163,32,54,0.1)", color: "#A32036" },
-  ADMITTED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
-  ENROLLING: { bg: "rgba(194,24,91,0.12)", color: "#C2185B" },
-  GRADUATED: { bg: "rgba(46,107,63,0.12)", color: "#2E6B3F" },
+  ACTIVE: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
+  SUSPENDED: { bg: "color-mix(in srgb, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" },
+  ADMITTED: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
+  ENROLLING: { bg: "color-mix(in srgb, var(--color-accent) 12%, transparent)", color: "var(--color-accent)" },
+  GRADUATED: { bg: "color-mix(in srgb, var(--color-success) 12%, transparent)", color: "var(--color-success)" },
 };
 
 /** Look up the pill colors for a status label (case-insensitive). */

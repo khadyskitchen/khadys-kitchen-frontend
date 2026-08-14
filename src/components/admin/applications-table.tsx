@@ -48,7 +48,7 @@ const PAGE_SIZE = 10;
 const label = (f: string) =>
   f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase();
 
-/** Applications table — standalone (all) or scoped to a training via `trainingId`.
+/** Applications table - standalone (all) or scoped to a training via `trainingId`.
  * URL-synced state; pass a `prefix` when two tables share a page. */
 export function ApplicationsTable({
   trainingId,
@@ -71,7 +71,9 @@ export function ApplicationsTable({
     useTableQuery({ defaults: DEFAULTS, prefix, pageSize: PAGE_SIZE });
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetApplicationsQuery({ trainingId, ...queryParams } as IApplicationListQuery);
+    useGetApplicationsQuery({ trainingId, ...queryParams } as IApplicationListQuery, {
+      refetchOnFocus: true,
+    });
   const [updateStatus] = useUpdateApplicationStatusMutation();
   const [deleteApplication] = useDeleteApplicationMutation();
   const { isAdmin } = useAuthRole();
@@ -89,7 +91,7 @@ export function ApplicationsTable({
   const rows = data?.data ?? [];
   const meta = data?.meta;
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (a: (typeof rows)[number]) => [
     {
@@ -206,7 +208,7 @@ export function ApplicationsTable({
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching applications"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
@@ -216,7 +218,7 @@ export function ApplicationsTable({
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />

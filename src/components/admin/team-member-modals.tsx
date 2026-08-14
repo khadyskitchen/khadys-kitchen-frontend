@@ -22,7 +22,7 @@ import {
   type UpdateTeamMemberValues,
 } from "@/validations/user-schema";
 
-/** Mirrors the backend's role ranks — shared by the team list and detail
+/** Mirrors the backend's role ranks - shared by the team list and detail
  * pages' "who may manage whom" checks. */
 export const ROLE_RANK: Record<UserRole, number> = {
   [UserRole.SUPER_ADMIN]: 3,

@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./training.types";
+import type { IPaginationMeta } from "./api";
 
 /** A shop order, mirroring the backend `toOrderDTO`. Amounts are pesewas. */
 export type OrderStatus =
@@ -59,7 +59,7 @@ export interface IOrderListResponse {
   meta: IPaginationMeta;
 }
 
-/** POST /orders response — code + optional Paystack redirect. */
+/** POST /orders response - code + optional Paystack redirect. */
 export interface IPlaceOrderResponse {
   message: string;
   data: {
@@ -78,7 +78,7 @@ export interface IPlaceOrderInput {
   pickupDate?: string;
   note?: string;
   payNow?: boolean;
-  /** Honeypot — must stay empty. */
+  /** Honeypot - must stay empty. */
   website?: string;
   /** Cloudflare Turnstile token; required by the backend when Turnstile is on. */
   turnstileToken?: string;
@@ -89,8 +89,8 @@ export interface IOrderListQuery {
   limit?: number;
   /** Only orders containing a line for this product. */
   productId?: string;
-  status?: string;
-  paymentStatus?: string;
+  status?: OrderStatus;
+  paymentStatus?: OrderPaymentStatus;
   customerId?: string;
   search?: string;
   /** Inclusive created-at date range (ISO strings); backend coerces to dates. */

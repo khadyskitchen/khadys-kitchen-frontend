@@ -53,7 +53,11 @@ export default function ItemsPage() {
       page,
       limit: PAGE_SIZE,
       search: (queryParams.search as string | undefined) ?? undefined,
-      category: filters.category !== "all" ? filters.category : undefined,
+      // Select options are the ProductCategory literals; "all" means unset.
+      category:
+        filters.category !== "all"
+          ? (filters.category as import("@/types/product.types").ProductCategory)
+          : undefined,
       isAvailable:
         filters.availability === "all"
           ? undefined
@@ -109,7 +113,7 @@ export default function ItemsPage() {
       },
     });
 
-  // One source for a row's actions — the desktop table and the mobile cards
+  // One source for a row's actions - the desktop table and the mobile cards
   // render the same menu.
   const menuItemsFor = (p: (typeof rows)[number]) => [
     {
@@ -129,7 +133,7 @@ export default function ItemsPage() {
               confirm({
                 title: "Delete this product?",
                 description:
-                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted — take it off sale first.",
+                  "Past orders keep their own copy of the name and price. An item that's still on sale can't be deleted - take it off sale first.",
                 confirmText: "Delete product",
                 isDestructive: true,
                 onConfirm: async () => {
@@ -202,7 +206,7 @@ export default function ItemsPage() {
       ) : !isLoading && rows.length === 0 ? (
         <EmptyState
           title="No matching items"
-          description="Nothing matches your current search or filters — try clearing them."
+          description="Nothing matches your current search or filters - try clearing them."
         />
       ) : (
         <>
@@ -212,7 +216,7 @@ export default function ItemsPage() {
               isFetching && !isLoading && "opacity-60",
             )}
           >
-            {/* Phones: row cards — every column's data visible, no side-scroll. */}
+            {/* Phones: row cards - every column's data visible, no side-scroll. */}
             <RowCardList>
               {isLoading ? (
                 <SkeletonRowCards />

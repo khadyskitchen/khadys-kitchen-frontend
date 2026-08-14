@@ -1,8 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "./use-debounce";
+
+/** The shape `queryParams` always carries before the table's own filters. */
+export interface TableQueryBase {
+  page: number;
+  limit?: number;
+  search?: string;
+}
 
 /**
  * URL-synced table state: page + a debounced search + string filters.
@@ -11,21 +18,29 @@ import { useDebounce } from "./use-debounce";
  * changes back into the query string. The mirror effect reads the *live* URL
  * (window.location) rather than the reactive `searchParams`, so writing the URL
  * can't feed back and cause a render loop, and it only navigates when the URL
- * actually differs (`router.replace(..., { scroll: false })` — no page jump).
+ * actually differs (`router.replace(..., { scroll: false })` - no page jump).
  *
  * `search` is the immediate input value; `queryParams.search` is the debounced
  * value that feeds the RTK query, so typing isn't chatty. Changing the search
  * or a filter resets to page 1. Pass a stable `defaults` (module const) and an
  * optional `prefix` to namespace params when two tables share a page.
  */
-export function useTableQuery<F extends Record<string, string>>({
+export function useTableQuery<
+  F extends Record<string, string>,
+  TQuery extends object = TableQueryBase & Record<string, unknown>,
+>({
   defaults,
   prefix = "",
   pageSize,
+  filterKeys,
 }: {
   defaults: F;
   prefix?: string;
   pageSize?: number;
+  /** Renames a filter in `queryParams` to the API's param name (e.g.
+   * `{ payment: "paymentStatus" }`) so call sites don't hand-map. Pass a
+   * stable object (module const). */
+  filterKeys?: Partial<Record<keyof F, string>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,49 +51,45 @@ export function useTableQuery<F extends Record<string, string>>({
     [prefix],
   );
 
-  const [page, setPageState] = useState(() => {
-    const parsed = Number(searchParams.get(key("page")) ?? "1");
-    return parsed > 0 ? parsed : 1;
-  });
-  const [searchInput, setSearchInput] = useState(
-    () => searchParams.get(key("search")) ?? "",
-  );
-  const [filters, setFiltersState] = useState<F>(() => {
-    const out = { ...defaults };
-    for (const name of Object.keys(defaults)) {
-      const value = searchParams.get(key(name));
-      if (value) (out as Record<string, string>)[name] = value;
-    }
-    return out;
-  });
-
-  const debouncedSearch = useDebounce(searchInput, 350);
-
   // Session memory: re-entering a table through the sidebar (a bare URL, no
-  // params) restores where you left it — page, search and filters — while an
+  // params) restores where you left it - page, search and filters - while an
   // explicit URL always wins and a fresh browser session starts clean.
   const storageKey = `kk-table:${pathname}${prefix ? `:${prefix}` : ""}`;
-  const restoredRef = useRef(false);
-  useEffect(() => {
-    if (restoredRef.current) return;
-    restoredRef.current = true;
-    const live = new URLSearchParams(window.location.search);
-    const names = ["page", "search", ...Object.keys(defaults)];
-    if (names.some((n) => live.has(key(n)))) return; // explicit URL wins
-    const saved = sessionStorage.getItem(storageKey);
-    if (!saved) return;
-    const sp = new URLSearchParams(saved);
-    const parsedPage = Number(sp.get(key("page")) ?? "1");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot restore on mount
-    setPageState(parsedPage > 0 ? parsedPage : 1);
-    setSearchInput(sp.get(key("search")) ?? "");
-    const next = { ...defaults };
-    for (const name of Object.keys(defaults)) {
-      const value = sp.get(key(name));
-      if (value) (next as Record<string, string>)[name] = value;
+
+  // Effective initial state, computed ONCE (lazy useState) so a restored
+  // table issues its first request with the restored params instead of a
+  // throwaway defaults request. The admin tables mount post-hydration
+  // (behind the auth guard), so sessionStorage is available; the
+  // `typeof window` guard keeps any server render safe by falling back to
+  // the URL params.
+  const [initial] = useState(() => {
+    let source: Pick<URLSearchParams, "get"> = searchParams;
+    if (typeof window !== "undefined") {
+      const live = new URLSearchParams(window.location.search);
+      const names = ["page", "search", ...Object.keys(defaults)];
+      if (!names.some((n) => live.has(key(n)))) {
+        const saved = sessionStorage.getItem(storageKey);
+        if (saved) source = new URLSearchParams(saved);
+      }
     }
-    setFiltersState(next);
-  }, [defaults, key, storageKey]);
+    const parsedPage = Number(source.get(key("page")) ?? "1");
+    const initialFilters = { ...defaults };
+    for (const name of Object.keys(defaults)) {
+      const value = source.get(key(name));
+      if (value) (initialFilters as Record<string, string>)[name] = value;
+    }
+    return {
+      page: parsedPage > 0 ? parsedPage : 1,
+      search: source.get(key("search")) ?? "",
+      filters: initialFilters,
+    };
+  });
+
+  const [page, setPageState] = useState(initial.page);
+  const [searchInput, setSearchInput] = useState(initial.search);
+  const [filters, setFiltersState] = useState<F>(initial.filters);
+
+  const debouncedSearch = useDebounce(searchInput, 350);
 
   // State → URL. Depends only on state (never on searchParams), reads the live
   // URL to preserve unrelated params, and navigates only when it changed.
@@ -112,7 +123,7 @@ export function useTableQuery<F extends Record<string, string>>({
 
   // URL → state, for browser back/forward only. The mirror above uses
   // `router.replace` (history.replaceState), which does NOT emit `popstate`, so
-  // this listener can't fire from our own writes — no feedback loop. A real
+  // this listener can't fire from our own writes - no feedback loop. A real
   // back/forward changes the URL without touching our state, so we adopt the
   // popped URL's values here; the mirror then sees the URL already matches state
   // and skips navigating (no extra history entry).
@@ -157,15 +168,20 @@ export function useTableQuery<F extends Record<string, string>>({
     setPageState(1);
   }, [defaults]);
 
+  // Typed for the consumer's query interface; the cast is the one central
+  // assertion that the defaults/filterKeys the caller provided line up with
+  // that interface (they name the same API params).
   const queryParams = useMemo(() => {
     const clean: Record<string, unknown> = { page };
     if (pageSize) clean.limit = pageSize;
     if (debouncedSearch.trim()) clean.search = debouncedSearch.trim();
     for (const [name, value] of Object.entries(filters)) {
-      if (value && value !== defaults[name]) clean[name] = value;
+      if (value && value !== defaults[name]) {
+        clean[filterKeys?.[name as keyof F] ?? name] = value;
+      }
     }
-    return clean;
-  }, [page, pageSize, debouncedSearch, filters, defaults]);
+    return clean as unknown as TQuery;
+  }, [page, pageSize, debouncedSearch, filters, defaults, filterKeys]);
 
   return {
     page,

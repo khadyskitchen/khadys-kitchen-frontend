@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ContactForm } from "@/components/contact/contact-form";
 
-// Mock the data layer so the form is tested in isolation — no store/network.
+// Mock the data layer so the form is tested in isolation - no store/network.
 const { sendTrigger } = vi.hoisted(() => ({ sendTrigger: vi.fn() }));
 
 vi.mock("@/redux/contact/contact-api", () => ({
@@ -16,10 +16,16 @@ beforeEach(() => {
 });
 
 describe("ContactForm", () => {
-  it("shows a validation error when submitted empty", async () => {
+  it("shows per-field validation errors when submitted empty", async () => {
     render(<ContactForm />);
     await userEvent.click(screen.getByRole("button", { name: "Send message" }));
-    expect(await screen.findByText(/Please add your name/i)).toBeInTheDocument();
+    // Every empty required field surfaces its own inline error.
+    expect(await screen.findAllByText(/Please add your name/i)).toHaveLength(3);
+    // The label element now also contains the inline error, so match loosely.
+    expect(screen.getByLabelText(/Your name/)).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(sendTrigger).not.toHaveBeenCalled();
   });
 

@@ -2,7 +2,7 @@ export interface AdminNavItem {
   label: string;
   href: string;
   isActive: (pathname: string) => boolean;
-  /** Hidden from STAFF — the backend 403s them on this surface. */
+  /** Hidden from STAFF - the backend 403s them on this surface. */
   adminOnly?: boolean;
 }
 
@@ -34,7 +34,7 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
     ],
   },
   // Shop surfaces (Orders, Customers, Shop items) are intentionally hidden from
-  // the sidebar for now — the pages still exist and work when navigated to
+  // the sidebar for now - the pages still exist and work when navigated to
   // directly, but the shop is not surfaced anywhere in the admin nav.
   { label: "Payments", href: "/admin/payments", isActive: (p) => p.startsWith("/admin/payments") },
   { label: "Gallery", href: "/admin/gallery", isActive: (p) => p.startsWith("/admin/gallery") },
@@ -43,7 +43,8 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   {
     label: "Security & logs",
     children: [
-      { label: "Audit log", href: "/admin/audit", isActive: (p) => p.startsWith("/admin/audit") },
+      // Admin-only: mirrors the backend, where audit routes require ADMIN.
+      { label: "Audit log", href: "/admin/audit", isActive: (p) => p.startsWith("/admin/audit"), adminOnly: true },
       { label: "Security", href: "/admin/security", isActive: (p) => p.startsWith("/admin/security") },
     ],
   },
@@ -71,7 +72,7 @@ export function entryIsActive(entry: AdminNavEntry, pathname: string): boolean {
 
 /**
  * Topbar breadcrumb + title for the current route. The dashboard title is a
- * fallback — AdminShell replaces it with a time-of-day greeting for the
+ * fallback - AdminShell replaces it with a time-of-day greeting for the
  * signed-in user.
  */
 export function routeMeta(pathname: string): { crumb: string; title: string } {

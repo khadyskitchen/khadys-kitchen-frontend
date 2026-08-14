@@ -4,7 +4,7 @@ import { TrainingGridSkeleton } from "@/components/trainings/training-card-skele
 /**
  * Shown while `/trainings` fetches the catalogue server-side. Wrapped in the
  * page's cream background since the trainings routes render their own header
- * (there's no shared layout) — so the load state stays branded.
+ * (there's no shared layout) - so the load state stays branded.
  */
 export default function TrainingsLoading() {
   return (

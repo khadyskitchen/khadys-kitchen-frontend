@@ -4,7 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   // Resolves the `@/` alias from tsconfig.json (no manual moduleNameMapper).
   plugins: [tsconfigPaths()],
-  // esbuild handles the automatic JSX runtime — no babel/react plugin needed.
+  // esbuild handles the automatic JSX runtime - no babel/react plugin needed.
   esbuild: { jsx: "automatic", jsxImportSource: "react" },
   test: {
     globals: true,

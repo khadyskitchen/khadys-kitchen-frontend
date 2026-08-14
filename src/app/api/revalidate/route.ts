@@ -6,12 +6,12 @@ import { ALL_CACHE_TAGS } from "@/lib/cache-tags";
 
 const SECRET_HEADER = "x-revalidate-secret";
 
-/** Upper bound well above the whole tag vocabulary — rejects abusive payloads. */
+/** Upper bound well above the whole tag vocabulary - rejects abusive payloads. */
 const MAX_TAGS_PER_REQUEST = 20;
 
 /**
  * Constant-time secret comparison. Both values are hashed first so the compare
- * is over fixed-length digests — this avoids leaking the secret length and
+ * is over fixed-length digests - this avoids leaking the secret length and
  * never throws on a length mismatch. Fails closed when the secret is not
  * configured, so an unset env var can never leave the endpoint open.
  */

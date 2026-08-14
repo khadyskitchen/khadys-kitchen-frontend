@@ -43,7 +43,7 @@ export default function WebsitePage() {
 
   const about = data?.data;
 
-  // Read-only until Edit — same idiom as the profile pages.
+  // Read-only until Edit - same idiom as the profile pages.
   const [editing, setEditing] = useState(false);
   const [photo, setPhoto] = useState<{ cleared: boolean; file: File | null }>({
     cleared: false,
@@ -217,7 +217,7 @@ export default function WebsitePage() {
               </div>
               <TextField
                 label="Pull quote"
-                placeholder="e.g. We don't just bake cakes — we create memories."
+                placeholder="e.g. We don't just bake cakes - we create memories."
                 error={errors.storyPullQuote?.message}
                 {...register("storyPullQuote")}
               />

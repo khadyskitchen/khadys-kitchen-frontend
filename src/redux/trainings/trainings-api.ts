@@ -1,10 +1,11 @@
 import { apiSlice } from "../api-slice";
+import type { ApiEnvelope } from "@/types/api";
+import { toMultipart } from "@/lib/to-multipart";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IMessageResponse } from "@/types/auth.types";
 import type {
   IFeeItem,
   IFeeItemInput,
-  ITraining,
   ITrainingInput,
   ITrainingListQuery,
   ITrainingListResponse,
@@ -13,20 +14,12 @@ import type {
 
 /** Files an admin selects on the form. Present ones travel WITH the save as
  * multipart (a `payload` JSON part + the file fields the backend expects). */
-export interface TrainingFiles {
+export type TrainingFiles = {
   coverImage?: File;
   prospectus?: File;
-}
+};
 
 const hasFile = (f?: TrainingFiles) => Boolean(f?.coverImage || f?.prospectus);
-
-const toMultipart = (body: unknown, files: TrainingFiles): FormData => {
-  const form = new FormData();
-  form.append("payload", JSON.stringify(body));
-  if (files.coverImage) form.append("coverImage", files.coverImage);
-  if (files.prospectus) form.append("prospectus", files.prospectus);
-  return form;
-};
 
 /**
  * Trainings, injected into the single `apiSlice`. The public surface lists
@@ -48,9 +41,11 @@ export const trainingsApi = apiSlice.injectEndpoints({
       providesTags: ["Trainings"],
     }),
 
-    getPublicTrainingBySlug: builder.query<ITraining, string>({
+    // Returns the standard `{ message, data }` envelope like every other
+    // slice - consumers read `data.data` (the previous unwrap was the one
+    // exception to the convention).
+    getPublicTrainingBySlug: builder.query<ITrainingResponse, string>({
       query: (slug) => ({ url: `trainings/${slug}`, method: "GET" }),
-      transformResponse: (res: ITrainingResponse) => res.data,
       // Slug-keyed detail also carries the list tag so list-level
       // invalidations (publish/edit) refresh it too.
       providesTags: (_r, _e, slug) => [{ type: "Training", id: slug }, "Trainings"],
@@ -76,9 +71,8 @@ export const trainingsApi = apiSlice.injectEndpoints({
       },
     ),
 
-    getTrainingById: builder.query<ITraining, string>({
+    getTrainingById: builder.query<ITrainingResponse, string>({
       query: (id) => ({ url: `admin/trainings/${id}`, method: "GET" }),
-      transformResponse: (res: ITrainingResponse) => res.data,
       providesTags: (_r, _e, id) => [{ type: "Training", id }],
     }),
 
@@ -103,7 +97,12 @@ export const trainingsApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: hasFile(files) ? toMultipart(body, files!) : body,
       }),
-      invalidatesTags: (_r, _e, { id }) => [{ type: "Training", id }, "Trainings"],
+      // DashboardStats: edits can change the open cohort's capacity card.
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: "Training", id },
+        "Trainings",
+        "DashboardStats",
+      ],
     }),
 
     publishTraining: builder.mutation<ITrainingResponse, string>({
@@ -111,7 +110,7 @@ export const trainingsApi = apiSlice.injectEndpoints({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           trainingsApi.util.updateQueryData("getTrainingById", id, (draft) => {
-            draft.isPublished = true;
+            draft.data.isPublished = true;
           }),
         );
         try {
@@ -132,7 +131,7 @@ export const trainingsApi = apiSlice.injectEndpoints({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           trainingsApi.util.updateQueryData("getTrainingById", id, (draft) => {
-            draft.isPublished = false;
+            draft.data.isPublished = false;
           }),
         );
         try {
@@ -150,12 +149,17 @@ export const trainingsApi = apiSlice.injectEndpoints({
 
     deleteTraining: builder.mutation<IMessageResponse, string>({
       query: (id) => ({ url: `admin/trainings/${id}`, method: "DELETE" }),
-      invalidatesTags: (_r, _e, id) => [{ type: "Training", id }, "Trainings"],
+      // DashboardStats: deleting the open cohort clears its dashboard card.
+      invalidatesTags: (_r, _e, id) => [
+        { type: "Training", id },
+        "Trainings",
+        "DashboardStats",
+      ],
     }),
 
     // Fee items on an existing training (the create form sends feeItems inline).
     addFeeItem: builder.mutation<
-      { message: string; data: IFeeItem },
+      ApiEnvelope<IFeeItem>,
       { trainingId: string; body: IFeeItemInput }
     >({
       query: ({ trainingId, body }) => ({
@@ -169,7 +173,7 @@ export const trainingsApi = apiSlice.injectEndpoints({
     }),
 
     updateFeeItem: builder.mutation<
-      { message: string; data: IFeeItem },
+      ApiEnvelope<IFeeItem>,
       { trainingId: string; feeItemId: string; body: Partial<IFeeItemInput> }
     >({
       query: ({ trainingId, feeItemId, body }) => ({

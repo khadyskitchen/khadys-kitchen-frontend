@@ -105,10 +105,11 @@ function RangePicker({
 
 export default function DashboardPage() {
   const [range, setRange] = useState<StatsRange>("week");
-  // Each section fetches independently — the activity feed erroring (or being
+  // Each section fetches independently - the activity feed erroring (or being
   // slow) never takes the stat cards down with it, and vice versa.
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useGetDashboardStatsQuery(range);
+    // Admin dashboards stay open all day - refresh on tab focus.
+    useGetDashboardStatsQuery(range, { refetchOnFocus: true });
   const activity = useGetAuditLogsQuery({ limit: 8 });
 
   const stats = data?.data;
@@ -215,14 +216,14 @@ function AggregatesSection({
   return (
     <>
       {/* Range switches keep the previous numbers on screen, dimmed, until the
-          new window arrives — the section never blanks. */}
+          new window arrives - the section never blanks. */}
       <div
         className={cn(
           "grid gap-5 transition-opacity",
           isFetching && "opacity-60",
         )}
       >
-        {/* Shop stats — the first three tiles are live/now, the fourth follows
+        {/* Shop stats - the first three tiles are live/now, the fourth follows
             the range. 2-up from small phones so the overview fits one screen. */}
         <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
           <TileLink
@@ -261,7 +262,7 @@ function AggregatesSection({
   );
 }
 
-/** Bake School snapshot — pairs with Recent activity on large screens; each
+/** Bake School snapshot - pairs with Recent activity on large screens; each
  * sits on its own row on tablets and phones. */
 function BakeSchoolCard({
   bakeSchool,
@@ -320,7 +321,7 @@ function BakeSchoolCard({
   );
 }
 
-/** Recent activity — fetched from the audit log on its own, with its own
+/** Recent activity - fetched from the audit log on its own, with its own
  * loading and error states, on a full row of its own. */
 function ActivitySection({
   activity,
@@ -375,7 +376,7 @@ function ActivitySection({
               <span className="min-w-0 flex-1 basis-40 truncate text-[14px] leading-[1.5] text-ink/[0.82]">
                 <span className="capitalize">{humanize(ev.action)}</span>
                 {ev.actor ? (
-                  <span className="text-ink/50"> — {ev.actor.name}</span>
+                  <span className="text-ink/50"> - {ev.actor.name}</span>
                 ) : null}
               </span>
               {/* Full-width second line on phones; inline on ≥sm. */}

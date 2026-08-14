@@ -52,7 +52,7 @@ export function TrainingCard({ training }: { training: ITraining }) {
             {TRAINING_CATEGORY_LABELS[training.category]}
           </span>
           {training.applicationsOpen ? (
-            <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#2E6B3F]/90 px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-cream">
+            <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-success/90 px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-cream">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-cream" />
               Enrolling now
             </span>
@@ -80,7 +80,7 @@ export function TrainingCard({ training }: { training: ITraining }) {
           <p className="line-clamp-2 min-h-[3.2em] text-[14.5px] leading-[1.6] text-ink/[0.68]">
             {training.summary}
           </p>
-          {/* On narrow cards a long price + the link can't share a line —
+          {/* On narrow cards a long price + the link can't share a line -
               wrap the whole link under the price (kept right-aligned by
               ml-auto) instead of breaking "View class" mid-phrase. */}
           <span className="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-ink/10 pt-3.5">

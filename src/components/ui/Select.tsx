@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  /** Accent (active) styling — e.g. a filter set to a non-default value. */
+  /** Accent (active) styling - e.g. a filter set to a non-default value. */
   active?: boolean;
   /** Class for the positioning wrapper (width, layout). */
   wrapperClassName?: string;

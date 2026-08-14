@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import { toMultipart } from "@/lib/to-multipart";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IMessageResponse } from "@/types/auth.types";
 import type {
@@ -28,14 +29,7 @@ export interface ITeamUserUpdateInput {
 
 /** A new photo travels WITH the save as multipart (a `payload` JSON part + the
  * `profilePicture` file the backend expects); without one we send plain JSON. */
-const toMultipart = (body: ITeamUserUpdateInput, photo: File): FormData => {
-  const form = new FormData();
-  form.append("payload", JSON.stringify(body));
-  form.append("profilePicture", photo);
-  return form;
-};
-
-/** Team management (/admin/users) — list, create, edit, role changes and
+/** Team management (/admin/users) - list, create, edit, role changes and
  * activate/deactivate/delete. Role changes are super-admin only; the backend
  * enforces the real rank rules (this UI only hides what would be refused). */
 export const usersApi = apiSlice.injectEndpoints({
@@ -71,7 +65,7 @@ export const usersApi = apiSlice.injectEndpoints({
       query: ({ id, body, photo }) => ({
         url: `admin/users/${id}`,
         method: "PATCH",
-        body: photo ? toMultipart(body, photo) : body,
+        body: photo ? toMultipart(body, { profilePicture: photo }) : body,
       }),
       invalidatesTags: (_r, _e, { id }) => [{ type: "User", id }, "Users"],
     }),

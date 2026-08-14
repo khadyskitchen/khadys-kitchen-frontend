@@ -24,7 +24,7 @@ const baseQuery = fetchBaseQuery({
 /**
  * Endpoints where a 401 IS the answer, not an expired session: refreshing
  * can't help (there's no session yet), and the state reset it triggers would
- * abort the request mid-flight — turning "Invalid credentials" into "Aborted".
+ * abort the request mid-flight - turning "Invalid credentials" into "Aborted".
  */
 const NO_REAUTH_URLS = new Set([
   "auth/login",
@@ -61,13 +61,17 @@ const baseQueryWithReauth: BaseQueryFn<
           api.dispatch(userLoggedIn({ user: refreshResult.data.data.user }));
           result = await baseQuery(args, api, extraOptions); // retry original
         } else {
-          // Refresh failed → end the session AND drop every cached query so
-          // stale data (e.g. a still-resolved `getMe`) can't keep RequireAuth
-          // rendering the console; its error path now engages and bounces to
-          // login. The refresh call above is a raw `baseQuery` (not routed
-          // through this reauth wrapper), so its own 401 never re-triggers us.
+          // Refresh failed -> end the client session and let the ORIGINAL 401
+          // propagate to the caller. Do NOT resetApiState here: the failing
+          // query (e.g. `getMe`) is still in flight, and resetting would wipe
+          // its substate before the rejection is recorded - the mounted hook
+          // then sees its subscription removed and re-initiates, producing an
+          // endless getMe -> refresh -> reset loop with a permanent spinner.
+          // RequireAuth's error path owns the teardown (logout + reset) after
+          // queueing the redirect. The refresh call above is a raw `baseQuery`
+          // (not routed through this reauth wrapper), so its own 401 never
+          // re-triggers us.
           api.dispatch(userLoggedOut());
-          api.dispatch(apiSlice.util.resetApiState());
         }
       } finally {
         release();

@@ -1,4 +1,5 @@
 import { apiSlice } from "../api-slice";
+import type { ApiEnvelope } from "@/types/api";
 import { toQueryString } from "@/lib/to-query-string";
 import type { IPayment, IRecordPaymentInput } from "@/types/application.types";
 import type {
@@ -9,7 +10,7 @@ import type {
   IPlaceOrderResponse,
 } from "@/types/order.types";
 
-/** Shop orders — the public guest checkout/tracking/pay surface and the admin
+/** Shop orders - the public guest checkout/tracking/pay surface and the admin
  * list/detail/lifecycle/payments surface. Amounts are pesewas. */
 export const ordersApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -26,7 +27,10 @@ export const ordersApi = apiSlice.injectEndpoints({
           ? { "Idempotency-Key": idempotencyKey }
           : undefined,
       }),
-      invalidatesTags: ["Orders", "Products"],
+      // "Products" refreshes stock in the public browser after checkout
+      // decrements it. No "Orders" here: admin caches never exist in the
+      // public browser session that places an order.
+      invalidatesTags: ["Products"],
     }),
 
     trackOrder: builder.query<IOrderResponse, string>({
@@ -35,7 +39,7 @@ export const ordersApi = apiSlice.injectEndpoints({
     }),
 
     payOrderByCode: builder.mutation<
-      { message: string; data: { authorizationUrl: string; balance: number } },
+      ApiEnvelope<{ authorizationUrl: string; balance: number }>,
       { code: string; email?: string }
     >({
       query: ({ code, email }) => ({
@@ -43,6 +47,9 @@ export const ordersApi = apiSlice.injectEndpoints({
         method: "POST",
         body: { email },
       }),
+      // Drop the tracked order from cache so the balance re-reads fresh when
+      // the customer returns from Paystack to the tracking page.
+      invalidatesTags: (_r, _e, { code }) => [{ type: "Order", id: code }],
     }),
 
     // ── Admin ─────────────────────────────────────────────────
@@ -68,7 +75,17 @@ export const ordersApi = apiSlice.injectEndpoints({
     /** Walk-in order recorded at the counter. */
     createOrder: builder.mutation<IOrderResponse, IPlaceOrderInput>({
       query: (body) => ({ url: "admin/orders", method: "POST", body }),
-      invalidatesTags: ["Orders", "Products", "DashboardStats"],
+      // Customers: order counts / totals on the customer views are derived
+      // from orders, so they change with every order-affecting mutation.
+      invalidatesTags: (result) => [
+        "Orders",
+        "Products",
+        "DashboardStats",
+        "Customers",
+        ...(result?.data.customerId
+          ? [{ type: "Customer" as const, id: result.data.customerId }]
+          : []),
+      ],
     }),
 
     setOrderStatus: builder.mutation<
@@ -82,16 +99,20 @@ export const ordersApi = apiSlice.injectEndpoints({
         url: `admin/orders/${id}/${action}`,
         method: "POST",
       }),
-      invalidatesTags: (_r, _e, { id }) => [
+      invalidatesTags: (result, _e, { id }) => [
         { type: "Order", id },
         "Orders",
         "Products",
         "DashboardStats",
+        "Customers",
+        ...(result?.data.customerId
+          ? [{ type: "Customer" as const, id: result.data.customerId }]
+          : []),
       ],
     }),
 
     getOrderPayments: builder.query<
-      { message: string; data: IPayment[] },
+      ApiEnvelope<IPayment[]>,
       string
     >({
       query: (id) => ({ url: `admin/orders/${id}/payments`, method: "GET" }),
@@ -99,19 +120,24 @@ export const ordersApi = apiSlice.injectEndpoints({
     }),
 
     recordOrderPayment: builder.mutation<
-      { message: string; data: IPayment },
-      { id: string; body: IRecordPaymentInput }
+      ApiEnvelope<IPayment>,
+      { id: string; body: IRecordPaymentInput; idempotencyKey?: string }
     >({
-      query: ({ id, body }) => ({
+      query: ({ id, body, idempotencyKey }) => ({
         url: `admin/orders/${id}/payments`,
         method: "POST",
         body,
+        headers: idempotencyKey
+          ? { "Idempotency-Key": idempotencyKey }
+          : undefined,
       }),
+      // "Customers": recorded money moves the customer's totalSpent.
       invalidatesTags: (_r, _e, { id }) => [
         { type: "Order", id },
         "Orders",
         "Payments",
         "DashboardStats",
+        "Customers",
       ],
     }),
   }),

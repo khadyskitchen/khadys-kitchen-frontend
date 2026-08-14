@@ -18,6 +18,7 @@ interface ConfirmOptions {
  */
 export function useConfirm() {
   const [opts, setOpts] = useState<ConfirmOptions | null>(null);
+  const [pending, setPending] = useState(false);
 
   const confirm = (options: ConfirmOptions) => setOpts(options);
 
@@ -25,14 +26,28 @@ export function useConfirm() {
     <ConfirmationDialog
       open={opts !== null}
       onOpenChange={(open) => {
-        if (!open) setOpts(null);
+        if (!open && !pending) setOpts(null);
       }}
       title={opts?.title ?? ""}
       description={opts?.description ?? ""}
       confirmText={opts?.confirmText}
       isDestructive={opts?.isDestructive}
+      isLoading={pending}
+      closeOnConfirm={false}
       onConfirm={() => {
-        void opts?.onConfirm();
+        // Hold the dialog open with a busy confirm button until the action
+        // settles - a slow mutation otherwise gives no feedback. Each action
+        // still owns its error toast.
+        const run = opts?.onConfirm();
+        if (run && typeof (run as Promise<void>).then === "function") {
+          setPending(true);
+          void (run as Promise<void>).finally(() => {
+            setPending(false);
+            setOpts(null);
+          });
+        } else {
+          setOpts(null);
+        }
       }}
     />
   );

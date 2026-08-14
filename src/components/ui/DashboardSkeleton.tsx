@@ -1,3 +1,5 @@
+// NOTE: style-guide demo only - real tables/dashboards use
+// SkeletonCells/SkeletonRowCards (table-bits) and per-page skeletons.
 import { Skeleton } from "@/components/ui/Skeleton";
 
 const BAR_HEIGHTS = ["40%", "62%", "48%", "80%", "58%", "100%", "36%"];

@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 
 export interface DateInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  /** Text shown while the field is empty — mobile browsers render an empty
+  /** Text shown while the field is empty - mobile browsers render an empty
    * `<input type="date">` as a bare box with no hint at all. */
   placeholder?: string;
   /** Classes for the relative wrapper (sizing usually lives here). */
   wrapperClassName?: string;
-  /** Position/typography overrides for the placeholder overlay — match the
+  /** Position/typography overrides for the placeholder overlay - match the
    * input's horizontal padding (defaults to `left-3` for `px-3` inputs). */
   placeholderClassName?: string;
 }
@@ -21,7 +21,7 @@ export interface DateInputProps
  * custom hint is overlaid; on focus the native text returns so keyboard
  * entry stays visible. Clicking anywhere on the field opens the picker.
  * Works controlled (pass `value`) or uncontrolled via react-hook-form's
- * `register` — emptiness is then read off the DOM node so `reset()` is
+ * `register` - emptiness is then read off the DOM node so `reset()` is
  * picked up too.
  */
 export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
@@ -39,7 +39,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
   ) {
     const innerRef = useRef<HTMLInputElement | null>(null);
     // Uncontrolled usage: emptiness must be read off the DOM node after every
-    // render — react-hook-form's reset() writes the value without an event, so
+    // render - react-hook-form's reset() writes the value without an event, so
     // the deliberately dependency-less effect re-checks each render (the
     // same-value setState bails out, so this can't loop).
     const [domEmpty, setDomEmpty] = useState(!props.defaultValue);
@@ -68,7 +68,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             try {
               e.currentTarget.showPicker?.();
             } catch {
-              // Unsupported (older iOS) — the native tap behaviour still opens it.
+              // Unsupported (older iOS) - the native tap behaviour still opens it.
             }
           }}
           className={cn(

@@ -6,7 +6,7 @@ import type {
   ICustomerResponse,
 } from "@/types/customer.types";
 
-/** Shop customers — accrued automatically from checkouts (keyed by phone).
+/** Shop customers - accrued automatically from checkouts (keyed by phone).
  * Admin browses history and keeps notes; there is nothing to create here. */
 export const customersApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

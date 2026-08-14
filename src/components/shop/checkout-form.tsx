@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
-import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { ChoiceButton, ChoiceGroup } from "@/components/ui/ChoiceButton";
 import { DateInput } from "@/components/ui/DateInput";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldError } from "@/components/ui/FieldError";
@@ -111,6 +111,15 @@ export function CheckoutForm() {
         return;
       }
 
+      // An idempotent replay can return the saved order WITHOUT a payment
+      // link (the original init failed). Land on the order page - it has its
+      // own Pay button - and say why.
+      if (data.payNow && !res.data.authorizationUrl) {
+        notify.error("Your order is saved, but the payment couldn't start", {
+          description: "Use the Pay button on your order page to try again.",
+        });
+      }
+
       clear();
       router.replace(`${shopOrder(res.data.code)}?placed=1`);
     } catch (err) {
@@ -129,7 +138,7 @@ export function CheckoutForm() {
         }
       }
       notify.error("Couldn't place your order", { description: message });
-      // A Turnstile token is single-use — reset so a retry gets a fresh one.
+      // A Turnstile token is single-use - reset so a retry gets a fresh one.
       setTurnstileReset((n) => n + 1);
     }
   };
@@ -237,7 +246,10 @@ export function CheckoutForm() {
           <span className="text-[13.5px] font-semibold uppercase tracking-[0.06em] text-ink/70">
             How would you like to pay?
           </span>
-          <div className="flex flex-wrap gap-2.5">
+          <ChoiceGroup
+            label="How would you like to pay?"
+            className="flex flex-wrap gap-2.5"
+          >
             <ChoiceButton
               selected={payNow === false}
               onClick={() => setValue("payNow", false)}
@@ -250,10 +262,10 @@ export function CheckoutForm() {
             >
               Pay online now (card / MoMo)
             </ChoiceButton>
-          </div>
+          </ChoiceGroup>
           {payNow === false ? (
             <p className="text-[13px] leading-[1.55] text-ink/55">
-              Send your payment directly (e.g. MoMo) and quote your order code —
+              Send your payment directly (e.g. MoMo) and quote your order code -
               we need it within 24 hours so we can start baking; unpaid orders
               are cancelled automatically.
             </p>
