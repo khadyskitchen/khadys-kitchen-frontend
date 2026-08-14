@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/site";
 const FOOTER_LINKS = [
   { label: "Home", href: routes.home },
   { label: "Trainings", href: routes.trainings },
+  { label: "Check your registration", href: routes.trainingStatus },
   { label: "Gallery", href: routes.gallery },
   { label: "Contact", href: routes.contact },
 ];
