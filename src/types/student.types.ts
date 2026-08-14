@@ -1,4 +1,5 @@
 import type { ApiEnvelope, PaginatedEnvelope } from "./api";
+import type { ApplicationPaymentStatus, IPayment } from "./application.types";
 
 /** Mirrors the backend `StudentStatus` enum (schema.prisma). */
 export type StudentStatus = "ACTIVE" | "SUSPENDED" | "GRADUATED" | "WITHDRAWN";
@@ -32,16 +33,13 @@ export interface IStudentPaymentSummary {
   amountPaid: number;
   balance: number;
   currency: string;
-  paymentStatus: import("./application.types").ApplicationPaymentStatus;
+  paymentStatus: ApplicationPaymentStatus;
 }
 
-export interface IStudentPaymentsResponse {
-  message: string;
-  data: {
-    summary: IStudentPaymentSummary;
-    payments: import("./application.types").IPayment[];
-  };
-}
+export type IStudentPaymentsResponse = ApiEnvelope<{
+  summary: IStudentPaymentSummary;
+  payments: IPayment[];
+}>;
 
 export interface IStudentListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */
