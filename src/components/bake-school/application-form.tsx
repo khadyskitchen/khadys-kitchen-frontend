@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   applicationSchema,
   type ApplicationValues,
+  MIN_FIRST_PAYMENT_RATIO,
 } from "@/validations/application-schema";
 import { Button } from "@/components/ui/Button";
 import { ChoiceButton } from "@/components/ui/ChoiceButton";
@@ -194,6 +195,15 @@ export function ApplicationForm({ training }: { training: ITraining }) {
         if (payAmount > total) {
           setError("partAmount", {
             message: "That's more than your fee — pay in full instead.",
+          });
+          return;
+        }
+        // The first payment confirms the registration, so it can't be token:
+        // at least 40% of the bill (mirrors the backend MIN_PART_PAYMENT rule).
+        const minimum = Math.ceil(total * MIN_FIRST_PAYMENT_RATIO);
+        if (payAmount < minimum) {
+          setError("partAmount", {
+            message: `Pay at least 40% to register - that's ${formatMoney(minimum, training.currency)}.`,
           });
           return;
         }
@@ -482,8 +492,13 @@ export function ApplicationForm({ training }: { training: ITraining }) {
                     message={errors.partAmount?.message}
                   />
                   <span className="text-[13px] font-normal normal-case tracking-normal text-ink/55">
-                    Pay any amount now — the balance stays on your receipt code
-                    and you can complete it anytime.
+                    Pay at least 40% (
+                    {formatMoney(
+                      Math.ceil(total * MIN_FIRST_PAYMENT_RATIO),
+                      training.currency,
+                    )}
+                    ) to secure your spot - the balance stays on your receipt
+                    code and you can complete it anytime.
                   </span>
                 </label>
               ) : null}

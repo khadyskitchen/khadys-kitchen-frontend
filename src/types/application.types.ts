@@ -1,3 +1,5 @@
+import type { PublicApplication } from "@/lib/public-api";
+
 /**
  * Bake School applications + the pay-now/pay-later flow, mirroring the backend
  * `apply` / payment contracts.
@@ -114,6 +116,19 @@ export interface IPayment {
 export interface IVerifyResponse {
   message: string;
   data: IPayment;
+}
+
+/** `POST /applications/lookup` — public status lookup. The receipt code alone
+ * is not enough: the contact (email or phone) must match the registration.
+ * Mirrors the backend `lookupApplicationSchema`. */
+export interface ILookupApplicationInput {
+  code: string;
+  contact: string;
+}
+
+export interface ILookupApplicationResponse {
+  message: string;
+  data: PublicApplication;
 }
 
 /** `GET /admin/applications/:id/payments`. */

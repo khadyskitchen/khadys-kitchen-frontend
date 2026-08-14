@@ -5,6 +5,7 @@
 export const routes = {
   home: "/",
   trainings: "/trainings",
+  trainingStatus: "/trainings/status",
   shop: "/shop",
   shopCart: "/shop/cart",
   shopCheckout: "/shop/checkout",

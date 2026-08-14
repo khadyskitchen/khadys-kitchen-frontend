@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { TrainingsCatalogue } from "@/components/trainings/trainings-catalogue";
@@ -44,6 +45,15 @@ export default async function TrainingsPage() {
               Whether you&rsquo;re starting from scratch or upgrading your
               skills, our classes are designed to help you bake with confidence
               and create cakes you&rsquo;ll be proud of.
+            </p>
+            <p className="mt-4 text-[14.5px] leading-[1.6] text-ink/60">
+              Already registered?{" "}
+              <Link
+                href={routes.trainingStatus}
+                className="font-semibold text-accent underline decoration-accent/40 underline-offset-4"
+              >
+                Check your status or pay your balance →
+              </Link>
             </p>
           </div>
         </section>

@@ -7,6 +7,8 @@ import type {
   IApplicationResponse,
   IApplyInput,
   IApplyResponse,
+  ILookupApplicationInput,
+  ILookupApplicationResponse,
   IPayment,
   IPaymentsListResponse,
   IRecordPaymentInput,
@@ -29,6 +31,15 @@ export const applicationsApi = apiSlice.injectEndpoints({
 
     verifyPayment: builder.mutation<IVerifyResponse, { reference: string }>({
       query: (body) => ({ url: "payments/verify", method: "POST", body }),
+    }),
+
+    // A mutation rather than a query: it's a guarded lookup (code + contact)
+    // fired on submit, and the result must never be shared across users.
+    lookupApplication: builder.mutation<
+      ILookupApplicationResponse,
+      ILookupApplicationInput
+    >({
+      query: (body) => ({ url: "applications/lookup", method: "POST", body }),
     }),
 
     // ── Admin ───────────────────────────────────────────────────────────────
@@ -142,6 +153,7 @@ export const applicationsApi = apiSlice.injectEndpoints({
 export const {
   useCreateApplicationMutation,
   useVerifyPaymentMutation,
+  useLookupApplicationMutation,
   useGetApplicationsQuery,
   useGetApplicationByIdQuery,
   useUpdateApplicationStatusMutation,
