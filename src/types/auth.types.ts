@@ -1,3 +1,5 @@
+import type { ApiEnvelope } from "./api";
+
 import type { IUser } from "./user.types";
 
 export interface IUserLoginInput {
@@ -24,10 +26,7 @@ export interface ITwoFactorChallenge {
 export type LoginData = { user: IUser } | ITwoFactorChallenge;
 
 /** Login response envelope - `data` is either a session user or a 2FA challenge. */
-export interface ILoginResponse {
-  message: string;
-  data: LoginData;
-}
+export type ILoginResponse = ApiEnvelope<LoginData>;
 
 /** Narrows a login payload to the 2FA-challenge branch. */
 export function isTwoFactorChallenge(

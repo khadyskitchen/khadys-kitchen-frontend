@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
 
 /** A shop order, mirroring the backend `toOrderDTO`. Amounts are pesewas. */
 export type OrderStatus =
@@ -48,26 +48,16 @@ export interface IOrder {
   updatedAt: string;
 }
 
-export interface IOrderResponse {
-  message: string;
-  data: IOrder;
-}
+export type IOrderResponse = ApiEnvelope<IOrder>;
 
-export interface IOrderListResponse {
-  message: string;
-  data: IOrder[];
-  meta: IPaginationMeta;
-}
+export type IOrderListResponse = PaginatedEnvelope<IOrder>;
 
 /** POST /orders response - code + optional Paystack redirect. */
-export interface IPlaceOrderResponse {
-  message: string;
-  data: {
-    code: string;
-    order: IOrder;
-    authorizationUrl?: string;
-  };
-}
+export type IPlaceOrderResponse = ApiEnvelope<{
+  code: string;
+  order: IOrder;
+  authorizationUrl?: string;
+}>;
 
 /** Mirrors the backend `placeOrderSchema` (order-validation.ts). */
 export interface IPlaceOrderInput {

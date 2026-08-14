@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { PaginatedEnvelope } from "./api";
 
 /** An audit-log entry, mirroring the backend toAuditDTO. */
 export interface IAuditLog {
@@ -12,11 +12,7 @@ export interface IAuditLog {
   createdAt: string;
 }
 
-export interface IAuditListResponse {
-  message: string;
-  data: IAuditLog[];
-  meta: IPaginationMeta;
-}
+export type IAuditListResponse = PaginatedEnvelope<IAuditLog>;
 
 export interface IAuditListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */

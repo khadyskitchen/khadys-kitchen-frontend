@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
 
 /** Mirrors the backend `StudentStatus` enum (schema.prisma). */
 export type StudentStatus = "ACTIVE" | "SUSPENDED" | "GRADUATED" | "WITHDRAWN";
@@ -23,16 +23,9 @@ export interface IStudent {
   training?: { id: string; name: string; slug: string };
 }
 
-export interface IStudentListResponse {
-  message: string;
-  data: IStudent[];
-  meta: IPaginationMeta;
-}
+export type IStudentListResponse = PaginatedEnvelope<IStudent>;
 
-export interface IStudentResponse {
-  message: string;
-  data: IStudent;
-}
+export type IStudentResponse = ApiEnvelope<IStudent>;
 
 export interface IStudentPaymentSummary {
   amountDue: number;

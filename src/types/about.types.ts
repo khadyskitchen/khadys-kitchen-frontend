@@ -1,6 +1,8 @@
 /** The home page's editable "About" (Our Story) content - the only editable
  * website content. Fields are null when an admin has cleared them; the whole
  * payload is null when nothing has ever been saved (static defaults apply). */
+import type { ApiEnvelope } from "./api";
+
 export interface IAboutContent {
   storyBody: string | null;
   storyEyebrow: string | null;
@@ -11,10 +13,7 @@ export interface IAboutContent {
   updatedAt: string;
 }
 
-export interface IAboutResponse {
-  message: string;
-  data: IAboutContent | null;
-}
+export type IAboutResponse = ApiEnvelope<IAboutContent | null>;
 
 export interface IAboutUpdateInput {
   storyBody?: string | null;

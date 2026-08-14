@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
 
 /** A kitchen gallery photo, mirroring the backend `toGalleryImageDTO`. The
  * photo IS the record - `image` is always set; `caption` doubles as the
@@ -12,16 +12,9 @@ export interface IGalleryImage {
   updatedAt: string;
 }
 
-export interface IGalleryImageResponse {
-  message: string;
-  data: IGalleryImage;
-}
+export type IGalleryImageResponse = ApiEnvelope<IGalleryImage>;
 
-export interface IGalleryImageListResponse {
-  message: string;
-  data: IGalleryImage[];
-  meta: IPaginationMeta;
-}
+export type IGalleryImageListResponse = PaginatedEnvelope<IGalleryImage>;
 
 export interface IGalleryListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */

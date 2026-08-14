@@ -10,6 +10,7 @@ import type {
 } from "@/types/auth.types";
 import { isTwoFactorChallenge } from "@/types/auth.types";
 import type { IUserResponse } from "@/types/user.types";
+import { toMultipart } from "@/lib/to-multipart";
 
 /**
  * Auth endpoints, injected into the single `apiSlice`. These mirror the
@@ -89,10 +90,11 @@ export const authApi = apiSlice.injectEndpoints({
     >({
       query: ({ body, photo }) => {
         if (photo) {
-          const form = new FormData();
-          form.append("payload", JSON.stringify(body));
-          form.append("profilePicture", photo);
-          return { url: "auth/me", method: "PATCH", body: form };
+          return {
+            url: "auth/me",
+            method: "PATCH",
+            body: toMultipart(body, { profilePicture: photo }),
+          };
         }
         return { url: "auth/me", method: "PATCH", body };
       },

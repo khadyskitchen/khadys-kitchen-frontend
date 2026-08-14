@@ -1,5 +1,7 @@
 /** Time window the dashboard's revenue + best-seller figures cover,
  * mirroring the backend `StatsRange` (stats.service.ts). */
+import type { ApiEnvelope } from "./api";
+
 export type StatsRange = "today" | "week" | "month" | "year" | "all";
 
 /** Pill label + inline noun ("Received this week", "Best sellers · today")
@@ -49,7 +51,4 @@ export interface IDashboardStats {
   };
 }
 
-export interface IDashboardStatsResponse {
-  message: string;
-  data: IDashboardStats;
-}
+export type IDashboardStatsResponse = ApiEnvelope<IDashboardStats>;

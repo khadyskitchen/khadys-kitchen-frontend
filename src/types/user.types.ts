@@ -4,6 +4,8 @@
  * password or `tokenVersion`). Khady's Kitchen users are console operators,
  * not storefront customers.
  */
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
+
 export enum UserRole {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
@@ -26,10 +28,7 @@ export interface IUser {
  * `sendSuccess({ user })` shape exactly: `{ message, data: { user } }`
  * (login, 2FA verify/confirm/disable, refresh-token, and `/auth/me` all use it).
  */
-export interface IUserResponse {
-  message: string;
-  data: { user: IUser };
-}
+export type IUserResponse = ApiEnvelope<{ user: IUser }>;
 
 /** A console account as the admin/users endpoints return it (backend
  * `toPublicUser`) - the signed-in shape plus account-management fields. */
@@ -40,16 +39,9 @@ export interface ITeamUser extends IUser {
 }
 
 /** Admin user endpoints return the user directly in `data` (no wrapper). */
-export interface ITeamUserResponse {
-  message: string;
-  data: ITeamUser;
-}
+export type ITeamUserResponse = ApiEnvelope<ITeamUser>;
 
-export interface ITeamUserListResponse {
-  message: string;
-  data: ITeamUser[];
-  meta: import("./api").IPaginationMeta;
-}
+export type ITeamUserListResponse = PaginatedEnvelope<ITeamUser>;
 
 export interface ITeamUserListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */

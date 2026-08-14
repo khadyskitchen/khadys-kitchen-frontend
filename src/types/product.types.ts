@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
 
 /** A shop product, mirroring the backend `toProductDTO`. Prices are minor
  * units (pesewas); `stock` null = made to order (no cap). */
@@ -24,16 +24,9 @@ export interface IProduct {
   updatedAt: string;
 }
 
-export interface IProductResponse {
-  message: string;
-  data: IProduct;
-}
+export type IProductResponse = ApiEnvelope<IProduct>;
 
-export interface IProductListResponse {
-  message: string;
-  data: IProduct[];
-  meta: IPaginationMeta;
-}
+export type IProductListResponse = PaginatedEnvelope<IProduct>;
 
 export interface IProductListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */

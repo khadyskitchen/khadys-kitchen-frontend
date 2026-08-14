@@ -1,7 +1,9 @@
 /**
- * Bake School applications + the pay-now/pay-later flow, mirroring the backend
- * `apply` / payment contracts.
+ * Bake School applications + the full/part payment flow, mirroring the
+ * backend `apply` / payment contracts.
  */
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
+
 export interface IApplyInput {
   trainingId: string;
   fullName: string;
@@ -84,16 +86,9 @@ export interface IApplication {
   training?: { id: string; name: string; slug: string };
 }
 
-export interface IApplicationListResponse {
-  message: string;
-  data: IApplication[];
-  meta: import("./api").IPaginationMeta;
-}
+export type IApplicationListResponse = PaginatedEnvelope<IApplication>;
 
-export interface IApplicationResponse {
-  message: string;
-  data: IApplication;
-}
+export type IApplicationResponse = ApiEnvelope<IApplication>;
 
 export interface IApplicationListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */
@@ -108,14 +103,11 @@ export interface IApplicationListQuery {
 }
 
 /** `POST /applications` - application created; `authorizationUrl` present when paying now. */
-export interface IApplyResponse {
-  message: string;
-  data: {
-    application: IApplication;
-    authorizationUrl?: string;
-    code: string;
-  };
-}
+export type IApplyResponse = ApiEnvelope<{
+  application: IApplication;
+  authorizationUrl?: string;
+  code: string;
+}>;
 
 /** Mirrors the backend `PaymentStatus` enum (schema.prisma). */
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REVERSED";
@@ -135,10 +127,7 @@ export interface IPayment {
 }
 
 /** `POST /payments/verify`. */
-export interface IVerifyResponse {
-  message: string;
-  data: IPayment;
-}
+export type IVerifyResponse = ApiEnvelope<IPayment>;
 
 /** `POST /applications/lookup` - public status lookup. The receipt code alone
  * is not enough: the contact (email or phone) must match the registration.
@@ -148,16 +137,10 @@ export interface ILookupApplicationInput {
   contact: string;
 }
 
-export interface ILookupApplicationResponse {
-  message: string;
-  data: PublicApplication;
-}
+export type ILookupApplicationResponse = ApiEnvelope<PublicApplication>;
 
 /** `GET /admin/applications/:id/payments`. */
-export interface IPaymentsListResponse {
-  message: string;
-  data: IPayment[];
-}
+export type IPaymentsListResponse = ApiEnvelope<IPayment[]>;
 
 export interface IRecordPaymentInput {
   amount: number;

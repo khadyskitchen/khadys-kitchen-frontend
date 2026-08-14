@@ -1,4 +1,4 @@
-import type { IPaginationMeta } from "./api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api";
 /**
  * Trainings (classes students enrol in), mirroring the backend `toTrainingDTO`.
  * A training stands alone - its name IS its kind ("Bakery Class", "Wedding
@@ -74,16 +74,9 @@ export interface ITraining {
 export type { IPaginationMeta } from "./api";
 
 /** `GET /trainings` - published classes, newest first. */
-export interface ITrainingListResponse {
-  message: string;
-  data: ITraining[];
-  meta: IPaginationMeta;
-}
+export type ITrainingListResponse = PaginatedEnvelope<ITraining>;
 
-export interface ITrainingResponse {
-  message: string;
-  data: ITraining;
-}
+export type ITrainingResponse = ApiEnvelope<ITraining>;
 
 export interface IFeeItemInput {
   name: string;

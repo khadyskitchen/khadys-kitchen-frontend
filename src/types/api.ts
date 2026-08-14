@@ -47,3 +47,9 @@ export interface IPaginationMeta {
   limit: number;
   totalPages: number;
 }
+
+/** List envelope (`{ message, data, meta }`) - mirrors `sendPaginated`. Named
+ * response types alias these envelopes instead of re-spelling the shape. */
+export type PaginatedEnvelope<T> = ApiEnvelope<T[]> & {
+  meta: IPaginationMeta;
+};

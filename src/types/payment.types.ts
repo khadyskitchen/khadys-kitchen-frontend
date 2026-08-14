@@ -1,5 +1,5 @@
 import type { IPayment, PaymentStatus } from "./application.types";
-import type { IPaginationMeta } from "./api";
+import type { PaginatedEnvelope } from "./api";
 
 /** A row in the unified admin payments ledger (backend `toLedgerPaymentDTO`) -
  * every payment across shop orders and bake-school applications, with a
@@ -14,11 +14,7 @@ export interface ILedgerPayment extends IPayment {
   order: { id: string; code: string; fullName: string } | null;
 }
 
-export interface ILedgerListResponse {
-  message: string;
-  data: ILedgerPayment[];
-  meta: IPaginationMeta;
-}
+export type ILedgerListResponse = PaginatedEnvelope<ILedgerPayment>;
 
 export interface ILedgerListQuery {
   /** Created-date window, YYYY-MM-DD (inclusive). */
