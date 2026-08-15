@@ -34,8 +34,19 @@ export function ApplicationStatus({
 }) {
   const status = STATUS_COPY[application.status];
   const firstName = application.fullName.split(" ")[0] || "friend";
+
+  // A charge we started but haven't confirmed yet. The balance above still
+  // counts it as owed - correctly, since we genuinely don't know it landed -
+  // but showing only "Balance: GHS 300" to someone who paid ten minutes ago
+  // invites them to pay it a second time. Say what's actually happening
+  // instead, and hold the pay button back while it resolves.
+  const settling = (application.payments ?? []).some(
+    (p) => p.status === "PENDING" && p.method === "PAYSTACK",
+  );
+
   const canPay =
     application.balance > 0 &&
+    !settling &&
     application.status !== "REJECTED" &&
     application.status !== "WITHDRAWN";
 
@@ -110,7 +121,18 @@ export function ApplicationStatus({
         ))}
 
         <div className="px-[clamp(22px,3.5vw,36px)] py-[clamp(22px,3vw,30px)] text-center">
-          {canPay ? (
+          {settling && application.balance > 0 ? (
+            <div className="mx-auto max-w-[46ch]">
+              <p className="text-[15px] font-semibold text-ink">
+                A payment is still being confirmed.
+              </p>
+              <p className="mt-1.5 text-[14.5px] leading-[1.6] text-ink/60">
+                If you&rsquo;ve just paid, give it a few minutes and refresh
+                this page - there&rsquo;s no need to pay again. Your balance
+                updates the moment it clears.
+              </p>
+            </div>
+          ) : canPay ? (
             <PayBalanceButton
               code={application.code}
               hasEmail={Boolean(application.email)}

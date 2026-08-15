@@ -21,6 +21,11 @@ import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
+import {
+  CHANNEL_FILTER_OPTIONS,
+  methodLabel,
+  paymentChannelLabel,
+} from "@/lib/payment-channel";
 import { formatDate, formatDateTime } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import { useTableQuery } from "@/hooks/use-table-query";
@@ -43,7 +48,14 @@ const METHOD_FILTERS = [
   "BANK_TRANSFER",
   "OTHER",
 ];
-const DEFAULTS = { owner: "all", status: "all", method: "all", from: "", to: "" };
+const DEFAULTS = {
+  owner: "all",
+  status: "all",
+  method: "all",
+  channel: "all",
+  from: "",
+  to: "",
+};
 const PAGE_SIZE = 15;
 
 const titleCase = (s: string) =>
@@ -79,6 +91,7 @@ export default function PaymentsPage() {
             ? (filters.status as import("@/types/application.types").PaymentStatus)
             : undefined,
         method: filters.method !== "all" ? filters.method : undefined,
+        channel: filters.channel !== "all" ? filters.channel : undefined,
         from: filters.from || undefined,
         to: filters.to || undefined,
       },
@@ -197,6 +210,18 @@ export default function PaymentsPage() {
             </option>
           ))}
         </LabeledSelect>
+        <LabeledSelect
+          label="Channel"
+          value={filters.channel}
+          active={filters.channel !== "all"}
+          onChange={(v) => setFilter("channel", v)}
+        >
+          {CHANNEL_FILTER_OPTIONS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </LabeledSelect>
         <DateRangeFields
           from={filters.from}
           to={filters.to}
@@ -241,7 +266,7 @@ export default function PaymentsPage() {
                         {formatMoney(p.amount, p.currency)}
                       </span>
                       <span className="min-w-0 truncate text-[11.5px] text-ink/45">
-                        {titleCase(p.method)}
+                        {paymentChannelLabel(p)}
                         {p.paidAt ? ` · ${formatDate(p.paidAt)}` : ""}
                       </span>
                     </div>
@@ -271,7 +296,7 @@ export default function PaymentsPage() {
                     <th className="px-6 py-3 font-semibold">Payment</th>
                     <th className="px-4 py-3 font-semibold">For</th>
                     <th className="px-4 py-3 font-semibold">Amount</th>
-                    <th className="px-4 py-3 font-semibold">Method</th>
+                    <th className="px-4 py-3 font-semibold">Paid with</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
                     <th className="px-4 py-3 font-semibold">Paid</th>
                     <th className="px-6 py-3.5" />
@@ -353,7 +378,18 @@ export default function PaymentsPage() {
                           {formatMoney(p.amount, p.currency)}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[13.5px] text-ink/70">
-                          {titleCase(p.method)}
+                          {paymentChannelLabel(p)}
+                          {/* The masked tail is Paystack's own masking ("X8765"),
+                              never the full instrument. */}
+                          {p.channelLast4 ? (
+                            <div className="mt-0.5 text-[11.5px] tabular-nums text-ink/45">
+                              {p.channelLast4}
+                            </div>
+                          ) : p.channel ? (
+                            <div className="mt-0.5 text-[11.5px] text-ink/45">
+                              {methodLabel(p.method)}
+                            </div>
+                          ) : null}
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge status={p.status} />

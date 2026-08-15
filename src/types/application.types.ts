@@ -50,6 +50,11 @@ export interface PublicApplication {
   balance: number;
   currency: string;
   createdAt: string;
+  /** The applicant's own ledger. Present on the by-code lookup, which is what
+   * lets the status panel tell "you haven't paid" apart from "your payment is
+   * still settling" - the difference between a correct balance and asking
+   * someone to pay twice. */
+  payments?: IPayment[];
   training?: { id: string; name: string; slug: string };
 }
 
@@ -112,7 +117,38 @@ export type IApplyResponse = ApiEnvelope<{
 /** Mirrors the backend `PaymentStatus` enum (schema.prisma). */
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REVERSED";
 
-export interface IPayment {
+/** Paystack channel strings, as the backend stores them verbatim. Widened with
+ * `(string & {})` so an unrecognised channel Paystack adds later still types -
+ * the display layer falls back to title-casing rather than the build breaking. */
+export type PaymentChannel =
+  | "bank"
+  | "bank_transfer"
+  | "card"
+  | "eft"
+  | "mobile_money"
+  | "qr"
+  | "ussd"
+  | (string & {});
+
+/** What the payer paid WITH, captured from Paystack at confirmation (backend
+ * `PaymentInstrumentDTO`). All null for manual counter payments and for rows
+ * settled before this was captured, so always render defensively. */
+export interface IPaymentInstrument {
+  /** mobile_money | card | bank | bank_transfer | ussd | qr | eft. */
+  channel: PaymentChannel | null;
+  /** Network ("MTN", "Vodafone", "AirtelTigo") or issuing bank, verbatim. */
+  channelBank: string | null;
+  /** Instrument brand, e.g. "Mtn", "visa". */
+  channelBrand: string | null;
+  /** Masked tail - a card's last4, or a MoMo number's "X8765". */
+  channelLast4: string | null;
+  /** "visa debit" and similar. Null on mobile money. */
+  cardType: string | null;
+  /** Paystack's receipt number, quoted by payers in support requests. */
+  receiptNumber: string | null;
+}
+
+export interface IPayment extends IPaymentInstrument {
   id: string;
   amount: number;
   currency: string;
@@ -124,6 +160,23 @@ export interface IPayment {
   reversedAt: string | null;
   createdAt: string;
   note: string | null;
+}
+
+/** Console-only fields (backend `AdminPaymentDTO`) - provider fees and payer
+ * identifiers, which the public surfaces deliberately never receive. */
+export interface IAdminPayment extends IPayment {
+  /** Card/account holder name, when the provider resolved one. */
+  accountName: string | null;
+  authorizationCode: string | null;
+  customerCode: string | null;
+  /** Provider fee in pesewas; net settled = amount - fee. */
+  fee: number | null;
+  /** Provider outcome text, e.g. "Approved". */
+  gatewayResponse: string | null;
+  /** The mobile money number that actually paid - often not the number on the
+   * order or application, which is what makes it useful when reconciling. */
+  momoNumber: string | null;
+  payerIp: string | null;
 }
 
 /** `POST /payments/verify`. */

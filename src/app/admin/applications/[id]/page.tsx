@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
+import { paymentChannelDetail } from "@/lib/payment-channel";
 import { formatDateTime } from "@/lib/format-date";
 import {
   useDeleteApplicationMutation,
@@ -324,7 +325,7 @@ export default function ApplicationDetailPage() {
                 </div>
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
                   <span className="text-[12px] text-ink/50">
-                    {p.method.replace("_", " ")} ·{" "}
+                    {paymentChannelDetail(p)} ·{" "}
                     {formatDateTime(p.paidAt ?? null)}
                     {p.reversedAt
                       ? ` · Reversed ${formatDateTime(p.reversedAt)}`

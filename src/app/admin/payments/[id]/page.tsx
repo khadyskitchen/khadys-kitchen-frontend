@@ -12,6 +12,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
+import { methodLabel, paymentChannelLabel } from "@/lib/payment-channel";
 import { formatDateTime } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import {
@@ -19,8 +20,6 @@ import {
   useRefundPaymentMutation,
 } from "@/redux/payments/payments-api";
 
-const titleCase = (s: string) =>
-  s.charAt(0) + s.slice(1).toLowerCase().replace("_", " ");
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -147,12 +146,58 @@ export default function PaymentDetailPage() {
               "-"
             )}
           </Row>
-          <Row label="Method">{titleCase(payment.method)}</Row>
+          <Row label="Paid with">
+            {paymentChannelLabel(payment)}
+            {payment.channelLast4 ? (
+              <span className="ml-1.5 tabular-nums text-ink/50">
+                {payment.channelLast4}
+              </span>
+            ) : null}
+          </Row>
+          {/* The number that actually paid, which is regularly not the one on
+              the order or application - a relative or a friend settles it. Kept
+              visible so reconciling by phone doesn't dead-end. */}
+          {payment.momoNumber ? (
+            <Row label="Paid from">
+              <span className="tabular-nums">{payment.momoNumber}</span>
+            </Row>
+          ) : null}
+          {payment.accountName ? (
+            <Row label="Account name">{payment.accountName}</Row>
+          ) : null}
+          {/* Only worth showing when it adds something the channel line didn't:
+              on a manual entry the method IS the whole story and appears above. */}
+          {payment.channel ? (
+            <Row label="Method">{methodLabel(payment.method)}</Row>
+          ) : null}
           <Row label="Paid">{formatDateTime(payment.paidAt ?? null)}</Row>
           {payment.reversedAt ? (
             <Row label="Reversed">{formatDateTime(payment.reversedAt)}</Row>
           ) : null}
           <Row label="Recorded">{formatDateTime(payment.createdAt)}</Row>
+          {payment.receiptNumber ? (
+            <Row label="Paystack receipt">
+              <span className="tabular-nums">{payment.receiptNumber}</span>
+            </Row>
+          ) : null}
+          {/* Only meaningful once the charge settled: a fee on a PENDING or
+              REVERSED row would read as money taken that wasn't. */}
+          {payment.fee !== null && payment.status === "SUCCESS" ? (
+            <>
+              <Row label="Paystack fee">
+                −{formatMoney(payment.fee, payment.currency)}
+              </Row>
+              <Row label="Net settled">
+                {formatMoney(payment.amount - payment.fee, payment.currency)}
+              </Row>
+            </>
+          ) : null}
+          {/* The provider's own words - the first thing to check when a payer
+              insists they paid and the ledger disagrees. */}
+          {payment.gatewayResponse &&
+          payment.gatewayResponse !== "Approved" ? (
+            <Row label="Provider response">{payment.gatewayResponse}</Row>
+          ) : null}
           {payment.note ? <Row label="Note">{payment.note}</Row> : null}
         </div>
       </Card>
