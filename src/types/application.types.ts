@@ -142,6 +142,10 @@ export interface IPaymentInstrument {
   channelBrand: string | null;
   /** Masked tail - a card's last4, or a MoMo number's "X8765". */
   channelLast4: string | null;
+  /** Masked head - a card's BIN, or a MoMo number's prefix ("055XXX"). */
+  channelBin: string | null;
+  /** Instrument country as Paystack resolved it, e.g. "GH". */
+  countryCode: string | null;
   /** "visa debit" and similar. Null on mobile money. */
   cardType: string | null;
   /** Paystack's receipt number, quoted by payers in support requests. */
@@ -177,6 +181,11 @@ export interface IAdminPayment extends IPayment {
    * order or application, which is what makes it useful when reconciling. */
   momoNumber: string | null;
   payerIp: string | null;
+  /** Bank transfer only: the account the money actually landed in. */
+  receiverBank: string | null;
+  receiverBankAccountNumber: string | null;
+  /** Whether Paystack will let this authorization be charged again. */
+  reusable: boolean | null;
 }
 
 /** `POST /payments/verify`. */

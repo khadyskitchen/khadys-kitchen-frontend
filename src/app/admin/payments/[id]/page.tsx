@@ -47,6 +47,18 @@ function ProviderDetails({ payment }: { payment: ILedgerPayment }) {
     { label: "Authorization", mono: true, value: payment.authorizationCode },
     { label: "Paystack customer", mono: true, value: payment.customerCode },
     { label: "Payer IP", mono: true, value: payment.payerIp },
+    { label: "Instrument country", value: payment.countryCode },
+    {
+      label: "Reusable",
+      // Cards can be charged again, mobile money never can - worth stating
+      // outright rather than leaving a bare boolean to be guessed at.
+      value:
+        payment.reusable === null
+          ? null
+          : payment.reusable
+            ? "Yes - can be charged again"
+            : "No - single use",
+    },
   ].filter((r): r is { label: string; mono?: boolean; value: string } =>
     Boolean(r.value),
   );
@@ -186,9 +198,14 @@ export default function PaymentDetailPage() {
           </Row>
           <Row label="Paid with">
             {paymentChannelLabel(payment)}
-            {payment.channelLast4 ? (
+            {/* Paystack masks both ends and never sends the middle, so
+                "055XXX ··· X8765" is the whole instrument we are allowed to
+                hold - enough for a payer to recognise their own number. */}
+            {payment.channelBin ?? payment.channelLast4 ? (
               <span className="ml-1.5 tabular-nums text-ink/50">
-                {payment.channelLast4}
+                {[payment.channelBin, payment.channelLast4]
+                  .filter(Boolean)
+                  .join(" ··· ")}
               </span>
             ) : null}
             {/* e.g. "visa debit" - says whether a card pulled from a current
@@ -209,6 +226,17 @@ export default function PaymentDetailPage() {
           ) : null}
           {payment.accountName ? (
             <Row label="Account name">{payment.accountName}</Row>
+          ) : null}
+          {/* Bank transfers only: which of our accounts the money landed in. */}
+          {payment.receiverBank ? (
+            <Row label="Received into">
+              {payment.receiverBank}
+              {payment.receiverBankAccountNumber ? (
+                <span className="ml-1.5 tabular-nums text-ink/50">
+                  {payment.receiverBankAccountNumber}
+                </span>
+              ) : null}
+            </Row>
           ) : null}
           {/* Only worth showing when it adds something the channel line didn't:
               on a manual entry the method IS the whole story and appears above. */}
