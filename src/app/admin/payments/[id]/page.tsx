@@ -13,6 +13,7 @@ import { notify } from "@/lib/notify";
 import { extractApiError } from "@/lib/extract-api-error";
 import { formatMoney } from "@/lib/format-money";
 import { methodLabel, paymentChannelLabel } from "@/lib/payment-channel";
+import type { ILedgerPayment } from "@/types/payment.types";
 import { formatDateTime } from "@/lib/format-date";
 import { useAuthRole } from "@/hooks/use-auth-role";
 import {
@@ -29,6 +30,43 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
         {children}
       </span>
     </div>
+  );
+}
+
+/**
+ * The identifiers Paystack returns that nobody needs day to day, but that are
+ * the whole game during a support call or a dispute: what the provider said,
+ * which authorization settled it, which customer profile it belongs to, and
+ * where the payer was. Collapsed by default so the numbers that matter stay at
+ * the top, and rendered only when there is something to show - a manual counter
+ * payment has none of this and gets no empty disclosure.
+ */
+function ProviderDetails({ payment }: { payment: ILedgerPayment }) {
+  const rows: { label: string; mono?: boolean; value: null | string }[] = [
+    { label: "Provider response", value: payment.gatewayResponse },
+    { label: "Authorization", mono: true, value: payment.authorizationCode },
+    { label: "Paystack customer", mono: true, value: payment.customerCode },
+    { label: "Payer IP", mono: true, value: payment.payerIp },
+  ].filter((r): r is { label: string; mono?: boolean; value: string } =>
+    Boolean(r.value),
+  );
+  if (rows.length === 0) return null;
+
+  return (
+    <details className="mt-4 border-t border-ink/[0.08] pt-3">
+      <summary className="cursor-pointer list-none text-[13.5px] font-semibold text-ink/55 transition-colors hover:text-accent">
+        Provider details
+      </summary>
+      <div className="mt-1 grid">
+        {rows.map((r) => (
+          <Row key={r.label} label={r.label}>
+            <span className={r.mono ? "font-mono text-[13px]" : undefined}>
+              {r.value}
+            </span>
+          </Row>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -153,6 +191,13 @@ export default function PaymentDetailPage() {
                 {payment.channelLast4}
               </span>
             ) : null}
+            {/* e.g. "visa debit" - says whether a card pulled from a current
+                account or a credit line, which the brand alone doesn't. */}
+            {payment.cardType ? (
+              <span className="ml-1.5 capitalize text-ink/50">
+                ({payment.cardType})
+              </span>
+            ) : null}
           </Row>
           {/* The number that actually paid, which is regularly not the one on
               the order or application - a relative or a friend settles it. Kept
@@ -192,14 +237,17 @@ export default function PaymentDetailPage() {
               </Row>
             </>
           ) : null}
-          {/* The provider's own words - the first thing to check when a payer
-              insists they paid and the ledger disagrees. */}
+          {/* A provider response that is NOT the routine "Approved" is the
+              first thing to look at, so it stays on the main card rather than
+              inside the collapsed block below. */}
           {payment.gatewayResponse &&
           payment.gatewayResponse !== "Approved" ? (
             <Row label="Provider response">{payment.gatewayResponse}</Row>
           ) : null}
           {payment.note ? <Row label="Note">{payment.note}</Row> : null}
         </div>
+
+        <ProviderDetails payment={payment} />
       </Card>
       {dialog}
     </div>
